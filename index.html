@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ha">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Katsina Online Business (KOB)</title>
+  <meta name="description" content="KOB — Haɗa Mutane • Gina Amincewa • Kasuwanci Mai Gaskiya" />
+  <link rel="apple-touch-icon" sizes="57x57" href="/apple-icon-57x57.png">
+  <link rel="apple-touch-icon" sizes="60x60" href="/apple-icon-60x60.png">
+  <link rel="apple-touch-icon" sizes="72x72" href="/apple-icon-72x72.png">
+  <link rel="apple-touch-icon" sizes="76x76" href="/apple-icon-76x76.png">
+  <link rel="apple-touch-icon" sizes="114x114" href="/apple-icon-114x114.png">
+  <link rel="apple-touch-icon" sizes="120x120" href="/apple-icon-120x120.png">
+  <link rel="apple-touch-icon" sizes="144x144" href="/apple-icon-144x144.png">
+  <link rel="apple-touch-icon" sizes="152x152" href="/apple-icon-152x152.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-icon-180x180.png">
+  <link rel="icon" type="image/png" sizes="192x192"  href="/android-icon-192x192.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="msapplication-TileColor" content="#ffffff">
+  <meta name="msapplication-TileImage" content="/ms-icon-144x144.png">
+  <meta name="theme-color" content="#ffffff">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: { DEFAULT: '#0ea5e9' },
+            accent: { DEFAULT: '#f97316' },
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-gray-50 text-gray-800">
+  <!-- NAV -->
+  <header class="bg-white border-b sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <a href="/" class="flex items-center gap-2">
+        <span class="inline-block w-8 h-8 rounded bg-primary"></span>
+        <span class="font-bold text-lg">KOB</span>
+      </a>
+      <nav class="hidden md:flex items-center gap-6">
+        <a href="#services" class="hover:text-primary">Ayyuka</a>
+        <a href="#products" class="hover:text-primary">Kayayyaki</a>
+        <a href="#sellers" class="hover:text-primary">Masu sayarwa</a>
+        <a href="#contact" class="hover:text-primary">Tuntuɓe mu</a>
+      </nav>
+      <div class="flex items-center gap-3">
+        <button id="loginBtn" class="bg-primary text-white px-4 py-2 rounded hover:bg-sky-600">Shiga</button>
+        <button id="logoutBtn" class="hidden border px-4 py-2 rounded hover:bg-gray-100">Fita</button>
+        <div id="userBadge" class="hidden flex items-center gap-2">
+          <img id="userAvatar" class="w-8 h-8 rounded-full" alt="">
+          <span id="userName" class="text-sm font-medium"></span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="bg-blue-100 text-center py-16 px-4">
+    <h1 class="text-4xl font-bold mb-4">Barka da zuwa Katsina Online Business (KOB)</h1>
+    <p class="text-lg mb-6">Haɗa Mutane • Gina Amincewa • Kasuwanci Mai Gaskiya</p>
+    <div class="flex flex-col sm:flex-row gap-3 justify-center">
+      <a href="https://chat.whatsapp.com/IC8axwFJH4dIHTFrJBz0iS" target="_blank"
+         class="bg-accent text-white px-6 py-3 rounded hover:bg-orange-600 transition">Shiga WhatsApp Community</a>
+      <a href="#products" class="border border-accent text-accent px-6 py-3 rounded hover:bg-orange-50 transition">Duba Kayayyaki</a>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section class="max-w-4xl mx-auto my-12 px-4">
+    <h2 class="text-2xl font-semibold mb-4">Menene KOB?</h2>
+    <p>
+      KOB (Katsina Online Business) al’umma ce da ke haɗa mutane domin kasuwanci da ko a fadin Jahar Katsina
+      dama kasa baki daya cikin girma juna da gaskiya, da amincewa a harkar online da offline business.
+    </p>
+  </section>
+
+  <!-- SERVICES -->
+  <section id="services" class="bg-white py-12">
+    <h2 class="text-2xl font-bold text-center mb-8">KOB Services</h2>
+    <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 px-4">
+      <a href="https://docs.google.com/forms/d/e/1FAIpQLSc5Ml7GWZNeNzKhbiqwfULxtFiQUQ0Cgt9eAM2is4JKou3F1Q/viewform?usp=header"
+         target="_blank" class="block p-6 bg-blue-100 rounded shadow hover:shadow-lg transition">
+        <h3 class="text-xl font-bold mb-2">KOB Express Delivery</h3>
+        <p>Cika fom domin aika kaya ko karɓa da sauri.</p>
+      </a>
+      <a href="https://docs.google.com/forms/d/e/1FAIpQLSfFfwnt78a-GnE7g8HTpY8MrcFz2K_WjPjLhPCQPAWoUi6muA/viewform?usp=header"
+         target="_blank" class="block p-6 bg-green-100 rounded shadow hover:shadow-lg transition">
+        <h3 class="text-xl font-bold mb-2">Verified Sellers</h3>
+        <p>Kasuwanci masu gaskiya su cika fom domin verification.</p>
+      </a>
+      <a href="https://docs.google.com/forms/d/e/1FAIpQLSdM7A__EUQPG0N-W_NNFEMQrZHLjqo7UjZ3JJItr1qnc1h8Iw/viewform?usp=header"
+         target="_blank" class="block p-6 bg-yellow-100 rounded shadow hover:shadow-lg transition">
+        <h3 class="text-xl font-bold mb-2">Rider / Agent</h3>
+        <p>Yi rijista a matsayin rider ko agent na KOB.</p>
+      </a>
+    </div>
+  </section>
+
+  <!-- PRODUCTS -->
+  <section id="products" class="max-w-6xl mx-auto my-12 px-4">
+    <div class="flex items-end justify-between mb-6">
+      <div>
+        <h2 class="text-2xl font-semibold">Kayayyaki</h2>
+        <p class="text-sm text-gray-600">Daga masu sayarwa da aka tantance.</p>
+      </div>
+      <div class="flex gap-3">
+        <input id="searchInput" type="text" placeholder="Bincika..." class="w-48 p-2 border rounded">
+        <select id="categoryFilter" class="p-2 border rounded">
+          <option value="">Duka</option>
+          <option value="Fashion">Fashion</option>
+          <option value="Electronics">Electronics</option>
+          <option value="Food">Food</option>
+        </select>
+      </div>
+    </div>
+    <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+    <div id="productEmpty" class="hidden text-center text-gray-500 py-6">Babu samfurin da ya dace da bincikenka.</div>
+  </section>
+
+  <!-- SELLERS -->
+  <section id="sellers" class="max-w-6xl mx-auto my-12 px-4">
+    <h2 class="text-2xl font-semibold mb-6">Masu sayarwa</h2>
+    <div id="sellerGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact" class="max-w-3xl mx-auto my-12 px-4">
+    <h2 class="text-2xl font-semibold mb-4">Tuntuɓe Mu</h2>
+    <form id="contactForm" class="space-y-4">
+      <input id="contactName" type="text" placeholder="Sunanka" class="w-full p-3 border rounded" required>
+      <input id="contactEmail" type="email" placeholder="Email" class="w-full p-3 border rounded" required>
+      <textarea id="contactMessage" placeholder="Sakon ka" class="w-full p-3 border rounded" required></textarea>
+      <button class="bg-accent text-white px-6 py-3 rounded hover:bg-orange-600">Aika</button>
+    </form>
+    <p id="contactStatus" class="mt-2 text-sm"></p>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="bg-white border-t py-6">
+    <div class="max-w-6xl mx-auto px-4 text-center text-sm text-gray-600">
+      © 2026 Katsina Online Business (KOB). An kiyaye duk haƙƙoƙi.
+    </div>
+  </footer>
+
+  <script src="/scripts/data.js"></script>
+  <script src="/scripts/auth.js"></script>
+  <script src="/scripts/seed.js"></script>
+  <script src="/scripts/app.js"></script>
+</body>
+</html>
