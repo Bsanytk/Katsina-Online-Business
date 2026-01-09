@@ -86,10 +86,27 @@
   <section id="marketplace" class="hidden max-w-6xl mx-auto px-4 py-10">
     <h3 class="text-2xl font-bold text-primary mb-4">
       Marketplace (Phase 2)
-    </h3>
-    <p class="text-gray-300">
-      Za a fara nuna kayayyaki a nan bayan Phase 2 ya kammala.
-    </p>
+    <div class="bg-white text-dark p-6 rounded-lg max-w-md">
+  <h4 class="font-bold mb-3">Add Product</h4>
+
+  <input id="productName" type="text" placeholder="Product name"
+    class="w-full mb-2 p-2 border rounded"/>
+
+  <input id="productPrice" type="number" placeholder="Price (₦)"
+    class="w-full mb-2 p-2 border rounded"/>
+
+  <button onclick="addProduct()"
+    class="w-full bg-primary text-dark py-2 rounded">
+    Add Product
+  </button>
+
+  <p id="productMessage" class="text-sm mt-2"></p>
+</div>
+
+<div class="mt-8">
+  <h4 class="text-xl font-bold text-gold mb-4">Products</h4>
+  <div id="productList" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+</div>
   </section>
 
   <!-- FOOTER -->
@@ -104,6 +121,10 @@
 
   <!-- Auth Logic -->
   <script type="module" src="./auth.js"></script>
+
+  
+  <!-- Marketplace Logic -->
+  <script type="module" src="./marketplace.js"></script>
 
 </body>
 </html>

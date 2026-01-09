@@ -1,9 +1,6 @@
 {
-  "projects": {
-    "default": "kob-community"
-  },
   "hosting": {
-    "public": "public",
+    "public": ".",
     "ignore": [
       "firebase.json",
       "**/.*",
