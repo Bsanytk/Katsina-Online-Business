@@ -1,0 +1,24 @@
+:root {
+  --kob-primary: #C5A059;
+  --kob-dark: #2D1E17;
+  --kob-gold: #D4AF37;
+}
+
+body {
+  background-color: #ffffff;
+  color: var(--kob-dark);
+}
+
+.kob-bg-dark {
+  background-color: var(--kob-dark);
+}
+
+.kob-btn {
+  background-color: var(--kob-primary);
+  color: white;
+}
+
+.kob-btn-outline {
+  border: 2px solid var(--kob-gold);
+  color: var(--kob-gold);
+}
