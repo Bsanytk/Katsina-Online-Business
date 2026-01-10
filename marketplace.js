@@ -9,7 +9,7 @@ import {
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-import {
+import {    
   getAuth,
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -99,3 +99,52 @@ onAuthStateChanged(auth, (user) => {
     productList.innerHTML = "";
   }
 });
+
+
+
+//---------------------------------
+// DELLETE PRODUCT (Optional)
+//---------------------------------
+import { doc, deleteDoc } from "firebase/firestore";
+import { db } from "../firebase";
+
+const deleteProduct = async (id) => {
+  if (!window.confirm("Tabbas kana son goge wannan kaya?")) return;
+  await deleteDoc(doc(db, "products", id));
+};
+
+// Usage example (attach to a button click event)
+<button onClick={() => deleteProduct(product.id)}>
+  Delete
+</button>
+
+// EDIT PRODUCT (Optional)
+import { updateDoc, doc } from "firebase/firestore";
+
+const updateProduct = async (id, data) => {
+  await updateDoc(doc(db, "products", id), data);
+}; 
+
+//ADMIN ONLY FEATURES (Optional)
+import { isAdmin } from "./utils/isAdmin";
+
+useEffect(() => {
+  const check = async () => {
+    const admin = await isAdmin();
+    console.log("Is Admin:", admin);
+  };
+  check();
+}, []);
+
+//NON ADMIN USERS CANNOT ACCESS ADMIN FEATURES
+useEffect(() => {
+  const protect = async () => {
+    const admin = await isAdmin();
+    if (!admin) {
+      alert("Ba ka da izinin shiga wannan shafi");
+      window.location.href = "/";
+    }
+  };
+  protect();
+}, []);
+

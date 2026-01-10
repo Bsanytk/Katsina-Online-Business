@@ -11,7 +11,7 @@ import {
 
 // Use the already initialized Firebase App
 const auth = getAuth();
-
+ 
 // DOM Elements
 const authMessage = document.getElementById("authMessage");
 const logoutBtn = document.getElementById("logoutBtn");
