@@ -2,20 +2,35 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    function isAdmin() {
-      return request.auth != null &&
-      get(/databases/$(database)/documents/users/$(request.auth.uid))
-      .data.role == "admin";
-    }
-
+    // ===== PRODUCTS =====
     match /products/{productId} {
+
+      // kowa zai iya karantawa
       allow read: if true;
-      allow create, update, delete: if isAdmin();
+
+      // admin ko verified seller kawai zai iya ƙara / gyara / sharewa
+      allow create, update, delete: if isAdmin() || isVerifiedSeller();
     }
 
-    match /users/{userId} {
-      allow read: if request.auth != null;
-      allow write: if isAdmin();
+    // ===== ADMINS =====
+    match /admins/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if false; // ana saka admin daga console kawai
     }
+
+    // ===== VERIFIED SELLERS =====
+    match /verifiedSellers/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if false; // ana saka su daga console
+    }
+  }
+
+  // ===== FUNCTIONS =====
+  function isAdmin() {
+    return exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+  }
+
+  function isVerifiedSeller() {
+    return exists(/databases/$(database)/documents/verifiedSellers/$(request.auth.uid));
   }
 }

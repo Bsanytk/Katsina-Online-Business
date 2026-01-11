@@ -83,32 +83,64 @@
   </section>
 
   <!-- MARKETPLACE PLACEHOLDER -->
-  <section id="marketplace" class="hidden max-w-6xl mx-auto px-4 py-10">
-    <h3 class="text-2xl font-bold text-primary mb-4">
-      Marketplace (Phase 2)
-    <div class="bg-white text-dark p-6 rounded-lg max-w-md">
-  <h4 class="font-bold mb-3">Add Product</h4>
+  <form id="addProductForm" class="space-y-4 max-w-md mx-auto bg-white p-6 rounded-lg shadow">
 
-  <input id="productName" type="text" placeholder="Product name"
-    class="w-full mb-2 p-2 border rounded"/>
+  class="w-full border border-gray-300 p-2 rounded text-[#2D1E17]"
+    Add New Product
+  </h2>
 
-  <input id="productPrice" type="number" placeholder="Price (₦)"
-    class="w-full mb-2 p-2 border rounded"/>
+  <!-- Error Message -->
+  <p id="formError" class="text-red-600 text-sm hidden"></p>
 
-  <button onclick="addProduct()"
-    class="w-full bg-primary text-dark py-2 rounded">
+  <!-- Product Name -->
+  <input
+    type="text"
+    id="productName"
+    placeholder="Product name"
+    required
+    class="w-full border border-gray-300 p-2 rounded text-[#2D1E17]"
+  />
+
+  <!-- Price -->
+  <input
+    type="number"
+    id="productPrice"
+    placeholder="Price (₦)"
+    required
+    class="w-full border border-gray-300 p-2 rounded text-[#2D1E17]"
+  />
+
+  <!-- product image url -->
+   <input
+     type="url"
+     id="productImage"
+     placeholder="Image URL (https://...)"
+     required
+     class="w-full border border-gray-300 p-2 rounded text-[#2D1E17]"
+     />
+
+  <!-- Description -->
+  <textarea
+    id="productDescription"
+    placeholder="Product description"
+    required
+    class="w-full border border-gray-300 p-2 rounded text-[#2D1E17]"
+  ></textarea>
+
+  <!-- Submit Button -->
+  <button
+    type="submit"
+    id="submitBtn"
+    class="w-full bg-[#C5A059] text-white py-2 rounded hover:bg-[#D4AF37]"
+  >
     Add Product
   </button>
 
-  <p id="productMessage" class="text-sm mt-2"></p>
-</div>
+</form>
 
-<div class="mt-8">
-  <h4 class="text-xl font-bold text-gold mb-4">Products</h4>
-  <div id="productList" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
-</div>
-  </section>
-
+  <button id="addProductBtn">
+  Add Product
+</button>
   <!-- FOOTER -->
   <footer class="bg-dark border-t border-primary mt-10">
     <div class="max-w-6xl mx-auto px-4 py-4 text-center text-sm text-gray-400">
@@ -126,10 +158,9 @@
   <!-- Marketplace Logic -->
   <script type="module" src="./marketplace.js"></script>
 
-  <!--- Storage -->
-  <script type="module" src="./storage.js"></script>
-  <!--- Admin Features -->
-  <script type="module" src="./admin.js"></script>
-  
+<!  <!-- Role Check Logic -->
+<script type="module" src="./role-check.js"></script>
+
+
 </body>
 </html>

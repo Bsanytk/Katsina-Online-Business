@@ -5,6 +5,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebas
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
+import { getStorage } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js"
 
 // 🔐 Firebase config na KOB
 const firebaseConfig = {
@@ -29,5 +30,7 @@ const firebaseConfig = {
               window.firebaseApp = app;
               window.auth = auth;
               window.db = db;
+              const storage = getStorage(app);
+              window.storage = storage
 
               console.log("✅ KOB Firebase connected successfully");
