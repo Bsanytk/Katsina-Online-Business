@@ -2,35 +2,68 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ===== PRODUCTS =====
-    match /products/{productId} {
+    /*
+      USERS COLLECTION
+      - Documents: /users/{uid}
+      - Expected field: `role` with value one of: "admin", "verified", "basic"
+      - Clients may read their own user document.
+      - Clients MAY create/update their own user doc but MUST NOT change the
+        `role` field from the client (roles must be assigned by trusted code
+        or via the Firebase console).
+    */
+    match /users/{uid} {
+      // Allow a signed-in user to read their own document
+      allow read: if request.auth != null && request.auth.uid == uid;
 
-      // kowa zai iya karantawa
+      // Allow a user to create/update their own document, but prevent clients
+      // from assigning or changing the `role` field. This prevents privilege
+      // escalation from the client side.
+      allow create, update: if request.auth != null && request.auth.uid == uid
+        && !(request.resource.data.keys().hasAny(['role'])
+             && (resource.data.role != request.resource.data.role));
+
+      // Disallow deletes from clients (roles and user cleanup should be
+      // handled by admin tools or server-side logic).
+      allow delete: if false;
+    }
+
+    /*
+      PRODUCTS COLLECTION
+      - Public read access for product browsing.
+      - Creation allowed only for roles: admin OR verified.
+      - Update/Delete allowed only for admin.
+      - All role checks are based on the authoritative /users/{uid} document.
+    */
+    match /products/{productId} {
+      // Anyone (including unauthenticated users) can read products
       allow read: if true;
 
-      // admin ko verified seller kawai zai iya ƙara / gyara / sharewa
-      allow create, update, delete: if isAdmin() || isVerifiedSeller();
-    }
+      // Only authenticated users whose /users/{uid}.role is 'admin' or
+      // 'verified' can create product documents.
+      allow create: if isAuthenticated() && isInRole(['admin', 'verified']);
 
-    // ===== ADMINS =====
-    match /admins/{uid} {
-      allow read: if request.auth != null && request.auth.uid == uid;
-      allow write: if false; // ana saka admin daga console kawai
-    }
-
-    // ===== VERIFIED SELLERS =====
-    match /verifiedSellers/{uid} {
-      allow read: if request.auth != null && request.auth.uid == uid;
-      allow write: if false; // ana saka su daga console
+      // Only admins can update or delete products.
+      allow update, delete: if isAuthenticated() && isInRole(['admin']);
     }
   }
 
-  // ===== FUNCTIONS =====
-  function isAdmin() {
-    return exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+  /* Helper functions */
+
+  // Check the request is authenticated
+  function isAuthenticated() {
+    return request.auth != null;
   }
 
-  function isVerifiedSeller() {
-    return exists(/databases/$(database)/documents/verifiedSellers/$(request.auth.uid));
+  // Read the user's document and return the role string, or null if unknown
+  function getUserRole() {
+    if (!isAuthenticated()) { return null; }
+    let u = get(/databases/$(database)/documents/users/$(request.auth.uid));
+    return u.exists() && u.data.keys().hasAny(['role']) ? u.data.role : null;
+  }
+
+  // Check whether the user's role appears in the provided list `roles`
+  function isInRole(roles) {
+    let role = getUserRole();
+    return role != null && roles.hasAny([role]);
   }
 }
