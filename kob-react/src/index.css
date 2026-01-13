@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root{
+  --kob-primary: #C5A059;
+  --kob-dark: #2D1E17;
+  --kob-gold: #D4AF37;
+  --kob-light: #F7F5F2;
+}
+
+html,body,#root{height:100%}
+body{font-family:system-ui, Avenir, Helvetica, Arial, sans-serif;line-height:1.5;color:var(--kob-dark);background-color:var(--kob-light);min-width:320px}
+
+/* Small helper classes */
+.container{max-width:1100px;margin-left:auto;margin-right:auto;padding:1rem}
