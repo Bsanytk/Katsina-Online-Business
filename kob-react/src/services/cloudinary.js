@@ -1,4 +1,4 @@
-// Cloudinary upload helper (unsigned upload preset)
+  // Cloudinary upload helper (unsigned upload preset)
 // Required env vars (vite):
 // VITE_CLOUDINARY_CLOUD_NAME
 // VITE_CLOUDINARY_UPLOAD_PRESET

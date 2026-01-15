@@ -4,15 +4,21 @@ import Loading from '../components/Loading'
 import ProductCard from '../components/ProductCard'
 import { useAuth } from '../firebase/auth'
 import { uploadImage } from '../services/cloudinary'
+import ProductList from '../components/marketplace/ProductList'
+import ProductFilter from '../components/marketplace/ProductFilter'
+import ProductForm from '../components/marketplace/ProductForm'
+import { Card, Alert } from '../components/ui'
 
 export default function Marketplace() {
   const [products, setProducts] = useState([])
+  const [filteredProducts, setFilteredProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [form, setForm] = useState({ title: '', description: '', price: '' })
-  const [imageFile, setImageFile] = useState(null)
-  const [imagePreview, setImagePreview] = useState(null)
+  const [submitting, setSubmitting] = useState(false)
   const [uploadingImage, setUploadingImage] = useState(false)
+  const [showForm, setShowForm] = useState(false)
+  const [editingProduct, setEditingProduct] = useState(null)
+  const [formError, setFormError] = useState(null)
 
   const { user } = useAuth()
 
@@ -25,6 +31,7 @@ export default function Marketplace() {
     try {
       const items = await getProducts()
       setProducts(items)
+      setFilteredProducts(items)
     } catch (err) {
       setError(err.message)
     } finally {
@@ -32,104 +39,159 @@ export default function Marketplace() {
     }
   }
 
-  function handleFileChange(e) {
-    const f = e.target.files?.[0]
-    setImageFile(f || null)
-    setImagePreview(f ? URL.createObjectURL(f) : null)
-  }
-
-  // Create product: if an image is selected we upload to Cloudinary first
-  // and store the returned imageURL in Firestore (field `imageURL`).
-  async function handleAdd(e) {
-    e.preventDefault()
-    if (!user) return alert('Login required to create product')
+  // Handle form submission (create or edit)
+  async function handleProductSubmit(formData) {
+    setSubmitting(true)
+    setFormError(null)
 
     try {
-      setError(null)
       let uploadedURL = null
-      if (imageFile) {
+
+      // Upload image if provided
+      if (formData.imageFile) {
         setUploadingImage(true)
         try {
-          // uploadImage uses VITE_CLOUDINARY_* env vars and returns secure_url
-          uploadedURL = await uploadImage(imageFile)
+          uploadedURL = await uploadImage(formData.imageFile)
         } catch (err) {
-          setError('Image upload failed: ' + err.message)
+          setFormError('Image upload failed: ' + err.message)
           setUploadingImage(false)
+          setSubmitting(false)
           return
         }
         setUploadingImage(false)
       }
 
-      // ownerUid links the product to the creating user
-      const payload = { ...form, price: Number(form.price) || 0, ownerUid: user.uid }
-      if (uploadedURL) payload.imageURL = uploadedURL
+      // Prepare payload
+      const payload = {
+        title: formData.title,
+        description: formData.description,
+        price: formData.price,
+        category: formData.category,
+        ownerUid: user.uid,
+      }
 
-      await addProduct(payload)
-      setForm({ title: '', description: '', price: '' })
-      setImageFile(null)
-      setImagePreview(null)
+      if (uploadedURL) {
+        payload.imageURL = uploadedURL
+      } else if (editingProduct && editingProduct.imageURL) {
+        // Keep existing image if not updating
+        payload.imageURL = editingProduct.imageURL
+      }
+
+      // Create or update
+      if (editingProduct) {
+        await updateProduct(editingProduct.id, payload)
+      } else {
+        await addProduct(payload)
+      }
+
+      // Reset form and refresh products
+      setShowForm(false)
+      setEditingProduct(null)
+      fetchProducts()
+    } catch (err) {
+      setFormError(err.message)
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  async function handleEdit(product) {
+    setEditingProduct(product)
+    setShowForm(true)
+    setFormError(null)
+  }
+
+  async function handleDelete(product) {
+    if (!confirm(`Delete "${product.title}"?`)) return
+
+    try {
+      await deleteProduct(product.id)
       fetchProducts()
     } catch (err) {
       setError(err.message)
     }
   }
 
-  async function handleEdit(product) {
-    const title = prompt('Title', product.title)
-    const description = prompt('Description', product.description)
-    if (title == null || description == null) return
-    await updateProduct(product.id, { title, description })
-    fetchProducts()
+  function handleCancelForm() {
+    setShowForm(false)
+    setEditingProduct(null)
+    setFormError(null)
   }
 
-  async function handleDelete(product) {
-    if (!confirm('Delete this product?')) return
-    await deleteProduct(product.id)
-    fetchProducts()
-  }
-
-  const canCreate = user && (user.role === 'admin' || user.role === 'verified')
+  const canCreate = user && (user.role === 'seller' || user.role === 'admin')
 
   return (
-    <main className="container py-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-kob-dark">Marketplace</h1>
+    <main className="min-h-screen bg-kob-light">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 py-6 mb-8">
+        <div className="container">
+          <h1 className="text-4xl font-bold text-kob-dark mb-2">Marketplace</h1>
+          <p className="text-gray-600">Browse and discover amazing products from sellers in Katsina</p>
+        </div>
       </div>
 
-      {error && <div className="mt-3 text-red-600">{error}</div>}
+      <div className="container pb-12">
+        {/* Global Error Alert */}
+        {error && (
+          <Alert type="error" className="mb-6">
+            {error}
+          </Alert>
+        )}
 
-      {canCreate && (
-        <form onSubmit={handleAdd} className="mt-6 mb-8 bg-white p-4 rounded shadow-sm">
-          <h4 className="font-semibold mb-3">Add product</h4>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <input className="p-2 border rounded" placeholder="Title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required />
-            <input className="p-2 border rounded" placeholder="Price" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} />
-            <textarea className="p-2 border rounded col-span-1 sm:col-span-2" placeholder="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} required />
-
-            <label className="block col-span-1 sm:col-span-2">
-              <div className="text-sm mb-1">Image (optional)</div>
-              <input type="file" accept="image/*" onChange={handleFileChange} />
-              {imagePreview && <img src={imagePreview} alt="preview" className="mt-2 w-48 h-36 object-cover rounded" />}
-            </label>
-
-            <div className="col-span-1 sm:col-span-2">
-              <button type="submit" disabled={uploadingImage || loading} className="px-4 py-2 bg-kob-primary text-white rounded">
-                {uploadingImage ? 'Uploading image...' : 'Create'}
-              </button>
-            </div>
+        {/* Add Product Section - Sellers Only */}
+        {canCreate && (
+          <div className="mb-12">
+            {!showForm ? (
+              <Card variant="elevated" className="p-6 text-center">
+                <div className="mb-4">
+                  <span className="text-4xl">📦</span>
+                </div>
+                <h3 className="text-xl font-bold text-kob-dark mb-2">Ready to Sell?</h3>
+                <p className="text-gray-600 mb-6">Create a product listing and start selling to thousands of buyers</p>
+                <button
+                  onClick={() => setShowForm(true)}
+                  className="px-6 py-2 bg-kob-primary hover:bg-opacity-90 text-white rounded-lg font-medium transition-all"
+                >
+                  ➕ Add New Product
+                </button>
+              </Card>
+            ) : (
+              <ProductForm
+                onSubmit={handleProductSubmit}
+                onCancel={handleCancelForm}
+                initialData={editingProduct}
+                loading={submitting}
+                error={formError}
+                uploadingImage={uploadingImage}
+              />
+            )}
           </div>
-        </form>
-      )}
+        )}
 
-      {loading ? (
-        <Loading />
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {products.map((p) => (
-            <ProductCard key={p.id} product={p} user={user} onEdit={handleEdit} onDelete={handleDelete} />
-          ))}
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Filters Sidebar */}
+          <div className="lg:col-span-1">
+            <ProductFilter
+              products={products}
+              onFilter={setFilteredProducts}
+            />
+          </div>
+
+          {/* Products List */}
+          <div className="lg:col-span-3">
+            <ProductList
+              products={filteredProducts}
+              loading={loading}
+              error={error}
+              user={user}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              itemsPerPage={12}
+            />
+          </div>
         </div>
-      )}
+      </div>
     </main>
   )
 }

@@ -1,0 +1,429 @@
+{
+  "common": {
+    "brand": "Kasuwan Kasua Online",
+    "brand_full": "Kasuwan Kasua Online (KKO)",
+    "kob": "KKO",
+    "loading": "Ana samun...",
+    "error": "Kuskure",
+    "success": "Nasara",
+    "cancel": "Soke",
+    "save": "Ajiye",
+    "delete": "Gida",
+    "edit": "Banbanta",
+    "back": "Baje",
+    "next": "Gaba",
+    "previous": "Baya",
+    "search": "Nema",
+    "filter": "Taƙaitawa",
+    "sort": "Shimme",
+    "logout": "Fita",
+    "login": "Shiga",
+    "register": "Zabe",
+    "email": "Imel",
+    "password": "Sirrin",
+    "phone": "Wayar",
+    "message": "Saƙo",
+    "contact_email": "bsanidatatech@gmail.com",
+    "contact_phone": "07089454544",
+    "contact_whatsapp_link": "https://wa.me/2347089454544"
+  },
+  "navigation": {
+    "home": "Gida",
+    "marketplace": "Kasuwan",
+    "dashboard": "Agogo",
+    "seller_dashboard": "Agogo Mai Sayarwa",
+    "help": "Taimakoni",
+    "contact": "Tuntubo",
+    "faq": "Tambayoyi",
+    "testimonials": "Shahadar",
+    "terms": "Kuddige",
+    "privacy": "Sirrin",
+    "teams": "Rukunin"
+  },
+  "home": {
+    "hero": {
+      "title": "Kasuwan Kasua Online",
+      "tagline": "Kasuwancin Amintaccin Katsina da Arewa Kudu",
+      "cta": "Fara Siyan Kaya",
+      "cta_seller": "Zama Mai Sayarwa"
+    },
+    "features": {
+      "title": "Me ya Fa Zaɓar KKO",
+      "secure": "Amintaccin Kariyai",
+      "verified": "Mai Sayarwa Tabbataccen",
+      "fast": "Iskar Sauri",
+      "support": "Taimakoni 24/7"
+    }
+  },
+  "marketplace": {
+    "title": "Kasuwan",
+    "no_products": "Babu kaya da aka samu",
+    "filter": "Taƙaitawa Kaya",
+    "sort": "Shimme Ta",
+    "price": "Farashin",
+    "rating": "Ƙididdigewa",
+    "newest": "Sabo",
+    "best_selling": "Sannan Sayin",
+    "add_to_cart": "Ƙara Kaɓa",
+    "view_details": "Duba Cikakke",
+    "in_stock": "Akwai Kaya",
+    "out_of_stock": "Babu Kaya"
+  },
+  "auth": {
+    "login": {
+      "title": "Shiga KKO",
+      "email_placeholder": "Saka imelka",
+      "password_placeholder": "Saka sirrinsa",
+      "forgot_password": "Mun Imele Sirrin?",
+      "submit": "Shiga",
+      "no_account": "Babu kasuoa?",
+      "register_here": "Zabe a nan",
+      "error": "Shigowa rashin nasara. Duba asusunka."
+    },
+    "register": {
+      "title": "Ƙirƙira Asusu KKO",
+      "name_placeholder": "Cikakken Suna",
+      "email_placeholder": "Adireshin Imel",
+      "password_placeholder": "Sirrin",
+      "confirm_password_placeholder": "Tabbatar Sirrin",
+      "role": "Zabe Azaman",
+      "buyer": "Kaiyanchi",
+      "seller": "Mai Sayarwa",
+      "submit": "Ƙirƙira Asusu",
+      "have_account": "Kun san asusu?",
+      "login_here": "Shiga a nan",
+      "error": "Zaben rashin nasara. Gwada sake.",
+      "terms_agreement": "Na yarda da Kuddiga ta Hidima da Sirrin"
+    }
+  },
+  "payment": {
+    "title": "Bulshi",
+    "amount": "Adadin",
+    "total": "Jami",
+    "currency": "₦",
+    "processing": "Ana samun bulshi...",
+    "success": "Bulshi nasara",
+    "failed": "Bulshi rashin nasara",
+    "cancelled": "Bulshi soke",
+    "error": "Kuskuren bulshi: {{message}}",
+    "verification_failed": "Tabbatar bulshi rashin nasara",
+    "required_fields": "Babu wasu filayen da ake bukata",
+    "invalid_amount": "Adadin dole ne ya zama mafi girma da 0",
+    "paystack_key_missing": "Saita Paystack babu"
+  },
+  "products": {
+    "title": "Kaya",
+    "add": "Ƙara Kaya",
+    "edit": "Banbanta Kaya",
+    "delete": "Gida Kaya",
+    "name": "Sunan Kaya",
+    "description": "Siffantawa",
+    "price": "Farashin",
+    "category": "Rukunin",
+    "image": "Hoton Kaya",
+    "stock": "Adadin Kaya",
+    "submit": "Aika",
+    "success": "Kaya ajiye a nasara",
+    "error": "Ajiye kaya rashin nasara"
+  },
+  "seller": {
+    "title": "Agogo Mai Sayarwa",
+    "profile": "Profayl Mai Sayarwa",
+    "products": "Kayaya",
+    "orders": "Odas",
+    "earnings": "Samun Kuɗi",
+    "ratings": "Ƙididdigewa",
+    "verification": "Yanayin Tabbatar",
+    "apply_verification": "Nema Tabbatar",
+    "verified_sellers_program": "Shirin Tabbataccen Mai Sayarwa",
+    "express_delivery": "Shigarwar Iskar Sauri",
+    "riders_agents": "Masu Hawa & Jambulai",
+    "forms": {
+      "seller_registration": "https://docs.google.com/forms/d/e/1FAIpQLSfFfwnt78a-GnE7g8HTpY8MrcFz2K_WjPjLhPCQPAWoUi6muA/viewform?usp=header",
+      "express_delivery": "https://docs.google.com/forms/d/e/1FAIpQLSc5Ml7GWZNeNzKhbiqwfULxtFiQUQ0Cgt9eAM2is4JKou3F1Q/viewform?usp=header",
+      "rider_agent": "https://docs.google.com/forms/d/e/1FAIpQLSdM7A__EUQPG0N-W_NNFEMQrZHLjqo7UjZ3JJItr1qnc1h8Iw/viewform?usp=header"
+    }
+  },
+  "footer": {
+    "about": "Game da KKO",
+    "company": "Kamfani",
+    "support": "Taimakoni",
+    "legal": "Shari'a",
+    "contact_us": "Tuntubo Mu",
+    "email": "Imel: {{email}}",
+    "phone": "Wayar/WhatsApp: {{phone}}",
+    "address": "Adireshin",
+    "social_media": "Bi Mu",
+    "copyright": "© 2024 Kasuwan Kasua Online. Duk hakki ajiye."
+  },
+  "help": {
+    "title": "Cibiyar Taimakoni",
+    "faq": "Tambayoyi da aka Bada",
+    "contact": "Tuntubo Taimakoni",
+    "getting_started": "Fara",
+    "account": "Asusu",
+    "buying": "Siyan Kaya",
+    "selling": "Sayarwa Kaya",
+    "payment": "Bulshi & Aika",
+    "dispute": "Jaddafawa & Jiya"
+  },
+  "contact": {
+    "title": "Tuntubo Mu",
+    "subtitle": "Muna son jin daga gida",
+    "name": "Sunanka",
+    "email": "Imellaka",
+    "subject": "Batu",
+    "message": "Saƙoka",
+    "send": "Aika Saƙo",
+    "success": "Saƙo aika a nasara",
+    "error": "Aika saƙo rashin nasara",
+    "phone_whatsapp": "Wayar/WhatsApp: {{phone}}",
+    "email_support": "Imel: {{email}}"
+  },
+  "errors": {
+    "not_found": "Babu shafi",
+    "not_found_title": "Ayyuka! Babu Shafi",
+    "not_found_message": "Shafin da kika nema bai wanzu ba ko janyewa.",
+    "go_home": "Komawa Gida",
+    "go_marketplace": "Zuwa Kasuwan",
+    "contact_support": "Tuntubo Taimakoni",
+    "unauthorized": "Ba a ba ka izini na samun shafi",
+    "server_error": "Kuskuren safo. Gwada sake jiya.",
+    "network_error": "Kuskuren sadarwa. Bada jiya habar ku.",
+    "validation_error": "Bada jiya aikin ku kuma gwada sake."
+  },
+  "terms": {
+    "title": "Kuddige da Sharadi",
+    "last_updated": "Saƙon karshe: Janairu 2026",
+    "acceptance": {
+      "heading": "1. Karbawar Sharadi",
+      "content": "Ta hanyar shiga gida ka kulawar Katsina Online Business (KOB) yayin amfani, kana yarda kana kulawar sharadun wadata."
+    },
+    "responsibilities": {
+      "heading": "2. Albarkatun Mai Amfani",
+      "items": [
+        "Ke da karfi na tsare alamar asusun ka",
+        "Yin alkarari na karbawar duk abin da ke faru",
+        "Samar da gaskiya gabaɗaya lokacin zabe",
+        "Ka yarda ba da hanya mara-haram don amfani"
+      ]
+    },
+    "product_listings": {
+      "heading": "3. Kayan Sayarwa da Tallace",
+      "intro": "Mai sayarwa ana albarkatun:",
+      "items": [
+        "Bayyana kayan da suke sanyi gaskiya",
+        "Tabbatar kayan sun cika yadda doka ta damka",
+        "Samar da cikakken bayanai na jigilar kaya",
+        "Juriya da mayar jiya ga sayan"
+      ]
+    },
+    "prohibited": {
+      "heading": "4. Ayyukan da ba za a yi",
+      "intro": "Ka yarda ba da aikin:",
+      "items": [
+        "Filaɗe labarin mara-haram",
+        "Damre, barazana ko tashe jiya",
+        "Amfani da kayan sadarwa don shigar da kasar",
+        "Ƙoƙarin shigar marasa izini",
+        "Yin aika labarin karya"
+      ]
+    },
+    "liability": {
+      "heading": "5. Iyaka na Albarkatun",
+      "content": "KOB ana samun 'KAMAR NE' da 'AKWAI'. Ba mu da tabbatarwa. Ba za mu yi nauyi na duk sakaci na karya ba."
+    },
+    "dispute_resolution": {
+      "heading": "6. Warkar Jiya",
+      "content": "Duk sakaci da ke fito daga amfani za a warke ta jiya a kan ma'aiki ko masa'ilaci."
+    },
+    "changes": {
+      "heading": "7. Canja wa Sharadi",
+      "content": "Mu da karfi na canja wa sharadi a kowane lokaci. Sauye zai aiki nan da nan."
+    },
+    "contact": {
+      "heading": "8. Tuntubo Mu",
+      "content": "Don tambayoyi game da sharadin nan, tuntubo mu a:"
+    }
+  },
+  "privacy": {
+    "title": "Sirin Jama'a",
+    "last_updated": "Saƙon karshe: Janairu 2026",
+    "intro": "KOB ke da buƙa na tsare asiri na jama'a. Wadata nan ta bayyana yadda muke tara, amfani, da tsare alama.",
+    "collection": {
+      "heading": "1. Alama da muke tara",
+      "intro": "Muke tara alama da kake samar da kai tsaye:",
+      "items": [
+        "Bayanai na asusun (suna, imel, wayar, adreshi)",
+        "Alama na biyan kuɗi",
+        "Bayanan kayan sayarwa",
+        "Alamun saƙo da taimakonin",
+        "Alama na ajiya"
+      ]
+    },
+    "usage": {
+      "heading": "2. Yadda muke amfani",
+      "intro": "Muke amfani da alama don:",
+      "items": [
+        "Samar da abubuwan da muke aiki",
+        "Sayar da tabbatarwa",
+        "Aika sakaci da labari",
+        "Tsare jiya da amniyo",
+        "Kyauta ga kuwa"
+      ]
+    },
+    "protection": {
+      "heading": "3. Tsare Alama",
+      "content": "Muke amfani da tsarewa gida don tsare alama. Ko ta haka, babu neman 100% tsare."
+    },
+    "sharing": {
+      "heading": "4. Raba Alama",
+      "content": "Ba mu sayar da alama ga waje. Amma za mu raba da masu taimakonin amfani."
+    },
+    "retention": {
+      "heading": "5. Adana Alama",
+      "content": "Muke adana alama domin kun aiki. Za ka iya neman gogewa anytime."
+    },
+    "rights": {
+      "heading": "6. Haƙƙinsa",
+      "content": "Ka da haƙƙin samun, sabunta, ko gida alama. Kuma za ka iya soke labari."
+    },
+    "cookies": {
+      "heading": "7. Cookies",
+      "content": "Muke amfani da cookies don kyauta. Za ka iya canja sa browser."
+    },
+    "contact": {
+      "heading": "8. Tuntubo Mu",
+      "content": "Don tambayoyi game da sirin jama'a, tuntubo mu a:"
+    }
+  },
+  "faq": {
+    "title": "Tambayoyi da aka buƙata",
+    "subtitle": "Nemo amsa ga tambayoyi game da KOB",
+    "items": [
+      {
+        "question": "Ina zan ƙirƙira asusun?",
+        "answer": "Bugi buttona da za a yi zabe. Za ka karɓa imel na tabbatar."
+      },
+      {
+        "question": "Ina zan sayar da kaya?",
+        "answer": "Tafi ga dashboard da bugi 'Ƙara Kaya'. Cika bayanan, ɗora hotuna, kuma saita farashin."
+      },
+      {
+        "question": "Akwai biyan sayarwa?",
+        "answer": "Aika mai sayarwa shine kyauta. Duba shiryin tabbatacciyar mai sayarwa."
+      },
+      {
+        "question": "Yadda amfani na biyan kuɗi?",
+        "answer": "Muke amfani da tsarewa gida. Duk abubuwa da su amfani ba dole ba sa bayar."
+      },
+      {
+        "question": "Za ni iya canja sayarwa?",
+        "answer": "Ah! Kana iya canja ko gida a anytime. Canja za ayi nan da nan."
+      },
+      {
+        "question": "Meye idan akwai matsala?",
+        "answer": "Tuntubo mai sayarwa ko taimakonin. Muna aiki Jiya-Juma, 9AM-6PM WAT."
+      },
+      {
+        "question": "Nawa lokaci jigilar kaya?",
+        "answer": "Lokaci ya dogara ga abubuwan. Sauran Katsina gida 2-3 aiki."
+      },
+      {
+        "question": "Meye idan kaya ta kashe?",
+        "answer": "Bayya sakacinwa a jiya. Za mu taimakonka ko bayar kuɗi."
+      }
+    ]
+  },
+  "productFilter": {
+    "title": "Taƙaitawa Kaya",
+    "search": "Nema Kaya",
+    "searchPlaceholder": "Nema ta suna, bayanai...",
+    "category": "Nau'i",
+    "allCategories": "Duk Nau'i",
+    "priceRange": "Jiya Farashin",
+    "allPrices": "Duk Farashi",
+    "minPrice": "Mafi Kadan Farashin (₦)",
+    "maxPrice": "Mafi Yawa Farashin (₦)",
+    "clearFilters": "Gogewa Taƙaitawa",
+    "tip": "💡 Haɗa taƙaitawa don gano abin da kika nema",
+    "location": "Waje",
+    "allLocations": "Duk Waje",
+    "sellerType": "Nau'in Mai Sayarwa",
+    "allSellers": "Duk Mai Sayarwa",
+    "verified": "Tabbatacciya Kawai",
+    "individual": "Mutum",
+    "business": "Kasuwa"
+  },
+  "productList": {
+    "noProducts": "Babu Kaya",
+    "noProductsMessage": "Babu kaya da ta dace. Gwada canja taƙaitawa.",
+    "loadingProducts": "Ana samun kaya...",
+    "errorLoading": "Kuskuren Samun Kaya",
+    "errorLoadingMessage": "Ba na samun kaya. Gwada sake.",
+    "retry": "Sake Gwada",
+    "previous": "← Baya",
+    "next": "Gaba →",
+    "pageInfo": "Shafi {{current}} na {{total}}",
+    "verifiedBadge": "✓ Tabbatacciyar Mai Sayarwa",
+    "viewDetails": "Duba Cikakke",
+    "addCart": "Ƙara zuwa Jaki"
+  },
+  "productForm": {
+    "title": "Nuni Kaya",
+    "editProduct": "Banbanta Kaya",
+    "addProduct": "Ƙara Kaya",
+    "productName": "Sunan Kaya",
+    "productNamePlaceholder": "Shigar da sunan kaya",
+    "description": "Bayanai",
+    "descriptionPlaceholder": "Bayyana kaya da cikakke",
+    "category": "Nau'i",
+    "selectCategory": "Zabar nau'i",
+    "price": "Farashin (₦)",
+    "pricePlaceholder": "Shigar da farashin",
+    "location": "Waje",
+    "selectLocation": "Zabar waje",
+    "quantity": "Adadin Jari",
+    "quantityPlaceholder": "Nawa abin da akwai?",
+    "images": "Hotuna Kaya",
+    "uploadImages": "Ɗora Hotuna",
+    "imagePreview": "Duba Hoto",
+    "removeImage": "Cire",
+    "selectImages": "Zabar hotuna daga ajiya",
+    "maxImages": "Mafi yawa hotuna 5 kaya",
+    "draft": "Ajiye Jajaye",
+    "publish": "Aika Kaya",
+    "published": "Aika",
+    "draft_status": "Jajaye",
+    "edit": "Banbanta",
+    "delete": "Gida",
+    "confirmDelete": "Ka tabbata? Ba za a iya comewa ba.",
+    "success": "Kaya ajiye da nasara",
+    "error": "Ajiye kaya rashin nasara",
+    "validation": "Cika duk fili masu buƙata"
+  },
+  "supportWidget": {
+    "title": "Taimakoni & Goyo",
+    "menu": "Goyo",
+    "faq": "Tambayoyi",
+    "contact": "Tuntubo",
+    "whatsapp": "Saƙo a WhatsApp",
+    "phone": "Kira Mu",
+    "email": "Imel Goyo",
+    "availableHours": "Ana aiki 9am-5pm WAT",
+    "sendMessage": "Aika Saƙo",
+    "yourName": "Sunanka",
+    "yourEmail": "Imellaka",
+    "subject": "Batu",
+    "message": "Saƙoka",
+    "submit": "Aika",
+    "success": "Saƙo aika! Za mu zuriri.",
+    "error": "Saƙo ba tana aika. Gwada sake.",
+    "faqTitle": "Tambayoyi da aka buƙata",
+    "contactTitle": "Tuntubo Taimakoni",
+    "quickLinks": "Hanyoyi Sauri",
+    "allFaq": "Duba Duk Tambayoyi →",
+    "allHelp": "Duba Taimakoni →"
+  }
+}
+
