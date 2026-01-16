@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Katsina Online Business (KOB)</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Brand Colors -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: "#C5A059",
+            dark: "#2D1E17",
+            gold: "#D4AF37"
+          }
+        }
+      }
+    }
+  </script>
+</head>
+
+<body class="bg-dark text-white min-h-screen">
+
+  <!-- HEADER -->
+  <header class="bg-dark border-b border-primary">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+      <h1 class="text-xl font-bold text-primary">KOB</h1>
+      <button id="logoutBtn" class="hidden bg-primary text-dark px-4 py-2 rounded">
+        Logout
+      </button>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="max-w-6xl mx-auto px-4 py-10 text-center">
+    <h2 class="text-3xl font-bold text-gold mb-4">
+      Katsina Online Business
+    </h2>
+    <p class="text-gray-300 mb-6">
+      Amintaccen kasuwar yanar gizo domin kasuwanci a Katsina State
+    </p>
+  </section>
+
+  <!-- AUTH SECTION -->
+  <section class="max-w-md mx-auto bg-white text-dark rounded-lg p-6">
+    
+    <h3 class="text-xl font-bold text-center mb-4">
+      Shiga / Buɗe Account
+    </h3>
+
+    <!-- Signup -->
+    <div class="mb-6">
+      <h4 class="font-semibold mb-2">Create Account</h4>
+      <input id="signupEmail" type="email" placeholder="Email"
+        class="w-full mb-2 p-2 border rounded"/>
+      <input id="signupPassword" type="password" placeholder="Password"
+        class="w-full mb-2 p-2 border rounded"/>
+      <button onclick="signup()"
+        class="w-full bg-primary text-dark py-2 rounded">
+        Sign Up
+      </button>
+    </div>
+
+    <!-- Login -->
+    <div>
+      <h4 class="font-semibold mb-2">Login</h4>
+      <input id="loginEmail" type="email" placeholder="Email"
+        class="w-full mb-2 p-2 border rounded"/>
+      <input id="loginPassword" type="password" placeholder="Password"
+        class="w-full mb-2 p-2 border rounded"/>
+      <button onclick="login()"
+        class="w-full bg-gold text-dark py-2 rounded">
+        Login
+      </button>
+    </div>
+
+    <p id="authMessage" class="text-center text-sm mt-4"></p>
+  </section>
+
+  <!-- MARKETPLACE PLACEHOLDER -->
+  <form id="addProductForm" class="space-y-4 max-w-md mx-auto bg-white p-6 rounded-lg shadow">
+
+  class="w-full border border-gray-300 p-2 rounded text-[#2D1E17]"
+    Add New Product
+  </h2>
+
+  <!-- Error Message -->
+  <p id="formError" class="text-red-600 text-sm hidden"></p>
+
+  <!-- Product Name -->
+  <input
+    type="text"
+    id="productName"
+    placeholder="Product name"
+    required
+    class="w-full border border-gray-300 p-2 rounded text-[#2D1E17]"
+  />
+
+  <!-- Price -->
+  <input
+    type="number"
+    id="productPrice"
+    placeholder="Price (₦)"
+    required
+    class="w-full border border-gray-300 p-2 rounded text-[#2D1E17]"
+  />
+
+  <!-- product image url -->
+   <input
+     type="url"
+     id="productImage"
+     placeholder="Image URL (https://...)"
+     required
+     class="w-full border border-gray-300 p-2 rounded text-[#2D1E17]"
+     />
+
+  <!-- Description -->
+  <textarea
+    id="productDescription"
+    placeholder="Product description"
+    required
+    class="w-full border border-gray-300 p-2 rounded text-[#2D1E17]"
+  ></textarea>
+
+  <!-- Submit Button -->
+  <button
+    type="submit"
+    id="submitBtn"
+    class="w-full bg-[#C5A059] text-white py-2 rounded hover:bg-[#D4AF37]"
+  >
+    Add Product
+  </button>
+
+</form>
+
+  <button id="addProductBtn">
+  Add Product
+</button>
+  <!-- FOOTER -->
+  <footer class="bg-dark border-t border-primary mt-10">
+    <div class="max-w-6xl mx-auto px-4 py-4 text-center text-sm text-gray-400">
+      Powered by <span class="text-primary">KOB</span>
+    </div>
+  </footer>
+
+  <!-- Firebase -->
+  <script type="module" src="./firebase.js"></script>
+
+  <!-- Auth Logic -->
+  <script type="module" src="./auth.js"></script>
+
+  
+  <!-- Marketplace Logic -->
+  <script type="module" src="./marketplace.js"></script>
+
+<!  <!-- Role Check Logic -->
+<script type="module" src="./role-check.js"></script>
+
+
+</body>
+</html>

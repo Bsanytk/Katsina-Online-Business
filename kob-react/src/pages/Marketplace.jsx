@@ -122,60 +122,66 @@ export default function Marketplace() {
 
   return (
     <main className="min-h-screen bg-kob-light">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 py-6 mb-8">
+      {/* Header Section */}
+      <div className="bg-gradient-to-r from-kob-primary to-kob-gold text-white py-12 md:py-16">
         <div className="container">
-          <h1 className="text-4xl font-bold text-kob-dark mb-2">Marketplace</h1>
-          <p className="text-gray-600">Browse and discover amazing products from sellers in Katsina</p>
+          <div className="max-w-2xl">
+            <h1 className="text-5xl md:text-6xl font-extrabold mb-3">Marketplace</h1>
+            <p className="text-xl md:text-2xl opacity-95 font-light">Browse and discover amazing products from verified sellers in Katsina</p>
+          </div>
         </div>
       </div>
 
-      <div className="container pb-12">
+      <div className="container pb-16 pt-12">
         {/* Global Error Alert */}
         {error && (
-          <Alert type="error" className="mb-6">
+          <Alert type="error" className="mb-8 animate-fade-in">
             {error}
           </Alert>
         )}
 
         {/* Add Product Section - Sellers Only */}
         {canCreate && (
-          <div className="mb-12">
+          <div className="mb-16">
             {!showForm ? (
-              <Card variant="elevated" className="p-6 text-center">
-                <div className="mb-4">
-                  <span className="text-4xl">📦</span>
+              <Card variant="elevated" className="p-8 md:p-10 text-center rounded-2xl border-2 border-dashed border-kob-primary bg-gradient-to-br from-white to-kob-light">
+                <div className="mb-4 inline-block">
+                  <span className="text-6xl block">📦</span>
                 </div>
-                <h3 className="text-xl font-bold text-kob-dark mb-2">Ready to Sell?</h3>
-                <p className="text-gray-600 mb-6">Create a product listing and start selling to thousands of buyers</p>
+                <h3 className="text-2xl font-bold text-kob-dark mb-3">Ready to Sell Your Products?</h3>
+                <p className="text-gray-600 text-lg mb-8 max-w-xl mx-auto">Create a product listing and start selling to thousands of active buyers across Katsina</p>
                 <button
                   onClick={() => setShowForm(true)}
-                  className="px-6 py-2 bg-kob-primary hover:bg-opacity-90 text-white rounded-lg font-medium transition-all"
+                  className="inline-block px-8 py-3 bg-gradient-to-r from-kob-primary to-kob-primary-dark hover:shadow-lg text-white rounded-lg font-bold transition-all duration-300 transform hover:scale-105 shadow-md"
                 >
                   ➕ Add New Product
                 </button>
               </Card>
             ) : (
-              <ProductForm
-                onSubmit={handleProductSubmit}
-                onCancel={handleCancelForm}
-                initialData={editingProduct}
-                loading={submitting}
-                error={formError}
-                uploadingImage={uploadingImage}
-              />
+              <div className="animate-fade-in">
+                <ProductForm
+                  onSubmit={handleProductSubmit}
+                  onCancel={handleCancelForm}
+                  initialData={editingProduct}
+                  loading={submitting}
+                  error={formError}
+                  uploadingImage={uploadingImage}
+                />
+              </div>
             )}
           </div>
         )}
 
         {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Filters Sidebar */}
           <div className="lg:col-span-1">
-            <ProductFilter
-              products={products}
-              onFilter={setFilteredProducts}
-            />
+            <div className="sticky top-20">
+              <ProductFilter
+                products={products}
+                onFilter={setFilteredProducts}
+              />
+            </div>
           </div>
 
           {/* Products List */}

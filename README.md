@@ -22,6 +22,18 @@ An haɗa Firebase ta hanyar CDN (ba Vite, ba Node.js) domin ya dace da GitHub Pa
 ## 🌍 Live Website
 👉 https://bsanytk.github.io/Katsina-Online-Business/
 
+---
+
+## React (kob-react) development
+
+The React app lives in the `kob-react/` folder. To run locally:
+
+1. Copy `kob-react/.env.example` to `kob-react/.env` and populate the VITE_* vars (Cloudinary & Firebase)
+2. cd `kob-react` and run `npm install`
+3. `npm run dev` to start the dev server
+
+Build for production with `npm run build`. Deploy the `dist/` folder to GitHub Pages or any static host.
+
 ## 👤 Admin
 **B-SANI DATA TECH**  
 Founder – Katsina Online Business

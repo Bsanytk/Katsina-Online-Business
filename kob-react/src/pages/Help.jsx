@@ -56,25 +56,27 @@ export default function Help() {
   ]
 
   return (
-    <main className="min-h-screen bg-kob-light pt-8 pb-16">
-      <div className="container">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-kob-dark mb-4">Help Center</h1>
-          <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-            We're here to help. Browse our guides or get in touch with our support team.
+    <main className="min-h-screen bg-kob-light">
+      {/* Header Section */}
+      <div className="bg-gradient-to-r from-kob-primary to-kob-gold text-white py-16 md:py-20">
+        <div className="container text-center">
+          <h1 className="text-5xl md:text-6xl font-extrabold mb-4">Help Center</h1>
+          <p className="text-xl md:text-2xl opacity-95 font-light max-w-3xl mx-auto">
+            We're here to help. Browse our guides or get in touch with our support team anytime.
           </p>
         </div>
+      </div>
 
-        {/* Search Bar (Placeholder) */}
-        <div className="max-w-2xl mx-auto mb-12">
-          <div className="relative">
+      <div className="container py-16 md:py-24">
+        {/* Search Bar */}
+        <div className="max-w-2xl mx-auto mb-16">
+          <div className="relative group">
             <input
               type="text"
               placeholder="Search for help..."
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-kob-primary focus:border-transparent"
+              className="w-full px-6 py-4 rounded-lg border-2 border-kob-neutral-300 focus:outline-none focus:ring-2 focus:ring-kob-primary focus:border-transparent text-base shadow-sm"
             />
-            <button className="absolute right-3 top-3 text-gray-400 hover:text-kob-primary">
+            <button className="absolute right-4 top-4 text-gray-400 hover:text-kob-primary transition-colors">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
@@ -88,13 +90,13 @@ export default function Help() {
         </div>
 
         {/* Help Categories Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20">
           {helpCategories.map((category, idx) => (
-            <Card key={idx} variant="elevated" hover className="p-6">
-              <div className="text-4xl mb-4">{category.icon}</div>
-              <h3 className="text-xl font-bold text-kob-dark mb-2">{category.title}</h3>
-              <p className="text-gray-600 text-sm mb-4">{category.description}</p>
-              <ul className="space-y-2">
+            <Card key={idx} variant="elevated" className="p-8 rounded-xl card-hover animate-fade-in">
+              <div className="text-6xl mb-5 inline-block">{category.icon}</div>
+              <h3 className="text-2xl font-bold text-kob-dark mb-3">{category.title}</h3>
+              <p className="text-gray-600 text-base mb-6 leading-relaxed">{category.description}</p>
+              <ul className="space-y-3 border-t border-kob-neutral-200 pt-5">
                 {category.links.map((link, i) => {
                   const linkObj = typeof link === 'string' ? { text: link, href: '#', external: false } : link
                   return (
@@ -104,13 +106,15 @@ export default function Help() {
                           href={linkObj.href}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-kob-primary font-medium text-sm hover:underline"
+                          className="text-kob-primary font-semibold text-base hover:text-kob-primary-dark transition-colors flex items-center gap-2"
                         >
-                          {linkObj.text} →
+                          <span>{linkObj.text}</span>
+                          <span className="text-sm">→</span>
                         </a>
                       ) : (
-                        <a href={linkObj.href} className="text-kob-primary font-medium text-sm hover:underline">
-                          {linkObj.text} →
+                        <a href={linkObj.href} className="text-kob-primary font-semibold text-base hover:text-kob-primary-dark transition-colors flex items-center gap-2">
+                          <span>{linkObj.text}</span>
+                          <span className="text-sm">→</span>
                         </a>
                       )}
                     </li>
@@ -122,13 +126,15 @@ export default function Help() {
         </div>
 
         {/* Contact Section */}
-        <div className="bg-gradient-to-r from-kob-primary to-blue-600 text-white rounded-lg p-8 text-center">
-          <h2 className="text-2xl font-bold mb-4">Still need help?</h2>
-          <p className="mb-6">We offer multiple ways to get support. Choose the one that works best for you.</p>
+        <div className="bg-gradient-to-br from-kob-primary via-kob-primary-light to-kob-gold text-white rounded-2xl p-12 md:p-16 text-center shadow-lg">
+          <h2 className="text-4xl md:text-5xl font-extrabold mb-5">Still need help?</h2>
+          <p className="text-lg md:text-xl opacity-95 mb-10 font-light max-w-2xl mx-auto">
+            We offer multiple ways to get support. Choose the one that works best for you, and we'll be happy to assist.
+          </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a
               href={`mailto:${t('common.contact_email')}`}
-              className="inline-block px-6 py-3 bg-white text-kob-primary font-semibold rounded-lg hover:bg-gray-100 transition-colors"
+              className="inline-block px-8 py-4 bg-white text-kob-primary font-bold rounded-lg hover:bg-gray-100 transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105"
             >
               📧 Email Support
             </a>
@@ -136,13 +142,13 @@ export default function Help() {
               href={t('common.contact_whatsapp_link')}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-block px-6 py-3 bg-white text-kob-primary font-semibold rounded-lg hover:bg-gray-100 transition-colors"
+              className="inline-block px-8 py-4 bg-white text-kob-primary font-bold rounded-lg hover:bg-gray-100 transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105"
             >
               💬 WhatsApp Chat
             </a>
             <Link
               to="/contact"
-              className="inline-block px-6 py-3 bg-white text-kob-primary font-semibold rounded-lg hover:bg-gray-100 transition-colors"
+              className="inline-block px-8 py-4 bg-white text-kob-primary font-bold rounded-lg hover:bg-gray-100 transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105"
             >
               📞 Contact Form
             </Link>

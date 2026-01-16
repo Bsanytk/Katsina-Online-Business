@@ -1,0 +1,4 @@
+/* style.css - KOB styles (legacy MVP) */
+body { font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; }
+.product-card { background: #fff; color: #2D1E17; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; }
+.product-card img { width: 100%; height: auto; border-radius: 6px; }

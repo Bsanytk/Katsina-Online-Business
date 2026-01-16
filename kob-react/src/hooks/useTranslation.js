@@ -1,7 +1,8 @@
-import { useI18n } from 'i18next-react';
+import { useTranslation as useI18nextTranslation } from 'react-i18next';
 
 /**
  * Custom hook for translation with type-safe keys
+ * Wraps react-i18next's useTranslation hook
  * Usage: const t = useTranslation();
  * 
  * Examples:
@@ -10,16 +11,16 @@ import { useI18n } from 'i18next-react';
  * t('payment.error', { message: 'Invalid amount' })
  */
 export function useTranslation() {
-  const i18n = useI18n();
-  return i18n.t.bind(i18n);
+  const { t } = useI18nextTranslation();
+  return t;
 }
 
 /**
- * Custom hook to get current language
+ * Custom hook to get current language and language utilities
  * Usage: const { language, changeLanguage } = useLanguage();
  */
 export function useLanguage() {
-  const i18n = useI18n();
+  const { i18n } = useI18nextTranslation();
 
   return {
     language: i18n.language,

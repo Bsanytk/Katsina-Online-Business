@@ -23,66 +23,66 @@ export default function Contact() {
 
   return (
     <main className="min-h-screen bg-kob-light">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 py-12">
+      {/* Header Section */}
+      <div className="bg-gradient-to-r from-kob-primary to-kob-gold text-white py-16 md:py-20">
         <div className="container text-center">
-          <h1 className="text-4xl font-bold text-kob-dark mb-3">{t('contact.title')}</h1>
-          <p className="text-gray-600 text-lg">{t('contact.subtitle')}</p>
+          <h1 className="text-5xl md:text-6xl font-extrabold mb-4">{t('contact.title')}</h1>
+          <p className="text-xl md:text-2xl opacity-95 font-light">{t('contact.subtitle')}</p>
         </div>
       </div>
 
-      <div className="container py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="container py-16 md:py-24">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
           {/* Contact Info */}
           <div className="lg:col-span-1">
             <div className="space-y-6">
               {/* Email */}
-              <Card variant="elevated">
-                <div className="p-6">
-                  <div className="text-3xl mb-3">📧</div>
-                  <h3 className="font-bold text-lg text-kob-dark mb-2">{t('contact.email_label')}</h3>
-                  <p className="text-gray-600 text-sm">{t('common.contact_email')}</p>
+              <Card variant="elevated" className="p-7 rounded-xl card-hover">
+                <div className="mb-4 inline-block p-3 bg-gradient-to-br from-kob-primary to-kob-gold rounded-lg">
+                  <span className="text-3xl block">📧</span>
                 </div>
+                <h3 className="font-bold text-lg text-kob-dark mb-3">{t('contact.email_label')}</h3>
+                <p className="text-gray-600 text-base break-all">{t('common.contact_email')}</p>
               </Card>
 
               {/* WhatsApp */}
-              <Card variant="elevated">
-                <div className="p-6">
-                  <div className="text-3xl mb-3">📱</div>
-                  <h3 className="font-bold text-lg text-kob-dark mb-2">{t('contact.whatsapp_label')}</h3>
-                  <a 
-                    href={t('common.contact_whatsapp_link')}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-green-600 hover:underline font-medium text-sm"
-                  >
-                    {t('contact.chat_with_us')}
-                  </a>
+              <Card variant="elevated" className="p-7 rounded-xl card-hover">
+                <div className="mb-4 inline-block p-3 bg-green-500 rounded-lg">
+                  <span className="text-3xl block">📱</span>
                 </div>
+                <h3 className="font-bold text-lg text-kob-dark mb-3">{t('contact.whatsapp_label')}</h3>
+                <a 
+                  href={t('common.contact_whatsapp_link')}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-green-600 hover:text-green-700 font-bold text-base transition-colors"
+                >
+                  {t('contact.chat_with_us')} →
+                </a>
               </Card>
 
               {/* Phone */}
-              <Card variant="elevated">
-                <div className="p-6">
-                  <div className="text-3xl mb-3">☎️</div>
-                  <h3 className="font-bold text-lg text-kob-dark mb-2">{t('contact.phone_label')}</h3>
-                  <p className="text-gray-600 text-sm">{t('common.contact_phone')}</p>
+              <Card variant="elevated" className="p-7 rounded-xl card-hover">
+                <div className="mb-4 inline-block p-3 bg-blue-500 rounded-lg">
+                  <span className="text-3xl block">☎️</span>
                 </div>
+                <h3 className="font-bold text-lg text-kob-dark mb-3">{t('contact.phone_label')}</h3>
+                <p className="text-gray-600 text-base">{t('common.contact_phone')}</p>
               </Card>
             </div>
           </div>
 
           {/* Contact Form */}
           <div className="lg:col-span-2">
-            <Card variant="elevated" className="p-8">
+            <Card variant="elevated" className="p-10 rounded-xl">
               {submitted && (
-                <Alert type="success" title={t('contact.success')} className="mb-6">
+                <Alert type="success" title={t('contact.success')} className="mb-8 animate-fade-in">
                   {t('contact.success')}
                 </Alert>
               )}
 
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <Input
                     type="text"
                     label={t('contact.name')}
@@ -92,6 +92,7 @@ export default function Contact() {
                     placeholder={t('contact.name')}
                     required
                     disabled={submitted}
+                    className="rounded-lg focus:ring-2 focus:ring-offset-2"
                   />
                   <Input
                     type="email"
@@ -102,6 +103,7 @@ export default function Contact() {
                     placeholder={t('common.contact_email')}
                     required
                     disabled={submitted}
+                    className="rounded-lg focus:ring-2 focus:ring-offset-2"
                   />
                 </div>
 
@@ -114,6 +116,7 @@ export default function Contact() {
                   placeholder={t('contact.subject')}
                   required
                   disabled={submitted}
+                  className="rounded-lg focus:ring-2 focus:ring-offset-2"
                 />
 
                 <Textarea
@@ -121,17 +124,18 @@ export default function Contact() {
                   name="message"
                   value={formData.message}
                   onChange={handleChange}
-                  rows="5"
+                  rows="6"
                   placeholder={t('contact.message')}
                   required
                   disabled={submitted}
+                  className="rounded-lg focus:ring-2 focus:ring-offset-2"
                 />
 
                 <Button
                   type="submit"
                   size="lg"
                   variant="primary"
-                  className="w-full"
+                  className="w-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 rounded-lg font-semibold"
                   disabled={submitted}
                 >
                   {t('contact.send')} ✓
@@ -139,13 +143,24 @@ export default function Contact() {
               </form>
             </Card>
 
-            {/* FAQ */}
-            <Card variant="outlined" className="mt-8 p-6">
-              <h3 className="font-bold text-lg text-kob-dark mb-4">❓ {t('help.faq')}</h3>
-              <div className="space-y-3 text-sm text-gray-700">
-                <p><strong>How long does shipping take?</strong> Delivery depends on the seller's location.</p>
-                <p><strong>How do I contact a seller?</strong> Use the WhatsApp "Contact" button on any product.</p>
-                <p><strong>How do I become a verified seller?</strong> Fill out the seller application form.</p>
+            {/* FAQ Quick Links */}
+            <Card variant="outlined" className="mt-8 p-8 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-200">
+              <h3 className="font-bold text-xl text-blue-900 mb-6 flex items-center gap-2">
+                <span className="text-2xl">❓</span> {t('help.faq')}
+              </h3>
+              <div className="space-y-4 text-base text-blue-900">
+                <div className="flex gap-3">
+                  <span className="text-xl flex-shrink-0">🚚</span>
+                  <p><strong>How long does shipping take?</strong> Delivery depends on the seller's location.</p>
+                </div>
+                <div className="flex gap-3">
+                  <span className="text-xl flex-shrink-0">💬</span>
+                  <p><strong>How do I contact a seller?</strong> Use the WhatsApp "Chat" button on any product.</p>
+                </div>
+                <div className="flex gap-3">
+                  <span className="text-xl flex-shrink-0">✅</span>
+                  <p><strong>How do I become a verified seller?</strong> Fill out the seller application form.</p>
+                </div>
               </div>
             </Card>
           </div>
