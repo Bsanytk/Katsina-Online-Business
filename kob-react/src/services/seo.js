@@ -11,7 +11,7 @@ export function updatePageMeta({
   title = 'Katsina Online Business - Local Marketplace',
   description = 'Discover authentic local products from verified sellers in Katsina',
   keywords = 'marketplace, katsina, online business, buy, sell',
-  ogImage = 'https://katsina-online-business.com/og-image.jpg',
+  ogImage = 'https://collection.cloudinary.com/dn5crslee/6aca0ae6e8cafa5b6a8ea03258efdc5c',
   ogType = 'website',
   canonicalUrl = window.location.href,
 }) {
@@ -99,7 +99,7 @@ export const STRUCTURED_DATA = {
     '@context': 'https://schema.org',
     '@type': 'LocalBusiness',
     name: 'Katsina Online Business',
-    image: 'https://katsina-online-business.com/logo.png',
+    image: 'https://collection.cloudinary.com/dn5crslee/6aca0ae6e8cafa5b6a8ea03258efdc5c',
     description: 'Online marketplace for local businesses in Katsina',
     address: {
       '@type': 'PostalAddress',
@@ -122,7 +122,7 @@ export const STRUCTURED_DATA = {
     '@type': 'Product',
     name: product.title,
     description: product.description,
-    image: product.imageURL || 'https://katsina-online-business.com/placeholder.jpg',
+    image: product.imageURL || 'https://collection.cloudinary.com/dn5crslee/6aca0ae6e8cafa5b6a8ea03258efdc5c',
     brand: {
       '@type': 'Brand',
       name: product.sellerName || 'KOB Seller',

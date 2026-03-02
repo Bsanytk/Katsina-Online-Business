@@ -45,13 +45,22 @@ export default function Marketplace() {
     setFormError(null)
 
     try {
-      let uploadedURL = null
+      // Collect uploaded image URLs (handle multi-image formData.images)
+      let uploadedURLs = []
 
-      // Upload image if provided
-      if (formData.imageFile) {
+      if (formData.images && Array.isArray(formData.images) && formData.images.length > 0) {
         setUploadingImage(true)
         try {
-          uploadedURL = await uploadImage(formData.imageFile)
+          // Upload new images and preserve existing image URLs
+          for (const img of formData.images) {
+            if (img && img.file) {
+              const url = await uploadImage(img.file)
+              uploadedURLs.push(url)
+            } else if (img && img.preview && img.isExisting) {
+              // preview for existing images contains the URL
+              uploadedURLs.push(img.preview)
+            }
+          }
         } catch (err) {
           setFormError('Image upload failed: ' + err.message)
           setUploadingImage(false)
@@ -70,11 +79,14 @@ export default function Marketplace() {
         ownerUid: user.uid,
       }
 
-      if (uploadedURL) {
-        payload.imageURL = uploadedURL
-      } else if (editingProduct && editingProduct.imageURL) {
-        // Keep existing image if not updating
-        payload.imageURL = editingProduct.imageURL
+      // If we have uploaded or existing URLs, set main image and images array
+      if (uploadedURLs.length > 0) {
+        payload.imageURL = uploadedURLs[0]
+        payload.images = uploadedURLs
+      } else if (editingProduct) {
+        // Preserve existing image(s) when editing and no new uploads
+        if (editingProduct.imageURL) payload.imageURL = editingProduct.imageURL
+        if (editingProduct.images) payload.images = editingProduct.images
       }
 
       // Create or update

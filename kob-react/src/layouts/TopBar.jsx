@@ -19,9 +19,10 @@ export default function TopBar() {
   return (
     <header className="bg-gray-50 text-gray-800 sticky top-0 z-40 border-b border-gray-200">
       <div className="container flex items-center justify-between py-3">
-        {/* Simplified Logo */}
-        <Link to="/" className="text-lg font-semibold tracking-tight">
-          KOB
+        {/* KOB Logo */}
+        <Link to="/" className="flex items-center gap-3">
+          <img src="https://collection.cloudinary.com/dn5crslee/6aca0ae6e8cafa5b6a8ea03258efdc5c" alt="KOB" className="h-9 w-auto object-contain" />
+          <span className="hidden sm:inline text-lg font-semibold tracking-tight">KOB</span>
         </Link>
 
         {/* Minimal Navigation */}
