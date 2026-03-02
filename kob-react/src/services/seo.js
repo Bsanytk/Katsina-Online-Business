@@ -171,6 +171,7 @@ export const PAGE_SEO_CONFIG = {
     description:
       'Discover and buy authentic local products from verified sellers in Katsina. Support your community while enjoying quality goods.',
     keywords: 'marketplace, katsina, online shopping, local business, buy local',
+    canonicalUrl: 'https://katsina-online-business.com/',
   },
 
   '/marketplace': {
@@ -178,12 +179,14 @@ export const PAGE_SEO_CONFIG = {
     description:
       'Browse thousands of authentic products from verified sellers across Katsina. Find electronics, fashion, food, and more.',
     keywords: 'marketplace, products, shopping, katsina, buy online',
+    canonicalUrl: 'https://katsina-online-business.com/marketplace',
   },
 
   '/dashboard': {
     title: 'My Dashboard - Katsina Online Business',
     description: 'Manage your profile, orders, and products on KOB marketplace.',
     keywords: 'dashboard, my account, orders, products',
+    canonicalUrl: 'https://katsina-online-business.com/dashboard',
   },
 
   '/contact': {
@@ -191,6 +194,7 @@ export const PAGE_SEO_CONFIG = {
     description:
       'Get in touch with our support team. We\'re here to help with any questions or issues.',
     keywords: 'contact, support, help, katsina online business',
+    canonicalUrl: 'https://katsina-online-business.com/contact',
   },
 
   '/faq': {
@@ -198,18 +202,21 @@ export const PAGE_SEO_CONFIG = {
     description:
       'Find answers to common questions about buying, selling, and using KOB marketplace.',
     keywords: 'faq, help, questions, answers',
+    canonicalUrl: 'https://katsina-online-business.com/faq',
   },
 
   '/help': {
     title: 'Help Center - Katsina Online Business',
     description: 'Get help with buying, selling, payments, and more on KOB marketplace.',
     keywords: 'help, guide, tutorial, support',
+    canonicalUrl: 'https://katsina-online-business.com/help',
   },
 
   '/login': {
     title: 'Login - Katsina Online Business',
     description: 'Sign in to your KOB account to access your dashboard and orders.',
     keywords: 'login, sign in, account',
+    canonicalUrl: 'https://katsina-online-business.com/login',
   },
 
   '/register': {
@@ -217,12 +224,14 @@ export const PAGE_SEO_CONFIG = {
     description:
       'Join KOB as a buyer or seller. Create your free account in minutes.',
     keywords: 'register, signup, account creation',
+    canonicalUrl: 'https://katsina-online-business.com/register',
   },
 
   '/terms': {
     title: 'Terms of Service - Katsina Online Business',
     description: 'Read the terms and conditions for using KOB marketplace.',
     keywords: 'terms, conditions, legal',
+    canonicalUrl: 'https://katsina-online-business.com/terms',
   },
 
   '/privacy': {
@@ -230,6 +239,7 @@ export const PAGE_SEO_CONFIG = {
     description:
       'Learn how KOB protects your privacy and handles your personal information.',
     keywords: 'privacy, policy, data protection',
+    canonicalUrl: 'https://katsina-online-business.com/privacy',
   },
 }
 
