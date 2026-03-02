@@ -24,14 +24,16 @@ export function useLanguage() {
 
   return {
     language: i18n.language,
-    direction: i18n.language === 'ar' ? 'rtl' : 'ltr',
-    isRTL: i18n.language === 'ar',
+    direction: 'ltr',
+    isRTL: false,
     changeLanguage: (lng) => {
+      // Only English is supported in this configuration
+      if (lng !== 'en') return;
       i18n.changeLanguage(lng);
       localStorage.setItem('preferredLanguage', lng);
     },
     isSupportedLanguage: (lng) => {
-      return ['en', 'ha', 'ar'].includes(lng);
+      return ['en'].includes(lng);
     }
   };
 }
@@ -43,9 +45,7 @@ export function useLanguage() {
  */
 export function getLanguageName(code) {
   const languages = {
-    en: '🇬🇧 English',
-    ha: '🇳🇬 Hausa',
-    ar: '🇸🇦 العربية'
+    en: 'English'
   };
   return languages[code] || 'Unknown';
 }

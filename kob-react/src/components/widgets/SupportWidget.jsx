@@ -11,7 +11,7 @@ import { useTranslation } from '../../hooks/useTranslation'
  * - Quick contact options (WhatsApp, Phone, Email)
  * - FAQ accordion
  * - Direct contact form
- * - Multi-language support (English, Hausa, Arabic)
+ * - English language only
  */
 export default function SupportWidget() {
   const t = useTranslation()
