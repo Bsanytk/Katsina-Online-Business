@@ -7,7 +7,7 @@ import { getFirestore } from "https://www.gstatic.com/firebasejs/10.7.1/firebase
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
 import { getStorage } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js"
 
-// 🔐 Firebase config na KOB
+// 🔐 Firebase config for KOB
 const firebaseConfig = {
   apiKey: "AIzaSyCrJDGQbbMxHkZU9fmO1jmT-1mnN3o6P6k",
     authDomain: "kob-community.firebaseapp.com",
