@@ -25,6 +25,9 @@ export default function TopBar() {
           <span className="hidden sm:inline text-lg font-semibold tracking-tight">KOB</span>
         </Link>
 
+        {/* Temporary hidden element for translate feature (prevents console warning when missing) */}
+        <div id="translate-page" style={{ display: 'none' }} />
+
         {/* Minimal Navigation */}
         <nav className="hidden lg:flex gap-6 items-center text-sm font-medium">
           <Link to="/" className="text-gray-700 hover:text-gray-900">Home</Link>

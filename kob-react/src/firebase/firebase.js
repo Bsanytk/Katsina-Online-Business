@@ -9,13 +9,30 @@ import { initializeApp } from 'firebase/app'
 import { getAuth } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
 
+// Normalize and validate Firebase config from environment
+const rawStorageBucket = import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || ''
+// Some deploy snippets may use `.firebasestorage.app` — convert to `.appspot.com` when detected
+const storageBucket = rawStorageBucket.includes('.firebasestorage.app')
+  ? rawStorageBucket.replace('.firebasestorage.app', '.appspot.com')
+  : rawStorageBucket
+
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  storageBucket: storageBucket,
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
+}
+
+// Helpful runtime warnings when env is incomplete
+if (!firebaseConfig.apiKey) {
+  // eslint-disable-next-line no-console
+  console.warn('Missing VITE_FIREBASE_API_KEY in environment. Firebase auth may fail.')
+}
+if (firebaseConfig.storageBucket && !firebaseConfig.storageBucket.endsWith('.appspot.com')) {
+  // eslint-disable-next-line no-console
+  console.warn('Unrecognized storageBucket format:', firebaseConfig.storageBucket)
 }
 
 // Initialize Firebase
