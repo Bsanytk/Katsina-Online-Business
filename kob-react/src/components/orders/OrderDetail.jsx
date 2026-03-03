@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Card, Button, Select } from '../ui'
-import { updateOrderStatus } from '../services/orders'
+import { updateOrderStatus } from '../../services/orders'
 
 /**
  * OrderDetail Component

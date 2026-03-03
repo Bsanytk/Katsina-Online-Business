@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Card } from '../ui'
-import { subscribeToMessages, markMessagesAsRead } from '../services/chat'
-import { useAuth } from '../hooks/useAuth'
+import { subscribeToMessages, markMessagesAsRead } from '../../services/chat'
+import { useAuth } from '../../firebase/auth'
 
 /**
  * MessageView Component

@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Button, Textarea } from '../ui'
-import { sendMessage } from '../services/chat'
-import { useAuth } from '../hooks/useAuth'
+import { sendMessage } from '../../services/chat'
+import { useAuth } from '../../firebase/auth'
 
 /**
  * ChatInput Component

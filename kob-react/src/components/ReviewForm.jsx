@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Button, Alert, Card } from '../ui'
+import { Button, Alert, Card } from './ui'
 
 /**
  * ReviewForm Component

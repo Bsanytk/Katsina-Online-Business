@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Card } from '../ui'
+import { Card } from './ui'
 import { getSellerReviews, calculateSellerRating } from '../services/reviews'
 
 /**

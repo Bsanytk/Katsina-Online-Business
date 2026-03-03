@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Card } from '../ui'
-import { getUserConversations } from '../services/chat'
-import { useAuth } from '../hooks/useAuth'
+import { getUserConversations } from '../../services/chat'
+import { useAuth } from '../../firebase/auth'
 
 /**
  * ConversationList Component
