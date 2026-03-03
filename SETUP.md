@@ -203,13 +203,12 @@ VITE_CLOUDINARY_CLOUD_NAME=your_cloud_name
 VITE_CLOUDINARY_UPLOAD_PRESET=kob_upload_preset
 
 # ==========================================
-# PAYSTACK CONFIGURATION
+# PAYSTACK CONFIGURATION (removed)
 # ==========================================
-# Test keys (development)
-VITE_PAYSTACK_PUBLIC_KEY=pk_test_...
+# Payment integration has been removed in Phase 9. No Paystack keys are
+# required; buyers and sellers coordinate transactions offline.
+# VITE_PAYSTACK_PUBLIC_KEY can be omitted.
 
-# Switching to live keys requires Paystack account verification
-# For production: VITE_PAYSTACK_PUBLIC_KEY=pk_live_...
 
 # ==========================================
 # GOOGLE ANALYTICS
@@ -261,45 +260,10 @@ VITE_EMAIL_SERVICE_URL=https://api.sendgrid.com/v3/mail/send
 1. Go to **Dashboard**
 2. Copy your **Cloud Name**
 3. Paste into `.env.local`: `VITE_CLOUDINARY_CLOUD_NAME=`
+### Paystack (Payments) *(removed)*
 
-### Paystack (Payments)
+Payment integration has been removed in Phase 9; no configuration is required.
 
-#### Create Account
-
-1. Go to [Paystack](https://paystack.com)
-2. Click "Sign up"
-3. Fill in details:
-   - Business name: `Katsina Online Business`
-   - Email: Your email
-   - Password: Strong password
-4. Verify email
-5. Complete KYC (Know Your Customer):
-   - Business info
-   - Bank account details
-   - ID verification
-
-#### Get API Keys
-
-1. Go to **Dashboard** → **Settings** → **API Keys & Webhooks**
-2. Under "Keys", you'll find:
-   - **Public Key** (test mode): `pk_test_...`
-   - **Secret Key** (test mode): `sk_test_...`
-
-3. Copy public key into `.env.local`: `VITE_PAYSTACK_PUBLIC_KEY=`
-
-#### Testing Payments
-
-Use test card: `4084084084084081`
-- Expiry: Any future date
-- CVV: Any 3 digits
-- OTP: `123456` (when asked)
-
-#### Go Live
-
-Once verified (2-3 days):
-1. Switch to **Live Mode** in dashboard
-2. Copy **Live Public Key**: `pk_live_...`
-3. Update `.env.local`: `VITE_PAYSTACK_PUBLIC_KEY=pk_live_...`
 
 ### Google Analytics
 
@@ -496,18 +460,7 @@ npm install
 - Check security rules for your operation
 - Verify user is logged in
 
-### Payment Errors
 
-**Error**: `Paystack not defined`
-- Check `VITE_PAYSTACK_PUBLIC_KEY` in `.env.local`
-- Verify it starts with `pk_test_` or `pk_live_`
-- Restart dev server after env change
-
-**Error**: `Payment failed`
-- Use test card: `4084084084084081`
-- Try different test card if needed
-- Check browser console for errors
-- Verify amount is in kobo (₦500 = 50000)
 
 ### Analytics Errors
 
@@ -532,7 +485,7 @@ npm install
 ## Support
 
 - **Firebase Help**: https://firebase.google.com/support
-- **Paystack Help**: https://paystack.com/support
+<!-- Paystack support link removed; payment feature deprecated -->
 - **React Docs**: https://react.dev
 - **Vite Docs**: https://vitejs.dev
 

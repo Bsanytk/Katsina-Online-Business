@@ -122,8 +122,8 @@ VITE_FIREBASE_APP_ID=your_app_id
 VITE_CLOUDINARY_CLOUD_NAME=your_cloud_name
 VITE_CLOUDINARY_UPLOAD_PRESET=your_preset
 
-# Payment (Paystack)
-VITE_PAYSTACK_PUBLIC_KEY=pk_test_xxxxx
+# Payment (removed)
+# No Paystack keys are required; payment functionality has been deprecated.
 
 # Analytics (Google Analytics)
 VITE_GA_MEASUREMENT_ID=G-XXXXXXXXXX
