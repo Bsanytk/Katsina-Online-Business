@@ -8,6 +8,7 @@ import ProductList from '../components/marketplace/ProductList'
 import ProductFilter from '../components/marketplace/ProductFilter'
 import ProductForm from '../components/marketplace/ProductForm'
 import { Card, Alert } from '../components/ui'
+import BackButton from '../components/BackButton'
 
 export default function Marketplace() {
   const [products, setProducts] = useState([])
@@ -134,6 +135,9 @@ export default function Marketplace() {
 
   return (
     <main className="min-h-screen bg-kob-light">
+      <div className="container py-4">
+        <BackButton />
+      </div>
       {/* Header Section */}
       <div className="bg-gradient-to-r from-kob-primary to-kob-gold text-white py-12 md:py-16">
         <div className="container">

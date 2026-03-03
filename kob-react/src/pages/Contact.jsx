@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Button, Card, Input, Textarea, Alert } from '../components/ui'
 import { useTranslation } from '../hooks/useTranslation'
+import BackButton from '../components/BackButton'
 
 export default function Contact() {
   const t = useTranslation()
@@ -23,6 +24,9 @@ export default function Contact() {
 
   return (
     <main className="min-h-screen bg-kob-light">
+      <div className="container py-4">
+        <BackButton />
+      </div>
       {/* Header Section */}
       <div className="bg-gradient-to-r from-kob-primary to-kob-gold text-white py-16 md:py-20">
         <div className="container text-center">

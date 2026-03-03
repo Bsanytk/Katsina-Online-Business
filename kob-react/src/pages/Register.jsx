@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { registerUser } from '../firebase/auth'
 import { useNavigate, Link } from 'react-router-dom'
 import { Input, Button, Alert, Card } from '../components/ui'
+import BackButton from '../components/BackButton'
 
 export default function Register() {
   const [email, setEmail] = useState('')
@@ -41,6 +42,9 @@ export default function Register() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-kob-light to-white flex items-center justify-center p-4">
+      <div className="absolute top-4 left-4">
+        <BackButton />
+      </div>
       <div className="w-full max-w-md">
         {/* Card */}
         <Card variant="elevated" className="p-8">

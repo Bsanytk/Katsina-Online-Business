@@ -2,6 +2,7 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from '../hooks/useTranslation'
 import { Card, Button } from '../components/ui'
+import BackButton from '../components/BackButton'
 
 export default function Help() {
   const t = useTranslation()
@@ -57,6 +58,9 @@ export default function Help() {
 
   return (
     <main className="min-h-screen bg-kob-light">
+      <div className="container py-4">
+        <BackButton />
+      </div>
       {/* Header Section */}
       <div className="bg-gradient-to-r from-kob-primary to-kob-gold text-white py-16 md:py-20">
         <div className="container text-center">

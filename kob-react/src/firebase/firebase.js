@@ -40,4 +40,10 @@ const app = initializeApp(firebaseConfig)
 const auth = getAuth(app)
 const db = getFirestore(app)
 
+// Debug: verify Firebase API key is loaded
+// eslint-disable-next-line no-console
+console.log('Firebase API Key loaded:', !!firebaseConfig.apiKey ? 'Yes (first 8 chars: ' + firebaseConfig.apiKey.substring(0, 8) + '...)' : 'Missing')
+// eslint-disable-next-line no-console
+console.log('Firebase projectId:', firebaseConfig.projectId)
+
 export { app, auth, db }

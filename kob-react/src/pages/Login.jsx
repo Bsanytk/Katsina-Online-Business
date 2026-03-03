@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { loginUser } from '../firebase/auth'
 import { useNavigate, Link } from 'react-router-dom'
 import { Input, Button, Alert, Card } from '../components/ui'
+import BackButton from '../components/BackButton'
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -26,6 +27,9 @@ export default function Login() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-kob-light via-white to-kob-primary-light flex items-center justify-center p-4 py-12">
+      <div className="absolute top-4 left-4">
+        <BackButton />
+      </div>
       {/* Decorative Elements */}
       <div className="absolute inset-0 opacity-5 pointer-events-none">
         <div className="absolute top-20 right-20 w-96 h-96 bg-kob-primary rounded-full blur-3xl"></div>

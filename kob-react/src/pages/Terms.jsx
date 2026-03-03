@@ -1,6 +1,7 @@
 import React from 'react'
 import { useTranslation } from '../hooks/useTranslation'
 import { Card } from '../components/ui'
+import BackButton from '../components/BackButton'
 
 export default function Terms() {
   const t = useTranslation()
@@ -53,6 +54,9 @@ export default function Terms() {
 
   return (
     <main className="min-h-screen bg-kob-light">
+      <div className="container py-4">
+        <BackButton />
+      </div>
       {/* Header Section */}
       <div className="bg-gradient-to-r from-kob-primary to-kob-gold text-white py-16 md:py-20">
         <div className="container text-center">

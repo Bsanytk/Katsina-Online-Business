@@ -3,6 +3,7 @@ import { useAuth } from '../firebase/auth'
 import Loading from '../components/Loading'
 import { Card, Button, Alert } from '../components/ui'
 import { getProducts, deleteProduct } from '../services/products'
+import BackButton from '../components/BackButton'
 
 // Buyer Dashboard View
 function BuyerDashboard({ user }) {
@@ -298,6 +299,9 @@ export default function Dashboard() {
 
   return (
     <main className="min-h-screen bg-kob-light">
+      <div className="container py-4">
+        <BackButton />
+      </div>
       <div className="container py-8">
         {/* Render appropriate dashboard based on user role */}
         {user.role === 'seller' ? (
