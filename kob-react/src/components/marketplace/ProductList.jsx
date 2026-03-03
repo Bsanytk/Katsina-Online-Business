@@ -80,12 +80,12 @@ export default function ProductList({
         <p className="text-gray-600 mb-6">
           {t('productList.noProductsMessage')}
         </p>
-        {user?.role === 'seller' && (
+        {user && (
           <Button
             variant="primary"
-            onClick={() => window.location.href = '/dashboard'}
+            onClick={() => window.location.href = '/marketplace'}
           >
-            Create Your First Product
+            Add Your First Product
           </Button>
         )}
       </Card>

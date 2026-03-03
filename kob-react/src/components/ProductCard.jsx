@@ -3,7 +3,8 @@ import { useAuth } from '../firebase/auth'
 
 export default function ProductCard({ product, user, onEdit, onDelete, onBuyClick }) {
   const { user: authUser } = useAuth()
-  const canEdit = user && user.role === 'admin'
+  // User can edit if they own the product
+  const canEdit = authUser && product.ownerUid === authUser.uid
   const [imageError, setImageError] = useState(false)
 
   // Placeholder image for failed image loads

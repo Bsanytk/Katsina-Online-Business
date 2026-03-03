@@ -132,7 +132,7 @@ export default function Marketplace() {
     setFormError(null)
   }
 
-  const canCreate = user && (user.role === 'seller' || user.role === 'admin')
+  const canCreate = user != null  // Any authenticated user can create products (no role checks)
 
   return (
     <main className="min-h-screen bg-kob-light">

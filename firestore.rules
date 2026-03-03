@@ -3,55 +3,54 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // --------------------------
-    // Users
+    // Users - Ownership-based
     // --------------------------
     match /users/{uid} {
+      // Users can only read their own profile
       allow read: if request.auth != null && request.auth.uid == uid;
 
-      // Create/update own profile but cannot set role from client
-      allow create, update: if request.auth != null && request.auth.uid == uid
-        && !(request.resource.data.keys().hasAny(['role']) && (resource.data.role != request.resource.data.role));
+      // Users can create and update only their own profile
+      allow create, update: if request.auth != null && request.auth.uid == uid;
 
+      // Users cannot delete their own profile
       allow delete: if false;
     }
 
     // --------------------------
-    // Products
+    // Products - Ownership-based
     // --------------------------
     match /products/{productId} {
-      // Public read for marketplace browsing
+      // Public read for marketplace browsing (anyone can view)
       allow read: if true;
 
-      // Only authenticated users may create a product and ownerUid must match
+      // Only authenticated users may create a product
+      // Product must include ownerUid matching the authenticated user
       allow create: if request.auth != null
         && request.resource.data.ownerUid == request.auth.uid
         && request.resource.data.keys().hasAll(['title', 'price', 'ownerUid']);
 
-      // Only product owner or admin may update/delete
-      allow update, delete: if request.auth != null && (
-        resource.data.ownerUid == request.auth.uid
-        || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
-      );
+      // Only product owner may update or delete their own product
+      allow update, delete: if request.auth != null && resource.data.ownerUid == request.auth.uid;
     }
 
     // --------------------------
-    // Reviews
+    // Reviews - Ownership-based
     // --------------------------
     match /reviews/{reviewId} {
       // Allow anyone to read reviews
       allow read: if true;
 
-      // Only authenticated buyer can create review and buyerId must be auth.uid
+      // Only authenticated users who are the buyer can create reviews
       allow create: if request.auth != null
         && request.resource.data.buyerId == request.auth.uid
-        && request.resource.data.keys().hasAll(['productId','sellerId','buyerId','rating','text']);
+        && request.resource.data.keys().hasAll(['productId', 'sellerId', 'buyerId', 'rating', 'text']);
 
-      // Only the author can update or delete their review
+      // Only the review author (buyer) can update or delete their review
       allow update, delete: if request.auth != null && resource.data.buyerId == request.auth.uid;
     }
 
     // --------------------------
-    // Orders (simplified 'requests')
+    // Orders - Ownership-based (simplified 'requests')
     // --------------------------
     match /orders/{orderId} {
       // Only participants (buyer or seller) can read
@@ -59,22 +58,21 @@ service cloud.firestore {
         resource.data.buyerId == request.auth.uid || resource.data.sellerId == request.auth.uid
       );
 
-      // Buyer can create a request (buyerId must match)
+      // Buyer can create a request (buyerId must match authenticated user)
       allow create: if request.auth != null && request.resource.data.buyerId == request.auth.uid
-        && request.resource.data.keys().hasAll(['buyerId','sellerId','productId']);
+        && request.resource.data.keys().hasAll(['buyerId', 'sellerId', 'productId']);
 
-      // Only seller (resource.sellerId) or admin may update status fields
+      // Only the seller or buyer can update an order
       allow update: if request.auth != null && (
-        resource.data.sellerId == request.auth.uid
-        || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
+        resource.data.sellerId == request.auth.uid || resource.data.buyerId == request.auth.uid
       );
 
-      // Only admin may delete
-      allow delete: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      // Only the buyer can delete their own order request
+      allow delete: if request.auth != null && resource.data.buyerId == request.auth.uid;
     }
 
     // --------------------------
-    // Conversations & Messages
+    // Conversations & Messages - Ownership-based
     // --------------------------
     match /conversations/{conversationId} {
       // Only participants can read/get conversation
@@ -84,30 +82,34 @@ service cloud.firestore {
       allow create: if request.auth != null
         && request.resource.data.participants is list
         && request.auth.uid in request.resource.data.participants
-        && request.resource.data.keys().hasAll(['participants','productId']);
+        && request.resource.data.keys().hasAll(['participants', 'productId']);
 
-      // prevent client from changing participants array after creation
+      // Participants cannot change the participants array after creation
       allow update: if request.auth != null && request.auth.uid in resource.data.participants
         && !(request.resource.data.keys().hasAny(['participants']) && request.resource.data.participants != resource.data.participants);
+
+      // Participants cannot delete conversations
+      allow delete: if false;
 
       // Messages subcollection
       match /messages/{messageId} {
         // Only participants can read messages
         allow read: if request.auth != null && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants;
 
-        // Only authenticated sender may create message and senderId must match auth uid
+        // Only the sender can create messages (senderId must match authenticated user)
         allow create: if request.auth != null
           && request.resource.data.senderId == request.auth.uid
           && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants
-          && request.resource.data.keys().hasAll(['conversationId','senderId','text','createdAt']);
+          && request.resource.data.keys().hasAll(['conversationId', 'senderId', 'text', 'createdAt']);
 
-        // Allow sender to update their own message (e.g., edit) within limits
+        // Only the sender can update their own message
         allow update: if request.auth != null && resource.data.senderId == request.auth.uid;
 
-        // No client deletes of messages
+        // No client-side deletion of messages
         allow delete: if false;
       }
     }
+
 
     // --------------------------
     // Default deny
