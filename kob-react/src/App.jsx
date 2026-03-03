@@ -19,6 +19,7 @@ import Testimonials from './pages/Testimonials'
 import Terms from './pages/Terms'
 import Privacy from './pages/Privacy'
 import NotFound from './pages/NotFound'
+import ProductDetail from './pages/ProductDetail'
 
 export default function App() {
   return (
@@ -32,6 +33,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/marketplace" element={<Marketplace />} />
+              <Route path="/product/:productId" element={<ProductDetail />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/faq" element={<FAQ />} />
             <Route path="/help" element={<Help />} />
