@@ -20,18 +20,16 @@ export default function OrderDetail({ order, isSeller = false, onStatusUpdate })
     )
   }
 
-  const statusOptions = ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled']
+  const statusOptions = ['requested', 'confirmed', 'closed', 'cancelled']
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case 'pending':
-        return '⏳'
+      case 'requested':
+        return '📩'
       case 'confirmed':
         return '✓'
-      case 'shipped':
-        return '📦'
-      case 'delivered':
-        return '✓✓'
+      case 'closed':
+        return '✔️'
       case 'cancelled':
         return '✗'
       default:
@@ -54,7 +52,7 @@ export default function OrderDetail({ order, isSeller = false, onStatusUpdate })
       setSuccess(true)
       setTimeout(() => setSuccess(false), 3000)
     } catch (err) {
-      console.error('Error updating order status:', err)
+      if (import.meta.env.DEV) console.error('Error updating order status:', err)
       setError(err.message || 'Failed to update status')
     } finally {
       setLoading(false)

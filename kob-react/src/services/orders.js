@@ -9,17 +9,19 @@ import {
   where,
   orderBy,
   getDoc,
+  limit as fbLimit,
 } from 'firebase/firestore'
 import { db } from '../firebase/firebase'
 
 const ORDERS_COL = 'orders'
+const DEFAULT_PAGE_SIZE = 20
 
-// Create a new order
+// Create a simplified "request" (lightweight order) to reduce complexity.
 export async function createOrder(data) {
-  // Expected fields: buyerId, sellerId, productId, productTitle, price, quantity, buyerEmail, status
+  // Expected fields: buyerId, sellerId, productId, productTitle, price, quantity, buyerEmail
   const payload = {
     ...data,
-    status: 'pending', // pending, confirmed, shipped, delivered, cancelled
+    status: 'requested', // simplified statuses: requested, confirmed, closed, cancelled
     createdAt: new Date(),
     updatedAt: new Date(),
   }
@@ -27,12 +29,13 @@ export async function createOrder(data) {
   return { id: ref.id, ...payload }
 }
 
-// Get orders by buyer
-export async function getBuyerOrders(buyerId) {
+// Get orders by buyer (paginated)
+export async function getBuyerOrders(buyerId, { pageSize = DEFAULT_PAGE_SIZE } = {}) {
   const q = query(
     collection(db, ORDERS_COL),
     where('buyerId', '==', buyerId),
-    orderBy('createdAt', 'desc')
+    orderBy('createdAt', 'desc'),
+    fbLimit(pageSize)
   )
   const snap = await getDocs(q)
   const orders = []
@@ -40,12 +43,13 @@ export async function getBuyerOrders(buyerId) {
   return orders
 }
 
-// Get orders by seller
-export async function getSellerOrders(sellerId) {
+// Get orders by seller (paginated)
+export async function getSellerOrders(sellerId, { pageSize = DEFAULT_PAGE_SIZE } = {}) {
   const q = query(
     collection(db, ORDERS_COL),
     where('sellerId', '==', sellerId),
-    orderBy('createdAt', 'desc')
+    orderBy('createdAt', 'desc'),
+    fbLimit(pageSize)
   )
   const snap = await getDocs(q)
   const orders = []
@@ -61,7 +65,7 @@ export async function getOrder(orderId) {
   return { id: snap.id, ...snap.data() }
 }
 
-// Update order status
+// Update order status (seller-only should be enforced in security rules)
 export async function updateOrderStatus(orderId, newStatus) {
   const ref = doc(db, ORDERS_COL, orderId)
   await updateDoc(ref, {
@@ -71,16 +75,15 @@ export async function updateOrderStatus(orderId, newStatus) {
   return true
 }
 
-// Get order tracking history
+// Get basic order history (reflects simplified status model)
 export async function getOrderHistory(orderId) {
   const order = await getOrder(orderId)
   return {
     orderId,
     statuses: [
-      { status: 'pending', timestamp: order.createdAt, label: 'Order Placed' },
+      { status: 'requested', timestamp: order.createdAt, label: 'Request Sent' },
       { status: 'confirmed', timestamp: order.confirmedAt || null, label: 'Confirmed' },
-      { status: 'shipped', timestamp: order.shippedAt || null, label: 'Shipped' },
-      { status: 'delivered', timestamp: order.deliveredAt || null, label: 'Delivered' },
-    ].filter(s => s.timestamp || s.status === 'pending'),
+      { status: 'closed', timestamp: order.closedAt || null, label: 'Closed' },
+    ].filter(s => s.timestamp || s.status === 'requested'),
   }
 }

@@ -24,7 +24,7 @@ export default function SellerRating({ sellerId, sellerName = 'Seller', compact 
         setError(null)
       })
       .catch((err) => {
-        console.error('Error fetching seller reviews:', err)
+        if (import.meta.env.DEV) console.error('Error fetching seller reviews:', err)
         setError(err.message)
       })
       .finally(() => setLoading(false))

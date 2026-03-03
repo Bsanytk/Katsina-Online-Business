@@ -75,7 +75,7 @@ src/
 │   ├── ProductForm.jsx
 │   ├── ProductReviews.jsx
 │   ├── SellerRating.jsx
-│   ├── CheckoutModal.jsx
+│   ├── CheckoutModal.jsx  (removed in Phase 9)
 │   ├── ErrorBoundary.jsx
 │   ├── TestimonialsSection.jsx
 │   ├── widgets/
@@ -93,7 +93,7 @@ src/
 │   ├── firebase.js
 │   ├── auth.js
 │   ├── products.js
-│   ├── payment.js
+│   ├── payment.js  (removed in Phase 9)
 │   ├── analytics.js
 │   ├── email.js
 │   ├── seo.js

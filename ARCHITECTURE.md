@@ -25,7 +25,8 @@ KOB is a full-stack marketplace web application built with modern technologies. 
 - **Backend**: Firebase (no dedicated backend needed)
 - **Database**: Firestore (NoSQL)
 - **Storage**: Firebase Cloud Storage + Cloudinary
-- **Payment**: Paystack
+- **Payment**: *removed* (Phase 9, no gateway)
+
 - **Analytics**: Google Analytics 4
 
 The architecture follows a **3-tier model**:
@@ -79,7 +80,8 @@ The architecture follows a **3-tier model**:
 ### External Integrations
 | Service | Provider | Purpose |
 |---------|----------|---------|
-| Payments | Paystack | Process Nigerian payments |
+| Payments | *none* (removed) | Buyers/sellers handle payments externally |
+
 | Analytics | Google Analytics 4 | User behavior tracking |
 | Email | SendGrid/Mailgun | Transactional emails |
 
@@ -106,7 +108,8 @@ The architecture follows a **3-tier model**:
 │  │  ├────────────┤  ├────────────┤  ├───────────────────┤ │  │
 │  │  │ Home       │  │ ProductCard│  │ auth.js           │ │  │
 │  │  │ Marketplace│  │ ProductList│  │ products.js       │ │  │
-│  │  │ Dashboard  │  │ CheckoutM. │  │ payment.js        │ │  │
+│  │  │ Dashboard  │  │ [checkout removed] │  │ [payment service removed] │ │  │
+
 │  │  │ Login      │  │ ErrorBound │  │ analytics.js      │ │  │
 │  │  │ Register   │  │ ProductRev │  │ email.js          │ │  │
 │  │  │ Contact    │  │ Sidebar    │  │ seo.js            │ │  │
@@ -180,9 +183,14 @@ App
 - `ProductReviews` - Display and add reviews
 - `SellerRating` - Aggregate seller rating display
 
-**Checkout Components**
-- `CheckoutModal` - 2-step payment flow
-- Payment integration with Paystack
+**Checkout Components** *(deprecated/removed)*
+
+> Checkout and payment code was removed in Phase 9. The app now only
+> collects orders/requests which are handled offline by sellers and buyers.
+
+- `CheckoutModal` - *removed* (historical 2-step flow)
+- Payment integration with Paystack has been dropped; no gateway is used.
+
 
 **Support Components**
 - `SupportWidget` - Floating help panel
@@ -302,7 +310,12 @@ App
 - Firestore
 - Cloudinary (images)
 
-### Payment Service (`services/payment.js`)
+### Payment Service (removed)
+
+*This section is retained for historical context only. As of Phase 9 the
+`payment.js` service and all Paystack integration have been deleted from the
+codebase to eliminate third‑party payment dependencies.*
+
 
 **Exports:**
 - `initializePayment(data)` - Start Paystack checkout
@@ -451,7 +464,15 @@ Token → Automatically managed by Firebase SDK
 
 ## Payment Flow
 
-### Paystack Integration
+### Paystack Integration *(deprecated)*
+
+> Paystack integration was removed in Phase 9. Previously the client launched a Paystack checkout modal for payments; this is no longer part of the application.
+ *(deprecated)*
+
+> Paystack integration was removed in Phase 9. Previously the client launched
+> a Paystack checkout modal for payments; this is no longer part of the
+> application.
+
 
 ```
 Buyer → Clicks "Buy Now"

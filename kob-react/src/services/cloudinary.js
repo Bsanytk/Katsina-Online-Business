@@ -20,13 +20,13 @@ export async function uploadImage(file) {
     const res = await fetch(url, { method: 'POST', body: form })
     const data = await res.json()
     if (!res.ok) {
-      console.error('Cloudinary upload error:', { status: res.status, body: data })
+      if (import.meta.env.DEV) console.error('Cloudinary upload error:', { status: res.status, body: data })
       throw new Error(data.error?.message || 'Upload failed')
     }
     // secure_url contains the uploaded image URL
     return data.secure_url
   } catch (err) {
-    console.error('Cloudinary upload exception:', { message: err.message })
+    if (import.meta.env.DEV) console.error('Cloudinary upload exception:', { message: err.message })
     throw err
   }
 }

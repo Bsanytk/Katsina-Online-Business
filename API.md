@@ -364,74 +364,10 @@ console.log(`Average rating: ${rating.average}⭐ (${rating.count} reviews)`)
 
 ## Payment
 
-### `services/payment.js`
+> **Deprecated:** The payment API and Paystack integration were removed in
+> Phase 9. No payment-related services exist in the current codebase. Buyers
+> and sellers handle transactions outside the application.
 
-#### initializePayment(paymentData)
-
-Initialize a Paystack payment transaction.
-
-```javascript
-import { initializePayment } from '@/services/payment'
-
-try {
-  const response = await initializePayment({
-    email: 'buyer@example.com',
-    amount: 100000, // ₦1,000
-    metadata: {
-      orderId: 'order123',
-      productId: 'prod123',
-      quantity: 2,
-      buyerName: 'John Doe'
-    }
-  })
-  
-  console.log('Payment initialized:', response.reference)
-  // Paystack payment modal will appear
-} catch (error) {
-  console.error('Payment initialization failed:', error)
-}
-```
-
-**Parameters:**
-- `paymentData` (object):
-  - `email` (string): Customer email
-  - `amount` (number): Amount in kobo (₦500 = 50000)
-  - `metadata` (object): Custom data to attach
-
-**Returns:** Response object with transaction reference
-
-**Paystack Modal:** Opens automatically after initialization
-
-**Handler Function:**
-```javascript
-// In CheckoutModal or similar
-const handlePaymentSuccess = (reference) => {
-  console.log('Payment successful!', reference)
-  // Create order in Firestore
-  // Send confirmation email
-  // Update seller notifications
-}
-```
-
-#### calculatePaymentFee(amount)
-
-Calculate Paystack transaction fee.
-
-```javascript
-import { calculatePaymentFee } from '@/services/payment'
-
-const subtotal = 100000 // ₦1,000
-const fee = calculatePaymentFee(subtotal)
-console.log(`Fee: ₦${(fee / 100).toFixed(2)}`)
-// Output: Fee: ₦1.50
-
-const total = subtotal + fee
-console.log(`Total: ₦${(total / 100).toFixed(2)}`)
-// Output: Total: ₦1,001.50
-```
-
-**Formula:** 1.5% + ₦100  
-**Example:** ₦100,000 = Fee of ₦1,600
 
 ---
 

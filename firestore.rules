@@ -2,68 +2,118 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    /*
-      USERS COLLECTION
-      - Documents: /users/{uid}
-      - Expected field: `role` with value one of: "admin", "verified", "basic"
-      - Clients may read their own user document.
-      - Clients MAY create/update their own user doc but MUST NOT change the
-        `role` field from the client (roles must be assigned by trusted code
-        or via the Firebase console).
-    */
+    // --------------------------
+    // Users
+    // --------------------------
     match /users/{uid} {
-      // Allow a signed-in user to read their own document
       allow read: if request.auth != null && request.auth.uid == uid;
 
-      // Allow a user to create/update their own document, but prevent clients
-      // from assigning or changing the `role` field. This prevents privilege
-      // escalation from the client side.
+      // Create/update own profile but cannot set role from client
       allow create, update: if request.auth != null && request.auth.uid == uid
-        && !(request.resource.data.keys().hasAny(['role'])
-             && (resource.data.role != request.resource.data.role));
+        && !(request.resource.data.keys().hasAny(['role']) && (resource.data.role != request.resource.data.role));
 
-      // Disallow deletes from clients (roles and user cleanup should be
-      // handled by admin tools or server-side logic).
       allow delete: if false;
     }
 
-    /*
-      PRODUCTS COLLECTION
-      - Public read access for product browsing.
-      - Creation allowed only for roles: admin OR verified.
-      - Update/Delete allowed only for admin.
-      - All role checks are based on the authoritative /users/{uid} document.
-    */
+    // --------------------------
+    // Products
+    // --------------------------
     match /products/{productId} {
-      // Anyone (including unauthenticated users) can read products
+      // Public read for marketplace browsing
       allow read: if true;
 
-      // Only authenticated users whose /users/{uid}.role is 'admin' or
-      // 'verified' can create product documents.
-      allow create: if isAuthenticated() && isInRole(['admin', 'verified']);
+      // Only authenticated users may create a product and ownerUid must match
+      allow create: if request.auth != null
+        && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.keys().hasAll(['title', 'price', 'ownerUid']);
 
-      // Only admins can update or delete products.
-      allow update, delete: if isAuthenticated() && isInRole(['admin']);
+      // Only product owner or admin may update/delete
+      allow update, delete: if request.auth != null && (
+        resource.data.ownerUid == request.auth.uid
+        || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
+      );
     }
-  }
 
-  /* Helper functions */
+    // --------------------------
+    // Reviews
+    // --------------------------
+    match /reviews/{reviewId} {
+      // Allow anyone to read reviews
+      allow read: if true;
 
-  // Check the request is authenticated
-  function isAuthenticated() {
-    return request.auth != null;
-  }
+      // Only authenticated buyer can create review and buyerId must be auth.uid
+      allow create: if request.auth != null
+        && request.resource.data.buyerId == request.auth.uid
+        && request.resource.data.keys().hasAll(['productId','sellerId','buyerId','rating','text']);
 
-  // Read the user's document and return the role string, or null if unknown
-  function getUserRole() {
-    if (!isAuthenticated()) { return null; }
-    let u = get(/databases/$(database)/documents/users/$(request.auth.uid));
-    return u.exists() && u.data.keys().hasAny(['role']) ? u.data.role : null;
-  }
+      // Only the author can update or delete their review
+      allow update, delete: if request.auth != null && resource.data.buyerId == request.auth.uid;
+    }
 
-  // Check whether the user's role appears in the provided list `roles`
-  function isInRole(roles) {
-    let role = getUserRole();
-    return role != null && roles.hasAny([role]);
+    // --------------------------
+    // Orders (simplified 'requests')
+    // --------------------------
+    match /orders/{orderId} {
+      // Only participants (buyer or seller) can read
+      allow read: if request.auth != null && (
+        resource.data.buyerId == request.auth.uid || resource.data.sellerId == request.auth.uid
+      );
+
+      // Buyer can create a request (buyerId must match)
+      allow create: if request.auth != null && request.resource.data.buyerId == request.auth.uid
+        && request.resource.data.keys().hasAll(['buyerId','sellerId','productId']);
+
+      // Only seller (resource.sellerId) or admin may update status fields
+      allow update: if request.auth != null && (
+        resource.data.sellerId == request.auth.uid
+        || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
+      );
+
+      // Only admin may delete
+      allow delete: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // --------------------------
+    // Conversations & Messages
+    // --------------------------
+    match /conversations/{conversationId} {
+      // Only participants can read/get conversation
+      allow read: if request.auth != null && request.auth.uid in resource.data.participants;
+
+      // To create a conversation, the request must include participants array and auth uid must be one of them
+      allow create: if request.auth != null
+        && request.resource.data.participants is list
+        && request.auth.uid in request.resource.data.participants
+        && request.resource.data.keys().hasAll(['participants','productId']);
+
+      // prevent client from changing participants array after creation
+      allow update: if request.auth != null && request.auth.uid in resource.data.participants
+        && !(request.resource.data.keys().hasAny(['participants']) && request.resource.data.participants != resource.data.participants);
+
+      // Messages subcollection
+      match /messages/{messageId} {
+        // Only participants can read messages
+        allow read: if request.auth != null && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants;
+
+        // Only authenticated sender may create message and senderId must match auth uid
+        allow create: if request.auth != null
+          && request.resource.data.senderId == request.auth.uid
+          && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants
+          && request.resource.data.keys().hasAll(['conversationId','senderId','text','createdAt']);
+
+        // Allow sender to update their own message (e.g., edit) within limits
+        allow update: if request.auth != null && resource.data.senderId == request.auth.uid;
+
+        // No client deletes of messages
+        allow delete: if false;
+      }
+    }
+
+    // --------------------------
+    // Default deny
+    // --------------------------
+    match /{document=**} {
+      allow read, write: if false;
+    }
   }
 }

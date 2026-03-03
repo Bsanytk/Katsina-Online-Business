@@ -118,7 +118,7 @@ kob-react/
 │   │   ├── ProductForm.jsx         # Create/edit
 │   │   ├── ProductReviews.jsx      # Review system
 │   │   ├── SellerRating.jsx        # Seller ratings
-│   │   ├── CheckoutModal.jsx       # Checkout flow
+│   │   ├── CheckoutModal.jsx       # Checkout flow (removed in Phase 9)
 │   │   ├── ErrorBoundary.jsx       # Error handling
 │   │   ├── TestimonialsSection.jsx # Social proof
 │   │   ├── Loading.jsx              # Loading spinner
@@ -138,7 +138,7 @@ kob-react/
 │   │   ├── auth.js                  # Authentication
 │   │   ├── products.js              # Product CRUD
 │   │   ├── cloudinary.js            # Image upload
-│   │   ├── payment.js               # Paystack
+│   │   ├── payment.js               # Paystack (removed in Phase 9)
 │   │   ├── analytics.js             # Google Analytics
 │   │   ├── email.js                 # Email templates
 │   │   ├── seo.js                   # SEO & meta tags
@@ -166,11 +166,9 @@ kob-react/
 - Category management
 - Reviews & ratings
 
-### Payment (`services/payment.js`)
-- Paystack integration
-- Multiple payment methods
-- Transaction tracking
-- Fee calculation
+### Payment (`services/payment.js`) *(deprecated)*
+> The payment service was removed in Phase 9. No active gateway or fees are
+> managed by the application; buyer/seller transactions are handled offline.
 
 ### Email (`services/email.js`)
 - 7 email templates

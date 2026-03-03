@@ -14,10 +14,13 @@ export default function Home() {
   const t = useTranslation()
 
   useEffect(() => {
-    getProducts().then((items) => {
-      setProducts(items.slice(0, 6))
-      setLoading(false)
-    }).catch(() => setLoading(false))
+    // fetch only a few items for the homepage
+    getProducts({ pageSize: 6 })
+      .then((items) => {
+        setProducts(items)
+        setLoading(false)
+      })
+      .catch(() => setLoading(false))
   }, [])
 
   return (

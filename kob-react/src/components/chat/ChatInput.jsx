@@ -32,7 +32,7 @@ export default function ChatInput({ conversationId, onMessageSent }) {
         onMessageSent()
       }
     } catch (err) {
-      console.error('Error sending message:', err)
+      if (import.meta.env.DEV) console.error('Error sending message:', err)
       setError(err.message || 'Failed to send message')
     } finally {
       setLoading(false)

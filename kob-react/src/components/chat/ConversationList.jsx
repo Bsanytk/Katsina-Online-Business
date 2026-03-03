@@ -24,7 +24,7 @@ export default function ConversationList({ onSelectConversation }) {
         setError(null)
       })
       .catch((err) => {
-        console.error('Error fetching conversations:', err)
+        if (import.meta.env.DEV) console.error('Error fetching conversations:', err)
         setError(err.message)
       })
       .finally(() => setLoading(false))

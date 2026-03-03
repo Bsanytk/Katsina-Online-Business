@@ -10,17 +10,20 @@ import {
   deleteDoc,
   orderBy,
   getDoc,
+  limit as fbLimit,
 } from 'firebase/firestore'
 import { db } from '../firebase/firebase'
 
 const REVIEWS_COL = 'reviews'
+const DEFAULT_PAGE_SIZE = 20
 
-// Get all reviews for a product
-export async function getProductReviews(productId) {
+// Get reviews for a product with limit (paginated)
+export async function getProductReviews(productId, { pageSize = DEFAULT_PAGE_SIZE } = {}) {
   const q = query(
     collection(db, REVIEWS_COL),
     where('productId', '==', productId),
-    orderBy('createdAt', 'desc')
+    orderBy('createdAt', 'desc'),
+    fbLimit(pageSize)
   )
   const snap = await getDocs(q)
   const reviews = []
@@ -28,12 +31,13 @@ export async function getProductReviews(productId) {
   return reviews
 }
 
-// Get all reviews by a seller (for seller rating)
-export async function getSellerReviews(sellerId) {
+// Get reviews by seller (paginated)
+export async function getSellerReviews(sellerId, { pageSize = DEFAULT_PAGE_SIZE } = {}) {
   const q = query(
     collection(db, REVIEWS_COL),
     where('sellerId', '==', sellerId),
-    orderBy('createdAt', 'desc')
+    orderBy('createdAt', 'desc'),
+    fbLimit(pageSize)
   )
   const snap = await getDocs(q)
   const reviews = []

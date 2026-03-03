@@ -30,7 +30,8 @@ export default function Marketplace() {
   async function fetchProducts() {
     setLoading(true)
     try {
-      const items = await getProducts()
+      // fetch a limited set to avoid reading full collection
+      const items = await getProducts({ pageSize: 50 })
       setProducts(items)
       setFilteredProducts(items)
     } catch (err) {

@@ -40,14 +40,14 @@ export default function ProductDetail() {
         setProduct(productData)
 
         // Load reviews
-        const reviewsData = await getProductReviews(productId)
+        const reviewsData = await getProductReviews(productId, { pageSize: 20 })
         setReviews(reviewsData)
         const avgRating = calculateAverageRating(reviewsData)
         setAverageRating(avgRating)
 
         setError(null)
       } catch (err) {
-        console.error('Error loading product:', err)
+        if (import.meta.env.DEV) console.error('Error loading product:', err)
         setError(err.message)
       } finally {
         setLoading(false)
@@ -69,7 +69,7 @@ export default function ProductDetail() {
       // Navigate to messages tab in dashboard
       window.location.href = '/dashboard?tab=messages&conversation=' + conversationId
     } catch (err) {
-      console.error('Error creating conversation:', err)
+      if (import.meta.env.DEV) console.error('Error creating conversation:', err)
       alert('Failed to start conversation')
     }
   }

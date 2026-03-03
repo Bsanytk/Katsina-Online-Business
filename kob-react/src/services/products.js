@@ -11,13 +11,20 @@ import {
   query,
   orderBy,
   getDoc,
+  limit as fbLimit,
+  startAfter as fbStartAfter,
 } from 'firebase/firestore'
 import { db } from '../firebase/firebase'
 
 const PRODUCTS_COL = 'products'
+const DEFAULT_PAGE_SIZE = 20
 
-export async function getProducts() {
-  const q = query(collection(db, PRODUCTS_COL), orderBy('createdAt', 'desc'))
+// Paginated product listing. Pass { pageSize, startAfter } optionally.
+export async function getProducts({ pageSize = DEFAULT_PAGE_SIZE, startAfter } = {}) {
+  let q = query(collection(db, PRODUCTS_COL), orderBy('createdAt', 'desc'), fbLimit(pageSize))
+  if (startAfter) {
+    q = query(collection(db, PRODUCTS_COL), orderBy('createdAt', 'desc'), fbStartAfter(startAfter), fbLimit(pageSize))
+  }
   const snap = await getDocs(q)
   const items = []
   snap.forEach((d) => items.push({ id: d.id, ...d.data() }))

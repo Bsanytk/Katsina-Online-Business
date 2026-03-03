@@ -10,11 +10,15 @@ import {
   updateDoc,
   getDoc,
   getDocs,
+  limit as fbLimit,
 } from 'firebase/firestore'
 import { db } from '../firebase/firebase'
 
 const CONVERSATIONS_COL = 'conversations'
 const MESSAGES_COL = 'messages'
+const MAX_CONVERSATIONS = 50
+const MAX_MESSAGES_LISTEN = 500
+const MAX_MARK_READ = 200
 
 // Create or get conversation between buyer and seller
 export async function createOrGetConversation(buyerId, sellerId, productId) {
@@ -27,7 +31,7 @@ export async function createOrGetConversation(buyerId, sellerId, productId) {
   const snap = await getDoc(ref)
 
   if (!snap.exists()) {
-    // Create new conversation
+    // Create new conversation document with explicit ID
     await updateDoc(ref, {
       buyerId,
       sellerId,
@@ -36,9 +40,9 @@ export async function createOrGetConversation(buyerId, sellerId, productId) {
       lastMessage: null,
       lastMessageTime: new Date(),
       createdAt: new Date(),
-    }).catch(() => {
-      // Document doesn't exist, create it
-      return addDoc(collection(db, CONVERSATIONS_COL), {
+    }).catch(async () => {
+      // Fallback: if update fails because doc doesn't exist, create with set via addDoc
+      await addDoc(collection(db, CONVERSATIONS_COL), {
         id: conversationId,
         buyerId,
         sellerId,
@@ -74,12 +78,13 @@ export async function sendMessage(conversationId, senderId, text) {
   return { id: messageRef.id, conversationId, senderId, text }
 }
 
-// Get all conversations for a user
-export async function getUserConversations(userId) {
+// Get recent conversations for a user (limited)
+export async function getUserConversations(userId, { pageSize = MAX_CONVERSATIONS } = {}) {
   const q = query(
     collection(db, CONVERSATIONS_COL),
     where('participants', 'array-contains', userId),
-    orderBy('lastMessageTime', 'desc')
+    orderBy('lastMessageTime', 'desc'),
+    fbLimit(pageSize)
   )
   const snap = await getDocs(q)
   const conversations = []
@@ -87,12 +92,13 @@ export async function getUserConversations(userId) {
   return conversations
 }
 
-// Real-time listener for messages in a conversation
-export function subscribeToMessages(conversationId, callback) {
+// Real-time listener for messages in a conversation (limited to recent N messages)
+export function subscribeToMessages(conversationId, callback, { limit = MAX_MESSAGES_LISTEN } = {}) {
   const q = query(
     collection(db, MESSAGES_COL),
     where('conversationId', '==', conversationId),
-    orderBy('createdAt', 'asc')
+    orderBy('createdAt', 'asc'),
+    fbLimit(limit)
   )
 
   return onSnapshot(q, (snap) => {
@@ -102,11 +108,13 @@ export function subscribeToMessages(conversationId, callback) {
   })
 }
 
-// Mark messages as read
-export async function markMessagesAsRead(conversationId, userId) {
+// Mark recent messages as read (limited for cost control)
+export async function markMessagesAsRead(conversationId, userId, { limit = MAX_MARK_READ } = {}) {
   const q = query(
     collection(db, MESSAGES_COL),
-    where('conversationId', '==', conversationId)
+    where('conversationId', '==', conversationId),
+    orderBy('createdAt', 'desc'),
+    fbLimit(limit)
   )
   const snap = await getDocs(q)
   snap.forEach((d) => {

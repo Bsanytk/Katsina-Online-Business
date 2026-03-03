@@ -36,7 +36,7 @@ export default function MessageView({ conversationId, otherParticipantName }) {
 
       // Mark messages as read
       markMessagesAsRead(conversationId, user.uid).catch((err) => {
-        console.error('Error marking messages as read:', err)
+        if (import.meta.env.DEV) console.error('Error marking messages as read:', err)
       })
     })
 

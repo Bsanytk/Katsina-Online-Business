@@ -155,10 +155,11 @@ function SellerDashboard({ user }) {
   async function fetchProducts() {
     setLoadingProducts(true)
     try {
-      const items = await getProducts()
+      // fetch with pagination defaults to keep reads low
+      const items = await getProducts({ pageSize: 20 })
       setProducts(items)
     } catch (err) {
-      console.error('Error fetching products:', err)
+      if (import.meta.env.DEV) console.error('Error fetching products:', err)
     } finally {
       setLoadingProducts(false)
     }
@@ -174,7 +175,7 @@ function SellerDashboard({ user }) {
       await fetchProducts()
       setTimeout(() => setShowDeleteSuccess(false), 5000)
     } catch (err) {
-      console.error('Error deleting product:', err)
+      if (import.meta.env.DEV) console.error('Error deleting product:', err)
       alert('Failed to delete product. Please try again.')
     } finally {
       setDeleteLoading(null)

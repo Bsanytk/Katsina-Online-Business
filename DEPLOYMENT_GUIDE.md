@@ -18,7 +18,8 @@ Before deploying to production, ensure:
 
 - [ ] All environment variables are configured
 - [ ] Firebase project is created and configured
-- [ ] Paystack account is set up (live keys obtained)
+- [ ] **(N/A)** Paystack account setup - payment feature removed
+
 - [ ] Google Analytics property is created
 - [ ] Email service is configured (SendGrid/Mailgun)
 - [ ] Domain is registered and DNS configured
@@ -51,9 +52,9 @@ VITE_FIREBASE_APP_ID=YOUR_APP_ID
 VITE_CLOUDINARY_CLOUD_NAME=YOUR_CLOUD_NAME
 VITE_CLOUDINARY_UPLOAD_PRESET=YOUR_UPLOAD_PRESET
 
-# Payment (Paystack)
-VITE_PAYSTACK_PUBLIC_KEY=pk_test_xxxxx (for testing)
-# VITE_PAYSTACK_PUBLIC_KEY=pk_live_xxxxx (for production)
+# Payment integration removed (Phase 9)
+# No Paystack environment variables are required.
+
 
 # Analytics (Google Analytics)
 VITE_GA_MEASUREMENT_ID=G-XXXXXXXXXX
@@ -72,8 +73,9 @@ VITE_EMAIL_SERVICE_URL=https://api.sendgrid.com/v3/mail/send
 
 2. Use production keys:
    - Firebase: Use production project
-   - Paystack: Switch to live keys (`pk_live_`)
    - Google Analytics: Use production property
+   
+   *(Note: Paystack-related steps can be ignored; payment integration has been removed.)*
 
 ---
 
