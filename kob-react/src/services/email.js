@@ -189,7 +189,7 @@ export class EmailService {
    */
   async send(emailData) {
     // For development, log to console
-    console.log('📧 Email would be sent:', emailData)
+    if (import.meta.env.DEV) console.log('📧 Email would be sent:', emailData)
 
     // In production, uncomment and use:
     /*
@@ -217,7 +217,7 @@ export class EmailService {
    * Queue email for later sending (useful for bulk operations)
    */
   async queueEmail(emailData) {
-    console.log('📧 Email queued:', emailData)
+    if (import.meta.env.DEV) console.log('📧 Email queued:', emailData)
     // Implementation would depend on backend queue system
   }
 

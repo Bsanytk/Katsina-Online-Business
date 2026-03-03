@@ -6,7 +6,7 @@
 // VITE_FIREBASE_PROJECT_ID=...
 
 import { initializeApp } from 'firebase/app'
-import { getAuth } from 'firebase/auth'
+import { getAuth, setPersistence, browserLocalPersistence } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
 
 // Normalize and validate Firebase config from environment
@@ -26,13 +26,13 @@ const firebaseConfig = {
 }
 
 // Helpful runtime warnings when env is incomplete
-if (!firebaseConfig.apiKey) {
-  // eslint-disable-next-line no-console
-  console.warn('Missing VITE_FIREBASE_API_KEY in environment. Firebase auth may fail.')
-}
-if (firebaseConfig.storageBucket && !firebaseConfig.storageBucket.endsWith('.appspot.com')) {
-  // eslint-disable-next-line no-console
-  console.warn('Unrecognized storageBucket format:', firebaseConfig.storageBucket)
+if (import.meta.env.DEV) {
+  if (!firebaseConfig.apiKey) {
+    console.warn('Missing VITE_FIREBASE_API_KEY in environment. Firebase auth may fail.')
+  }
+  if (firebaseConfig.storageBucket && !firebaseConfig.storageBucket.endsWith('.appspot.com')) {
+    console.warn('Unrecognized storageBucket format:', firebaseConfig.storageBucket)
+  }
 }
 
 // Initialize Firebase
@@ -40,10 +40,17 @@ const app = initializeApp(firebaseConfig)
 const auth = getAuth(app)
 const db = getFirestore(app)
 
-// Debug: verify Firebase API key is loaded
-// eslint-disable-next-line no-console
-console.log('Firebase API Key loaded:', !!firebaseConfig.apiKey ? 'Yes (first 8 chars: ' + firebaseConfig.apiKey.substring(0, 8) + '...)' : 'Missing')
-// eslint-disable-next-line no-console
-console.log('Firebase projectId:', firebaseConfig.projectId)
+// Ensure auth persistence so users stay logged in across refreshes
+if (typeof window !== 'undefined') {
+  setPersistence(auth, browserLocalPersistence).catch((err) => {
+    if (import.meta.env.DEV) console.warn('Failed to set auth persistence:', err)
+  })
+}
+
+// Development-only debug info
+if (import.meta.env.DEV) {
+  console.log('Firebase API Key loaded:', !!firebaseConfig.apiKey)
+  console.log('Firebase projectId:', firebaseConfig.projectId)
+}
 
 export { app, auth, db }

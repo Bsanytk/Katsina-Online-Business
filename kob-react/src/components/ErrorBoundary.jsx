@@ -45,7 +45,7 @@ export class ErrorBoundary extends React.Component {
       timestamp: new Date().toISOString(),
       url: window.location.href,
     }
-    console.log('Would send to error tracking:', errorData)
+    if (import.meta.env.DEV) console.log('Would send to error tracking:', errorData)
   }
 
   handleReset = () => {

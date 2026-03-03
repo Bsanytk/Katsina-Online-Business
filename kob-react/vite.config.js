@@ -3,5 +3,6 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
-  base: '/Katsina-Online-Business/',
+  // Serve at root in production (Vercel expects app at /)
+  base: '/',
 })

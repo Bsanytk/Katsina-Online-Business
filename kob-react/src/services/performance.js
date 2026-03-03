@@ -31,7 +31,7 @@ export class WebVitalsTracker {
     this.trackTTI() // Time to Interactive
 
     this.initialized = true
-    console.log('Web Vitals tracking initialized')
+    if (import.meta.env.DEV) console.log('Web Vitals tracking initialized')
   }
 
   /**
@@ -202,10 +202,7 @@ export class WebVitalsTracker {
 
     // Log to console in development
     if (import.meta.env.DEV) {
-      console.log(
-        `📊 ${name}: ${Math.round(value)}ms`,
-        status.good ? '✅' : status.needsImprovement ? '⚠️' : '❌'
-      )
+      console.log(`📊 ${name}: ${Math.round(value)}ms`, status.good ? '✅' : status.needsImprovement ? '⚠️' : '❌')
     }
   }
 

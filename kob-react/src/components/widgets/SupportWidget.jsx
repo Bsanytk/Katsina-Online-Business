@@ -78,7 +78,7 @@ export default function SupportWidget() {
 
     // In production, this would send to a backend
     // For now, we'll just show a success message
-    console.log('Support request:', formData)
+    if (import.meta.env.DEV) console.log('Support request:', formData)
 
     // Reset form
     setFormData({
