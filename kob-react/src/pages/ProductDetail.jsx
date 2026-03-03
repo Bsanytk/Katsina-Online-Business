@@ -9,6 +9,7 @@ import { getProductById } from '../services/products'
 import { getProductReviews, calculateAverageRating } from '../services/reviews'
 import { useAuth } from '../firebase/auth'
 import { createOrGetConversation } from '../services/chat'
+import { createOrder } from '../services/orders'
 
 export default function ProductDetail() {
   const { productId } = useParams()
@@ -258,8 +259,39 @@ export default function ProductDetail() {
                 </Button>
 
                 <Button
-                  onClick={() => {
-                    alert('Order functionality coming soon!')
+                  onClick={async () => {
+                    if (!user) {
+                      alert('Please login to place an order')
+                      window.location.href = '/login'
+                      return
+                    }
+
+                    try {
+                      const qtyInput = window.prompt('Enter quantity to order (number):', '1')
+                      if (!qtyInput) return
+                      const quantity = parseInt(qtyInput, 10)
+                      if (isNaN(quantity) || quantity <= 0) {
+                        alert('Invalid quantity')
+                        return
+                      }
+
+                      const orderData = {
+                        buyerId: user.uid,
+                        buyerEmail: user.email,
+                        sellerId: product.sellerId,
+                        productId: productId,
+                        productTitle: product.title,
+                        price: product.price,
+                        quantity,
+                      }
+
+                      const created = await createOrder(orderData)
+                      alert('Order placed successfully! Order ID: ' + (created.id || '—'))
+                      window.location.href = '/dashboard?tab=orders'
+                    } catch (err) {
+                      if (import.meta.env.DEV) console.error('Order error:', err)
+                      alert('Failed to place order. Please try again.')
+                    }
                   }}
                   variant="secondary"
                   className="w-full"
