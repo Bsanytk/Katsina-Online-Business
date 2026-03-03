@@ -21,7 +21,7 @@ export default function TopBar() {
       <div className="container flex items-center justify-between py-3">
         {/* KOB Logo */}
         <Link to="/" className="flex items-center gap-3">
-          <img src="https://collection.cloudinary.com/dn5crslee/6aca0ae6e8cafa5b6a8ea03258efdc5c" alt="KOB" className="h-9 w-auto object-contain" />
+          <img src="https://res.cloudinary.com/dn5crslee/image/upload/v1768211566/20260108_135034_qj155b.png" alt="KOB" className="h-9 w-auto object-contain" />
           <span className="hidden sm:inline text-lg font-semibold tracking-tight">KOB</span>
         </Link>
 
