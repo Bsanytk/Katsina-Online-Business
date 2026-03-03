@@ -21,8 +21,13 @@ export default function TopBar() {
       <div className="container flex items-center justify-between py-3">
         {/* KOB Logo */}
         <Link to="/" className="flex items-center gap-3">
-          <img src="https://res.cloudinary.com/dn5crslee/image/upload/v1768211566/20260108_135034_qj155b.png" alt="KOB" className="h-9 w-auto object-contain" />
-          <span className="hidden sm:inline text-lg font-semibold tracking-tight">KOB</span>
+          <div className="flex items-center gap-3">
+            <img src="https://res.cloudinary.com/dn5crslee/image/upload/v1768211566/20260108_135034_qj155b.png" alt="KOB" className="h-9 w-auto object-contain" />
+            <div className="flex flex-col leading-none">
+              <span className="text-lg font-extrabold tracking-tight">KOB</span>
+              <span className="text-xs text-gray-600">Katsina Online Business</span>
+            </div>
+          </div>
         </Link>
 
         {/* Temporary hidden element for translate feature (prevents console warning when missing) */}
