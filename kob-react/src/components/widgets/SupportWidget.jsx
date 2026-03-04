@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Card, Button, Input, Textarea, Alert } from '../ui'
 import { useTranslation } from '../../hooks/useTranslation'
 
@@ -11,6 +11,7 @@ import { useTranslation } from '../../hooks/useTranslation'
  * - Quick contact options (WhatsApp, Phone, Email)
  * - FAQ accordion
  * - Direct contact form
+ * - Proper modal state management (ESC, backdrop click)
  * - English language only
  */
 export default function SupportWidget() {
@@ -35,35 +36,62 @@ export default function SupportWidget() {
   const faqs = [
     {
       id: 1,
-      question: t('faq.items.1.question') || 'How do I create a seller account?',
-      answer: t('faq.items.1.answer') || 'Click on "Register" and select "Seller" as your account type. You\'ll need to verify your email address to start listing products.',
+      question: t('faq.items.0.question') || 'How do I create an account?',
+      answer: t('faq.items.0.answer') || 'Click the "Register" button and fill in your details. You\'ll receive a verification email to confirm your account.',
     },
     {
       id: 2,
-      question: t('faq.items.2.question') || 'How do I contact a seller?',
-      answer: t('faq.items.2.answer') || 'Each product has a WhatsApp button. Click it to send a message directly to the seller about the product you\'re interested in.',
+      question: t('faq.items.1.question') || 'How can I list a product?',
+      answer: t('faq.items.1.answer') || 'Navigate to your Seller Dashboard and click "Add Product". Fill in the details, upload images, and set your price. Your product will be live immediately.',
     },
     {
       id: 3,
-      question: t('faq.items.3.question') || 'Is it safe to buy on KOB?',
-      answer: t('faq.items.3.answer') || 'Yes! Always communicate through WhatsApp, meet in safe public locations, and verify products before payment. Don\'t share sensitive information.',
+      question: t('faq.items.2.question') || 'Is there a fee to list products?',
+      answer: t('faq.items.2.answer') || 'We offer free product listings for all sellers. Check our Verified Sellers Program for special benefits.',
     },
     {
       id: 4,
-      question: t('faq.items.4.question') || 'What payment methods do you accept?',
-      answer: t('faq.items.4.answer') || 'KOB doesn\'t handle payments. Arrange payment directly with sellers via bank transfer, cash, or your preferred method.',
+      question: t('faq.items.3.question') || 'How does payment work?',
+      answer: t('faq.items.3.answer') || 'We support secure payments. All transactions are protected, and funds are handled securely.',
     },
     {
       id: 5,
-      question: t('faq.items.5.question') || 'How do I delete my listing?',
-      answer: t('faq.items.5.answer') || 'Go to your Dashboard, find your product, and click the delete button. Your listing will be removed immediately.',
+      question: t('faq.items.4.question') || 'Can I edit my product listing?',
+      answer: t('faq.items.4.answer') || 'Yes! You can edit or delete your listings anytime from your Dashboard. Changes take effect immediately.',
     },
     {
       id: 6,
-      question: t('faq.items.6.question') || 'Can I edit my product details?',
-      answer: t('faq.items.6.answer') || 'Yes! In your Dashboard, click the edit button on any product to update title, description, price, or image.',
+      question: t('faq.items.5.question') || 'What if I have an issue with an order?',
+      answer: t('faq.items.5.answer') || 'Contact our support team through the Help Center or WhatsApp. We\'re available 9AM-5PM WAT.',
     },
   ]
+
+  // Handle ESC key to close modal
+  useEffect(() => {
+    function handleEscKey(e) {
+      if (e.key === 'Escape' && isOpen) {
+        handleClose()
+      }
+    }
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleEscKey)
+      // Prevent body scroll when modal is open
+      document.body.style.overflow = 'hidden'
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscKey)
+      document.body.style.overflow = 'auto'
+    }
+  }, [isOpen])
+
+  function handleClose() {
+    setIsOpen(false)
+    setActiveTab('menu')
+    setFormData({ name: '', email: '', subject: '', message: '' })
+    setSubmitted(false)
+  }
 
   function handleFormChange(e) {
     const { name, value } = e.target
@@ -89,10 +117,9 @@ export default function SupportWidget() {
     })
     setSubmitted(true)
 
-    // Hide success message after 3 seconds
+    // Hide success message after 3 seconds and close
     setTimeout(() => {
-      setSubmitted(false)
-      setActiveTab('menu')
+      handleClose()
     }, 3000)
   }
 
@@ -104,7 +131,7 @@ export default function SupportWidget() {
   const hiddenPages = ['/contact', '/help']
   const shouldHide = hiddenPages.some((page) => window.location.pathname === page)
   if (shouldHide && isOpen) {
-    setIsOpen(false)
+    handleClose()
   }
 
   return (
@@ -112,22 +139,32 @@ export default function SupportWidget() {
       {/* Floating Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-lg hover:shadow-xl transition-all flex items-center justify-center text-2xl z-40 ${
+        className={`fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center text-2xl z-40 ${
           isOpen
             ? 'bg-kob-dark text-white'
             : 'bg-kob-primary text-white hover:scale-110'
         }`}
         title={isOpen ? t('supportWidget.title') : t('supportWidget.menu')}
+        aria-label="Support widget toggle"
       >
         {isOpen ? '✕' : '💬'}
       </button>
 
+      {/* Backdrop - Click to close */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black/30 z-30 transition-opacity duration-300"
+          onClick={handleClose}
+          aria-hidden="true"
+        />
+      )}
+
       {/* Floating Panel */}
       {isOpen && (
-        <div className="fixed bottom-24 right-6 w-96 max-h-96 shadow-2xl rounded-lg z-40 animate-in slide-in-from-bottom-4 duration-300">
-          <Card variant="elevated" className="h-full flex flex-col">
+        <div className="fixed bottom-24 right-6 w-96 max-h-[32rem] shadow-2xl rounded-lg z-40 animate-in slide-in-from-bottom-4 duration-300">
+          <Card variant="elevated" className="h-full flex flex-col rounded-lg overflow-hidden">
             {/* Header */}
-            <div className="bg-gradient-to-r from-kob-primary to-kob-gold text-white p-4 rounded-t-lg">
+            <div className="bg-gradient-to-r from-kob-primary to-kob-gold text-white p-4 rounded-t-lg flex-shrink-0">
               <h3 className="font-bold text-lg">💬 {t('supportWidget.title')}</h3>
               <p className="text-xs opacity-90">{t('supportWidget.availableHours')}</p>
             </div>
@@ -191,7 +228,7 @@ export default function SupportWidget() {
                     <div key={faq.id} className="border border-gray-200 rounded-lg overflow-hidden">
                       <button
                         onClick={() => toggleFaq(faq.id)}
-                        className="w-full p-3 text-left hover:bg-gray-50 flex items-center justify-between"
+                        className="w-full p-3 text-left hover:bg-gray-50 flex items-center justify-between transition-colors"
                       >
                         <span className="font-medium text-sm text-gray-800">{faq.question}</span>
                         <span className={`transition-transform ${expandedFaq === faq.id ? 'rotate-180' : ''}`}>
@@ -199,7 +236,7 @@ export default function SupportWidget() {
                         </span>
                       </button>
                       {expandedFaq === faq.id && (
-                        <div className="p-3 bg-gray-50 border-t text-sm text-gray-600">
+                        <div className="p-3 bg-gray-50 border-t text-sm text-gray-600 animate-slide-down">
                           {faq.answer}
                         </div>
                       )}
@@ -212,7 +249,7 @@ export default function SupportWidget() {
               {activeTab === 'contact' && (
                 <form onSubmit={handleSubmit} className="space-y-3">
                   {submitted && (
-                    <Alert type="success" title="✓ Success!">
+                    <Alert type="success" title="✓ Success!" className="animate-fade-in">
                       {t('supportWidget.success')}
                     </Alert>
                   )}
@@ -266,10 +303,10 @@ export default function SupportWidget() {
 
             {/* Footer with Back Button */}
             {activeTab !== 'menu' && (
-              <div className="border-t p-3">
+              <div className="border-t p-3 bg-gray-50 flex-shrink-0">
                 <button
                   onClick={() => setActiveTab('menu')}
-                  className="text-sm text-kob-primary font-medium hover:underline"
+                  className="text-sm text-kob-primary font-medium hover:underline transition-colors"
                 >
                   ← {t('common.backToMenu') || 'Back to Menu'}
                 </button>

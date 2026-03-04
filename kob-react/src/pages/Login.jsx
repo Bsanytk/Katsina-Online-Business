@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { loginUser } from '../firebase/auth'
 import { useNavigate, Link } from 'react-router-dom'
-import { Input, Button, Alert, Card } from '../components/ui'
+import { Input, ButtonLoader, Alert, Card } from '../components/ui'
 import BackButton from '../components/BackButton'
 
 export default function Login() {
@@ -40,8 +40,8 @@ export default function Login() {
         {/* Card */}
         <Card variant="elevated" className="p-8 md:p-10 rounded-2xl">
           {/* Header */}
-          <div className="text-center mb-8">
-            <div className="inline-block p-4 bg-gradient-to-br from-kob-primary to-kob-gold rounded-full mb-4">
+          <div className="text-center mb-8 animate-fade-in">
+            <div className="inline-block p-4 bg-gradient-to-br from-kob-primary to-kob-gold rounded-full mb-4 transform hover:scale-110 transition-transform duration-300">
               <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
@@ -67,7 +67,7 @@ export default function Login() {
               onChange={(e) => setEmail(e.target.value)}
               required
               disabled={loading}
-              className="rounded-lg focus:ring-2 focus:ring-offset-2"
+              className="rounded-lg focus:ring-2 focus:ring-offset-2 transition-all"
             />
 
             <Input
@@ -78,7 +78,7 @@ export default function Login() {
               onChange={(e) => setPassword(e.target.value)}
               required
               disabled={loading}
-              className="rounded-lg focus:ring-2 focus:ring-offset-2"
+              className="rounded-lg focus:ring-2 focus:ring-offset-2 transition-all"
             />
 
             <div className="flex items-center justify-between text-sm">
@@ -90,20 +90,21 @@ export default function Login() {
                 />
                 <span className="text-gray-700">Remember me</span>
               </label>
-              <Link to="/contact" className="text-kob-primary hover:text-kob-primary-dark font-medium transition-colors">
+              <Link to="/contact" className="text-kob-primary hover:text-kob-primary-dark font-medium transition-colors duration-200">
                 Need help?
               </Link>
             </div>
 
-            <Button
+            <ButtonLoader
               type="submit"
               size="lg"
               variant="primary"
               className="w-full mt-8 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 rounded-lg font-semibold"
-              disabled={loading}
+              loading={loading}
+              loadingText="Signing in..."
             >
-              {loading ? '⏳ Signing in...' : '✓ Sign In'}
-            </Button>
+              ✓ Sign In
+            </ButtonLoader>
           </form>
 
           {/* Divider */}

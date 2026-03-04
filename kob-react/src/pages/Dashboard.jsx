@@ -6,6 +6,7 @@ import { getProducts, deleteProduct } from '../services/products'
 import BackButton from '../components/BackButton'
 import OrdersTab from '../components/dashboard/OrdersTab'
 import MessagesTab from '../components/dashboard/MessagesTab'
+import SellerProfileEdit from '../components/dashboard/SellerProfileEdit'
 
 // Buyer Dashboard View
 function BuyerDashboard({ user }) {
@@ -190,6 +191,7 @@ function SellerDashboard({ user }) {
           { id: 'products', label: '📦 Products', icon: '📦' },
           { id: 'sales', label: '💰 Sales', icon: '💰' },
           { id: 'messages', label: '💬 Messages', icon: '💬' },
+          { id: 'profile', label: '👤 Profile', icon: '👤' },
         ].map((tab) => (
           <button
             key={tab.id}
@@ -335,6 +337,7 @@ function SellerDashboard({ user }) {
 
       {activeTab === 'sales' && <OrdersTab />}
       {activeTab === 'messages' && <MessagesTab />}
+      {activeTab === 'profile' && <SellerProfileEdit />}
     </div>
   )
 }

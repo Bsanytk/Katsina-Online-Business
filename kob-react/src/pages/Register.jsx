@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { registerUser } from '../firebase/auth'
 import { useNavigate, Link } from 'react-router-dom'
-import { Input, Button, Alert, Card } from '../components/ui'
+import { Input, ButtonLoader, Alert, Card } from '../components/ui'
 import BackButton from '../components/BackButton'
 
 export default function Register() {
@@ -41,22 +41,22 @@ export default function Register() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-kob-light to-white flex items-center justify-center p-4">
+    <main className="min-h-screen bg-gradient-to-br from-kob-light to-white flex items-center justify-center p-4 animate-fade-in">
       <div className="absolute top-4 left-4">
         <BackButton />
       </div>
       <div className="w-full max-w-md">
         {/* Card */}
-        <Card variant="elevated" className="p-8">
+        <Card variant="elevated" className="p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300">
           {/* Header */}
-          <div className="text-center mb-8">
+          <div className="text-center mb-8 animate-fade-in">
             <h1 className="text-3xl font-bold text-kob-dark mb-2">Join KOB</h1>
             <p className="text-gray-600">Create your account to start buying & selling</p>
           </div>
 
           {/* Error Message */}
           {error && (
-            <Alert type="error" title="Registration Failed" className="mb-6">
+            <Alert type="error" title="Registration Failed" className="mb-6 animate-fade-in">
               {error}
             </Alert>
           )}
@@ -71,6 +71,7 @@ export default function Register() {
               onChange={(e) => setEmail(e.target.value)}
               required
               disabled={loading}
+              className="transition-all"
             />
 
             <Input
@@ -81,6 +82,7 @@ export default function Register() {
               onChange={(e) => setPassword(e.target.value)}
               required
               disabled={loading}
+              className="transition-all"
             />
 
             <Input
@@ -91,6 +93,7 @@ export default function Register() {
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
               disabled={loading}
+              className="transition-all"
             />
 
             {/* Role Selection */}
@@ -98,7 +101,7 @@ export default function Register() {
               <label className="block text-sm font-semibold text-kob-dark">I want to join as:</label>
               <div className="space-y-2">
                 {/* Buyer Option */}
-                <label className="flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-kob-primary transition-colors" style={{ borderColor: role === 'buyer' ? '#C5A059' : undefined }}>
+                <label className="flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-kob-primary transition-all duration-200 transform hover:scale-105" style={{ borderColor: role === 'buyer' ? '#C5A059' : undefined }}>
                   <input
                     type="radio"
                     name="role"
@@ -115,7 +118,7 @@ export default function Register() {
                 </label>
 
                 {/* Seller Option */}
-                <label className="flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-kob-primary transition-colors" style={{ borderColor: role === 'seller' ? '#C5A059' : undefined }}>
+                <label className="flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-kob-primary transition-all duration-200 transform hover:scale-105" style={{ borderColor: role === 'seller' ? '#C5A059' : undefined }}>
                   <input
                     type="radio"
                     name="role"
@@ -133,15 +136,16 @@ export default function Register() {
               </div>
             </div>
 
-            <Button
+            <ButtonLoader
               type="submit"
               size="lg"
               variant="primary"
-              className="w-full mt-6"
-              disabled={loading}
+              className="w-full mt-6 shadow-md hover:shadow-lg transition-all"
+              loading={loading}
+              loadingText="Creating account..."
             >
-              {loading ? '⏳ Creating account...' : '✓ Create Account'}
-            </Button>
+              ✓ Create Account
+            </ButtonLoader>
           </form>
 
           {/* Divider */}
@@ -154,14 +158,14 @@ export default function Register() {
           {/* Login Link */}
           <p className="text-center text-gray-600 text-sm">
             Already have an account?{' '}
-            <Link to="/login" className="text-kob-primary font-bold hover:underline">
+            <Link to="/login" className="text-kob-primary font-bold hover:underline transition-colors">
               Sign in
             </Link>
           </p>
         </Card>
 
         {/* Info Box */}
-        <Card variant="outlined" className="mt-6 p-4">
+        <Card variant="outlined" className="mt-6 p-4 border border-kob-neutral-200 bg-gradient-to-br from-kob-light to-white transform hover:scale-105 transition-all duration-300">
           <p className="font-semibold text-kob-dark mb-2 text-sm">📝 What happens next?</p>
           <ul className="space-y-1 text-xs text-gray-600">
             <li>✓ Your account is created instantly</li>

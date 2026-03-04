@@ -5,6 +5,7 @@ import BackButton from '../components/BackButton'
 import ReviewForm from '../components/ReviewForm'
 import ReviewsList from '../components/ReviewsList'
 import SellerRatingDisplay from '../components/SellerRatingDisplay'
+import WhatsAppContactButton from '../components/marketplace/WhatsAppContactButton'
 import { getProductById } from '../services/products'
 import { getProductReviews, calculateAverageRating } from '../services/reviews'
 import { useAuth } from '../firebase/auth'
@@ -57,23 +58,6 @@ export default function ProductDetail() {
 
     loadData()
   }, [productId])
-
-  const handleContactSeller = async () => {
-    if (!user) {
-      alert('Please login to contact the seller')
-      window.location.href = '/login'
-      return
-    }
-
-    try {
-      const conversationId = await createOrGetConversation(user.uid, product.sellerId, productId)
-      // Navigate to messages tab in dashboard
-      window.location.href = '/dashboard?tab=messages&conversation=' + conversationId
-    } catch (err) {
-      if (import.meta.env.DEV) console.error('Error creating conversation:', err)
-      alert('Failed to start conversation')
-    }
-  }
 
   if (loading) {
     return (
@@ -254,9 +238,7 @@ export default function ProductDetail() {
 
               {/* Contact & Purchase Buttons */}
               <div className="space-y-3">
-                <Button onClick={handleContactSeller} variant="primary" className="w-full" size="lg">
-                  💬 Contact Seller
-                </Button>
+                <WhatsAppContactButton product={product} sellerUid={product.sellerId} />
 
                 <Button
                   onClick={async () => {

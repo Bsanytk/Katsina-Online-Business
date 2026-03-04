@@ -79,6 +79,7 @@ export default function Marketplace() {
         price: formData.price,
         category: formData.category,
         ownerUid: user.uid,
+        sellerId: user.uid,  // Consistency with reviews/orders schema
       }
 
       // If we have uploaded or existing URLs, set main image and images array
