@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { getProducts, addProduct, updateProduct, deleteProduct } from '../services/products'
 import Loading from '../components/Loading'
 import ProductCard from '../components/ProductCard'
@@ -9,6 +10,7 @@ import ProductFilter from '../components/marketplace/ProductFilter'
 import ProductForm from '../components/marketplace/ProductForm'
 import { Card, Alert } from '../components/ui'
 import BackButton from '../components/BackButton'
+import { getUserProfile } from '../services/users'
 
 export default function Marketplace() {
   const [products, setProducts] = useState([])
@@ -20,12 +22,47 @@ export default function Marketplace() {
   const [showForm, setShowForm] = useState(false)
   const [editingProduct, setEditingProduct] = useState(null)
   const [formError, setFormError] = useState(null)
+  const [userProfile, setUserProfile] = useState(null)
 
   const { user } = useAuth()
+  const [searchParams, setSearchParams] = useSearchParams()
 
   useEffect(() => {
     fetchProducts()
-  }, [])
+    if (user?.uid) {
+      loadUserProfile()
+    }
+  }, [user?.uid])
+
+  useEffect(() => {
+    const editId = searchParams.get('edit')
+    if (editId && user?.uid) {
+      loadProductForEdit(editId)
+    }
+  }, [searchParams, user?.uid, products])
+
+  async function loadProductForEdit(productId) {
+    try {
+      const product = products.find(p => p.id === productId)
+      if (product && product.createdBy === user.uid) {
+        setEditingProduct(product)
+        setShowForm(true)
+        // Clear the URL param
+        setSearchParams({})
+      }
+    } catch (err) {
+      console.error('Failed to load product for edit:', err)
+    }
+  }
+
+  async function loadUserProfile() {
+    try {
+      const profile = await getUserProfile(user.uid)
+      setUserProfile(profile)
+    } catch (err) {
+      console.error('Failed to load user profile:', err)
+    }
+  }
 
   async function fetchProducts() {
     setLoading(true)
@@ -78,17 +115,21 @@ export default function Marketplace() {
         description: formData.description,
         price: formData.price,
         category: formData.category,
+        imageUrl: uploadedURLs.length > 0 ? uploadedURLs[0] : (editingProduct?.imageURL || ''),
+        whatsappNumber: userProfile?.whatsappNumber || '',
+        createdBy: user.uid,  // REQUIRED by Firestore rules
         ownerUid: user.uid,
         sellerId: user.uid,  // Consistency with reviews/orders schema
       }
 
-      // If we have uploaded or existing URLs, set main image and images array
+      // Log submission for debugging
+      console.log("Submitting product:", payload)
+
+      // If we have uploaded or existing URLs, set images array
       if (uploadedURLs.length > 0) {
-        payload.imageURL = uploadedURLs[0]
         payload.images = uploadedURLs
       } else if (editingProduct) {
         // Preserve existing image(s) when editing and no new uploads
-        if (editingProduct.imageURL) payload.imageURL = editingProduct.imageURL
         if (editingProduct.images) payload.images = editingProduct.images
       }
 

@@ -13,6 +13,7 @@ import {
   getDoc,
   limit as fbLimit,
   startAfter as fbStartAfter,
+  serverTimestamp,
 } from 'firebase/firestore'
 import { db } from '../firebase/firebase'
 
@@ -39,8 +40,12 @@ export async function getProductById(id) {
 }
 
 export async function addProduct(data) {
-  // expected fields: title, description, price, ownerUid, ...
-  const payload = { ...data, createdAt: new Date() }
+  // expected fields: title, description, price, createdBy, ownerUid, ...
+  if (!data.createdBy) {
+    throw new Error('Missing required field: createdBy (user identifier)')
+  }
+  const payload = { ...data, createdAt: serverTimestamp() }
+  console.log('addProduct - Firestore payload:', payload)
   const ref = await addDoc(collection(db, PRODUCTS_COL), payload)
   return { id: ref.id, ...payload }
 }

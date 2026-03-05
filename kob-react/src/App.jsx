@@ -6,6 +6,7 @@ import Footer from './layouts/Footer'
 import ProtectedRoute from './components/ProtectedRoute'
 import SupportWidget from './components/widgets/SupportWidget'
 import { PageLoader } from './components/ui'
+import './i18n' // Initialize i18n
 
 // lazy load large pages for performance
 const Home = lazy(() => import('./pages/Home'))
@@ -20,6 +21,7 @@ const Teams = lazy(() => import('./pages/Teams'))
 const Testimonials = lazy(() => import('./pages/Testimonials'))
 const Terms = lazy(() => import('./pages/Terms'))
 const Privacy = lazy(() => import('./pages/Privacy'))
+const CookiePolicy = lazy(() => import('./pages/CookiePolicy'))
 const NotFound = lazy(() => import('./pages/NotFound'))
 const ProductDetail = lazy(() => import('./pages/ProductDetail'))
 
@@ -50,6 +52,7 @@ function AppContent() {
             <Route path="/testimonials" element={<Testimonials />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/privacy" element={<Privacy />} />
+            <Route path="/cookies" element={<CookiePolicy />} />
 
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />

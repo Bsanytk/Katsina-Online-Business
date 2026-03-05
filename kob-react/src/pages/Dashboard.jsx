@@ -286,6 +286,7 @@ function SellerDashboard({ user }) {
                         <td className="py-3 px-2 text-gray-600 text-xs truncate">{product.description}</td>
                         <td className="py-3 px-2 text-center space-x-2">
                           <Button
+                            onClick={() => window.location.href = `/marketplace?edit=${product.id}`}
                             variant="secondary"
                             size="sm"
                             disabled={deleteLoading === product.id}

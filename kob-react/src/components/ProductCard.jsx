@@ -10,7 +10,7 @@ export default function ProductCard({ product, user, onEdit, onDelete, onBuyClic
   // Placeholder image for failed image loads
   const imagePlaceholder = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect fill="%23d3d3d3" width="400" height="300"/%3E%3Ctext x="50%" y="50%" font-size="24" fill="%23666" text-anchor="middle" dominant-baseline="middle"%3EImage unavailable%3C/text%3E%3C/svg%3E'
   
-  const displayImage = imageError || !product.imageURL ? imagePlaceholder : product.imageURL
+  const displayImage = imageError || !product.imageUrl ? imagePlaceholder : product.imageUrl
 
   function handleImageError() {
     setImageError(true)
@@ -20,7 +20,9 @@ export default function ProductCard({ product, user, onEdit, onDelete, onBuyClic
   const whatsappMessage = encodeURIComponent(
     `Hi, I'm interested in your product:\n\n${product.title}\nPrice: ₦${product.price || 'N/A'}\n\nCould you tell me more?`
   )
-  const whatsappLink = `https://wa.me/?text=${whatsappMessage}`
+  const whatsappLink = product.whatsappNumber 
+    ? `https://wa.me/${product.whatsappNumber}?text=${whatsappMessage}`
+    : `https://wa.me/?text=${whatsappMessage}`
 
   return (
     <article className="bg-white rounded-xl shadow-card hover:shadow-card-hover transition-all duration-300 hover:translate-y-[-4px] overflow-hidden flex flex-col h-full animate-fade-in border border-kob-neutral-200">

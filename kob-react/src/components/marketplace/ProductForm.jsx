@@ -279,10 +279,10 @@ export default function ProductForm({
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Title Input */}
           <Input
-            label={t('productForm.title') || 'Product Title'}
+            label={t('productForm.productName') || 'Product Title'}
             name="title"
             type="text"
-            placeholder={t('productForm.titlePlaceholder') || 'e.g., iPhone 15 Pro Max'}
+            placeholder={t('productForm.productNamePlaceholder') || 'e.g., iPhone 15 Pro Max'}
             value={formData.title}
             onChange={handleChange}
             error={validationErrors.title}
