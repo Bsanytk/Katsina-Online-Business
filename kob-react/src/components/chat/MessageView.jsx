@@ -28,8 +28,7 @@ export default function MessageView({ conversationId, otherParticipantName }) {
   useEffect(() => {
     if (!conversationId || !user?.uid) return
 
-    setLoading(true)
-    unsubscribeRef.current = subscribeToMessages(conversationId, (data) => {
+    const unsubscribe = subscribeToMessages(conversationId, (data) => {
       setMessages(data)
       setError(null)
       setLoading(false)
@@ -39,6 +38,8 @@ export default function MessageView({ conversationId, otherParticipantName }) {
         if (import.meta.env.DEV) console.error('Error marking messages as read:', err)
       })
     })
+
+    unsubscribeRef.current = unsubscribe
 
     return () => {
       if (unsubscribeRef.current) {

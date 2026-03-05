@@ -22,22 +22,24 @@ export default function OrdersTab() {
   useEffect(() => {
     if (!user?.uid) return
 
-    setLoading(true)
-    const fetchOrders = isSeller ? getSellerOrders(user.uid) : getBuyerOrders(user.uid)
-
-    fetchOrders
-      .then((data) => {
+    async function loadOrders() {
+      setLoading(true)
+      try {
+        const data = isSeller ? await getSellerOrders(user.uid) : await getBuyerOrders(user.uid)
         setOrders(data)
         if (data.length > 0) {
           setSelectedOrder(data[0])
         }
         setError(null)
-      })
-      .catch((err) => {
-        console.error('Error fetching orders:', err)
+      } catch (err) {
+        if (import.meta.env.DEV) console.error('Error fetching orders:', err)
         setError(err.message)
-      })
-      .finally(() => setLoading(false))
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadOrders()
   }, [user?.uid, isSeller])
 
   const handleStatusUpdate = (updatedOrder) => {

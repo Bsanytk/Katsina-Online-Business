@@ -6,7 +6,7 @@ import { getSellerReviews, calculateSellerRating } from '../services/reviews'
  * SellerRating Component
  * Display seller's aggregated rating and review count
  */
-export default function SellerRating({ sellerId, sellerName = 'Seller', compact = false }) {
+export default function SellerRating({ sellerId, compact = false }) {
   const [rating, setRating] = useState(0)
   const [reviewCount, setReviewCount] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -15,19 +15,23 @@ export default function SellerRating({ sellerId, sellerName = 'Seller', compact 
   useEffect(() => {
     if (!sellerId) return
 
-    setLoading(true)
-    getSellerReviews(sellerId)
-      .then((reviews) => {
+    async function loadRating() {
+      setLoading(true)
+      try {
+        const reviews = await getSellerReviews(sellerId)
         const avgRating = calculateSellerRating(reviews)
         setRating(avgRating)
         setReviewCount(reviews.length)
         setError(null)
-      })
-      .catch((err) => {
+      } catch (err) {
         if (import.meta.env.DEV) console.error('Error fetching seller reviews:', err)
         setError(err.message)
-      })
-      .finally(() => setLoading(false))
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadRating()
   }, [sellerId])
 
   if (loading) {

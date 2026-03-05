@@ -66,6 +66,13 @@ export default function SupportWidget() {
     },
   ]
 
+  function handleClose() {
+    setIsOpen(false)
+    setActiveTab('menu')
+    setFormData({ name: '', email: '', subject: '', message: '' })
+    setSubmitted(false)
+  }
+
   // Handle ESC key to close modal
   useEffect(() => {
     function handleEscKey(e) {
@@ -85,13 +92,6 @@ export default function SupportWidget() {
       document.body.style.overflow = 'auto'
     }
   }, [isOpen])
-
-  function handleClose() {
-    setIsOpen(false)
-    setActiveTab('menu')
-    setFormData({ name: '', email: '', subject: '', message: '' })
-    setSubmitted(false)
-  }
 
   function handleFormChange(e) {
     const { name, value } = e.target

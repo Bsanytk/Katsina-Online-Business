@@ -22,8 +22,12 @@ export default function PageLoader({ message = 'Loading...', show = true }) {
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center gap-6">
         {/* Logo/Brand */}
-        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-kob-primary to-kob-gold flex items-center justify-center shadow-lg">
-          <span className="text-4xl">🛍️</span>
+        <div className="animate-pulse">
+          <img
+            src="https://res.cloudinary.com/dn5crslee/image/upload/v1768211566/20260108_135034_qj155b.png"
+            alt="KOB Logo"
+            className="w-20 h-20 object-contain"
+          />
         </div>
 
         {/* Spinner */}

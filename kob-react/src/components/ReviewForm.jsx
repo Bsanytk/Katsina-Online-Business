@@ -5,7 +5,7 @@ import { Button, Alert, Card } from './ui'
  * ReviewForm Component
  * Allow buyers to leave reviews for products they've purchased
  */
-export default function ReviewForm({ productId, productTitle, sellerId, buyerId, buyerName, onSubmit, loading }) {
+export default function ReviewForm({ productId, sellerId, buyerId, buyerName, onSubmit, loading }) {
   const [rating, setRating] = useState(5)
   const [text, setText] = useState('')
   const [submitted, setSubmitted] = useState(false)

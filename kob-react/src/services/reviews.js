@@ -9,7 +9,6 @@ import {
   updateDoc,
   deleteDoc,
   orderBy,
-  getDoc,
   limit as fbLimit,
 } from 'firebase/firestore'
 import { db } from '../firebase/firebase'

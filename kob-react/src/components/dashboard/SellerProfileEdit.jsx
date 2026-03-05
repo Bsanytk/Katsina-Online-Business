@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../../firebase/auth'
-import { getUserProfile, updateUserWhatsApp, formatWhatsAppNumber } from '../../services/users'
-import { Card, Input, ButtonLoader, Alert } from '../ui'
+import { getUserProfile, updateUserProfile, formatWhatsAppNumber } from '../../services/users'
+import { Card, Input, ButtonLoader, Alert, Select } from '../ui'
 
 /**
  * SellerProfileEdit Component
@@ -18,6 +18,9 @@ export default function SellerProfileEdit() {
   const { user } = useAuth()
   const [profileData, setProfileData] = useState({
     displayName: '',
+    username: '',
+    phoneNumber: '',
+    countryCode: '+234',
     whatsappNumber: '',
   })
   const [loading, setLoading] = useState(true)
@@ -26,12 +29,7 @@ export default function SellerProfileEdit() {
   const [success, setSuccess] = useState(false)
   const [whatsappError, setWhatsappError] = useState(null)
 
-  // Load current profile
-  useEffect(() => {
-    loadProfile()
-  }, [user?.uid])
-
-  async function loadProfile() {
+  const loadProfile = useCallback(async () => {
     if (!user?.uid) return
 
     setLoading(true)
@@ -39,6 +37,9 @@ export default function SellerProfileEdit() {
       const profile = await getUserProfile(user.uid)
       setProfileData({
         displayName: profile.displayName || '',
+        username: profile.username || '',
+        phoneNumber: profile.phoneNumber ? profile.phoneNumber.replace(/^\+?\d{3}/, '') : '',
+        countryCode: profile.phoneNumber ? profile.phoneNumber.match(/^\+?\d{3}/)?.[0] || '+234' : '+234',
         whatsappNumber: profile.whatsappNumber || '',
       })
       setError(null)
@@ -48,7 +49,12 @@ export default function SellerProfileEdit() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [user?.uid])
+
+  // Load current profile
+  useEffect(() => {
+    loadProfile()
+  }, [loadProfile])
 
   function handleWhatsAppChange(e) {
     const value = e.target.value
@@ -83,10 +89,15 @@ export default function SellerProfileEdit() {
         }
       }
 
-      // Update WhatsApp number if provided
-      if (profileData.whatsappNumber.trim()) {
-        await updateUserWhatsApp(user.uid, profileData.whatsappNumber)
-      }
+      // Update profile with all fields
+      const fullPhoneNumber = profileData.phoneNumber.trim() ? profileData.countryCode + profileData.phoneNumber.replace(/^\+/, '') : null
+      
+      await updateUserProfile(user.uid, {
+        displayName: profileData.displayName.trim() || null,
+        username: profileData.username.trim() || null,
+        phoneNumber: fullPhoneNumber,
+        whatsappNumber: profileData.whatsappNumber.trim() || null,
+      })
 
       setSuccess(true)
       setTimeout(() => setSuccess(false), 5000)
@@ -159,6 +170,59 @@ export default function SellerProfileEdit() {
               {user?.email}
             </div>
             <p className="text-xs text-gray-500 mt-2">Can only be changed through Firebase console</p>
+          </div>
+
+          {/* Username */}
+          <div>
+            <label htmlFor="username" className="block text-sm font-semibold text-kob-dark mb-2 flex items-center gap-2">
+              <span className="text-xl">👤</span>
+              Username
+            </label>
+            <Input
+              id="username"
+              type="text"
+              placeholder="Enter your username"
+              value={profileData.username}
+              onChange={(e) => setProfileData(prev => ({ ...prev, username: e.target.value }))}
+              disabled={saving}
+              className="border-gray-300 focus:ring-kob-primary"
+            />
+            <p className="text-xs text-gray-600 mt-2">
+              Your username will be displayed on your product listings.
+            </p>
+          </div>
+
+          {/* Phone Number with Country Code */}
+          <div>
+            <label htmlFor="phone" className="block text-sm font-semibold text-kob-dark mb-2 flex items-center gap-2">
+              <span className="text-xl">📱</span>
+              Phone Number
+            </label>
+            <div className="flex gap-2">
+              <Select
+                value={profileData.countryCode}
+                onChange={(e) => setProfileData(prev => ({ ...prev, countryCode: e.target.value }))}
+                disabled={saving}
+                className="w-32 border-gray-300 focus:ring-kob-primary"
+              >
+                <option value="+234">+234 Nigeria</option>
+                <option value="+233">+233 Ghana</option>
+                <option value="+44">+44 UK</option>
+                <option value="+1">+1 USA</option>
+              </Select>
+              <Input
+                id="phone"
+                type="tel"
+                placeholder="7068397191"
+                value={profileData.phoneNumber}
+                onChange={(e) => setProfileData(prev => ({ ...prev, phoneNumber: e.target.value }))}
+                disabled={saving}
+                className="flex-1 border-gray-300 focus:ring-kob-primary"
+              />
+            </div>
+            <p className="text-xs text-gray-600 mt-2">
+              Your phone number will be stored as {profileData.countryCode}{profileData.phoneNumber} and used for WhatsApp contact.
+            </p>
           </div>
 
           {/* WhatsApp Number */}

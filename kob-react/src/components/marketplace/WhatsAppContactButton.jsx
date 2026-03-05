@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { getSellerWhatsApp, generateWhatsAppLink } from '../../services/users'
 
 /**
@@ -18,12 +18,7 @@ export default function WhatsAppContactButton({ product, sellerUid }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  // Fetch seller WhatsApp on mount
-  useEffect(() => {
-    loadSellerWhatsApp()
-  }, [sellerUid])
-
-  async function loadSellerWhatsApp() {
+  const loadSellerWhatsApp = useCallback(async () => {
     if (!sellerUid) {
       setError('Seller not found')
       setLoading(false)
@@ -45,7 +40,12 @@ export default function WhatsAppContactButton({ product, sellerUid }) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [sellerUid])
+
+  // Fetch seller WhatsApp on mount
+  useEffect(() => {
+    loadSellerWhatsApp()
+  }, [loadSellerWhatsApp])
 
   // Handle click to open WhatsApp
   function handleContactClick() {

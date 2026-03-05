@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { getProducts, addProduct, updateProduct, deleteProduct } from '../services/products'
 import Loading from '../components/Loading'
@@ -10,7 +10,6 @@ import ProductFilter from '../components/marketplace/ProductFilter'
 import ProductForm from '../components/marketplace/ProductForm'
 import { Card, Alert } from '../components/ui'
 import BackButton from '../components/BackButton'
-import { getUserProfile } from '../services/users'
 
 export default function Marketplace() {
   const [products, setProducts] = useState([])
@@ -22,26 +21,11 @@ export default function Marketplace() {
   const [showForm, setShowForm] = useState(false)
   const [editingProduct, setEditingProduct] = useState(null)
   const [formError, setFormError] = useState(null)
-  const [userProfile, setUserProfile] = useState(null)
 
   const { user } = useAuth()
   const [searchParams, setSearchParams] = useSearchParams()
 
-  useEffect(() => {
-    fetchProducts()
-    if (user?.uid) {
-      loadUserProfile()
-    }
-  }, [user?.uid])
-
-  useEffect(() => {
-    const editId = searchParams.get('edit')
-    if (editId && user?.uid) {
-      loadProductForEdit(editId)
-    }
-  }, [searchParams, user?.uid, products])
-
-  async function loadProductForEdit(productId) {
+  const loadProductForEdit = useCallback(async (productId) => {
     try {
       const product = products.find(p => p.id === productId)
       if (product && product.createdBy === user.uid) {
@@ -53,16 +37,18 @@ export default function Marketplace() {
     } catch (err) {
       console.error('Failed to load product for edit:', err)
     }
-  }
+  }, [products, user?.uid, setSearchParams])
 
-  async function loadUserProfile() {
-    try {
-      const profile = await getUserProfile(user.uid)
-      setUserProfile(profile)
-    } catch (err) {
-      console.error('Failed to load user profile:', err)
+  useEffect(() => {
+    fetchProducts()
+  }, [])
+
+  useEffect(() => {
+    const editId = searchParams.get('edit')
+    if (editId && user?.uid) {
+      loadProductForEdit(editId)
     }
-  }
+  }, [searchParams, user?.uid, loadProductForEdit])
 
   async function fetchProducts() {
     setLoading(true)

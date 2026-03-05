@@ -5,7 +5,7 @@ import { Card } from './ui'
  * ReviewsList Component
  * Display all reviews for a product
  */
-export default function ReviewsList({ reviews = [], averageRating = 0, productTitle }) {
+export default function ReviewsList({ reviews = [], averageRating = 0 }) {
   if (!reviews || reviews.length === 0) {
     return (
       <Card variant="outlined" className="p-8 rounded-lg text-center">

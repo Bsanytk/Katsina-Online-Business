@@ -2,15 +2,16 @@ import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../firebase/auth'
 import { logoutUser } from '../firebase/auth'
+import MobileSidebar from '../components/MobileSidebar'
+import { Menu, X } from 'lucide-react'
 
 export default function TopBar() {
   const { user } = useAuth()
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   async function handleLogout() {
     try {
       await logoutUser()
-      setIsMenuOpen(false)
     } catch (err) {
       console.error('Logout error', { message: err?.message })
     }
@@ -61,36 +62,21 @@ export default function TopBar() {
 
           {/* Mobile Menu Button */}
           <button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="md:hidden p-2 rounded-md border border-transparent hover:border-gray-200"
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            className="md:hidden p-2 rounded-md border border-transparent hover:border-gray-200 transition-colors"
             aria-label="Toggle menu"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isMenuOpen ? 'M6 18L18 6M6 6l12 12' : 'M4 6h16M4 12h16M4 18h16'} />
-            </svg>
+            {isSidebarOpen ? (
+              <X className="w-5 h-5" />
+            ) : (
+              <Menu className="w-5 h-5" />
+            )}
           </button>
         </div>
       </div>
 
-      {isMenuOpen && (
-        <div className="lg:hidden bg-white border-t border-gray-100">
-          <div className="container py-4 space-y-3">
-            <Link to="/" className="block text-gray-700 py-2" onClick={() => setIsMenuOpen(false)}>Home</Link>
-            <Link to="/marketplace" className="block text-gray-700 py-2" onClick={() => setIsMenuOpen(false)}>Marketplace</Link>
-            <Link to="/contact" className="block text-gray-700 py-2" onClick={() => setIsMenuOpen(false)}>Contact</Link>
-            <div className="pt-3 border-t border-gray-100">
-              {user ? (
-                <button onClick={handleLogout} className="w-full text-left px-3 py-2 text-sm text-gray-800">Logout</button>
-              ) : (
-                <>
-                  <Link to="/login" className="block px-3 py-2 text-sm text-gray-800" onClick={() => setIsMenuOpen(false)}>Login</Link>
-                  <Link to="/register" className="block px-3 py-2 text-sm text-gray-800" onClick={() => setIsMenuOpen(false)}>Register</Link>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Mobile Sidebar */}
+      <MobileSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
     </header>
   )
 }

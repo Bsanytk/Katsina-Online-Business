@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useAuth } from '../firebase/auth'
 
-export default function ProductCard({ product, user, onEdit, onDelete, onBuyClick }) {
+export default function ProductCard({ product, onEdit, onDelete, onBuyClick }) {
   const { user: authUser } = useAuth()
   // User can edit if they own the product
   const canEdit = authUser && product.ownerUid === authUser.uid

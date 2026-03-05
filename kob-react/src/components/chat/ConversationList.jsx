@@ -17,17 +17,21 @@ export default function ConversationList({ onSelectConversation }) {
   useEffect(() => {
     if (!user?.uid) return
 
-    setLoading(true)
-    getUserConversations(user.uid)
-      .then((data) => {
+    async function loadConversations() {
+      setLoading(true)
+      try {
+        const data = await getUserConversations(user.uid)
         setConversations(data)
         setError(null)
-      })
-      .catch((err) => {
+      } catch (err) {
         if (import.meta.env.DEV) console.error('Error fetching conversations:', err)
         setError(err.message)
-      })
-      .finally(() => setLoading(false))
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadConversations()
   }, [user?.uid])
 
   const handleSelectConversation = (conversation) => {

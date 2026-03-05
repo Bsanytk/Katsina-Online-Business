@@ -9,7 +9,6 @@ import WhatsAppContactButton from '../components/marketplace/WhatsAppContactButt
 import { getProductById } from '../services/products'
 import { getProductReviews, calculateAverageRating } from '../services/reviews'
 import { useAuth } from '../firebase/auth'
-import { createOrGetConversation } from '../services/chat'
 import { createOrder } from '../services/orders'
 
 export default function ProductDetail() {

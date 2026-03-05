@@ -98,11 +98,32 @@ export async function updateUserWhatsApp(uid, whatsappNumber) {
 }
 
 /**
- * Generate safe WhatsApp link for contacting seller
- * @param {string} whatsappNumber - Seller's WhatsApp number (without +)
- * @param {Object} product - Product object with name field
- * @returns {string} WhatsApp direct message link
+ * Update user profile with multiple fields
+ * @param {string} uid - Firebase user ID
+ * @param {Object} updates - Fields to update
+ * @returns {Promise<Object>} Updated user data
  */
+export async function updateUserProfile(uid, updates) {
+  if (!uid) throw new Error('User ID is required')
+
+  try {
+    const ref = doc(db, 'users', uid)
+    
+    const updateData = {
+      ...updates,
+      updatedAt: new Date().toISOString(),
+    }
+
+    await updateDoc(ref, updateData)
+
+    return {
+      uid,
+      ...updateData,
+    }
+  } catch (err) {
+    throw new Error(`Failed to update user profile: ${err.message}`)
+  }
+}
 export function generateWhatsAppLink(whatsappNumber, product) {
   if (!whatsappNumber || !product?.name) {
     throw new Error('WhatsApp number and product name are required')
