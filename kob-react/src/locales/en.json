@@ -347,6 +347,8 @@
     "selectLocation": "Select location",
     "quantity": "Stock Quantity",
     "quantityPlaceholder": "How many items available?",
+    "whatsappNumber": "WhatsApp Number",
+    "whatsappPlaceholder": "Enter WhatsApp number (234XXXXXXXXXX)",
     "images": "Product Images",
     "uploadImages": "Upload Images",
     "imagePreview": "Image Preview",
@@ -390,6 +392,8 @@
       "priceRequired": "Price is required",
       "priceInvalid": "Price must be a positive number",
       "categoryRequired": "Category is required",
+      "whatsappRequired": "WhatsApp number is required",
+      "whatsappInvalid": "Please enter a valid WhatsApp number (e.g., 2347089454544)",
       "imageRequired": "At least one image is required to publish",
       "imageTypeInvalid": "Only JPEG, PNG, and WebP images are allowed",
       "imageSizeTooLarge": "Each image must be less than 5MB"

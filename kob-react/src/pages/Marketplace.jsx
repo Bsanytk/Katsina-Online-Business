@@ -116,7 +116,7 @@ export default function Marketplace() {
         price: formData.price,
         category: formData.category,
         imageUrl: uploadedURLs.length > 0 ? uploadedURLs[0] : (editingProduct?.imageURL || ''),
-        whatsappNumber: userProfile?.whatsappNumber || '',
+        whatsappNumber: formData.whatsappNumber,
         createdBy: user.uid,  // REQUIRED by Firestore rules
         ownerUid: user.uid,
         sellerId: user.uid,  // Consistency with reviews/orders schema

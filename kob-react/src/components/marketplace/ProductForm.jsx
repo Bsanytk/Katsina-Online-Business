@@ -29,6 +29,7 @@ export default function ProductForm({
     description: '',
     price: '',
     category: '',
+    whatsappNumber: '',
     isDraft: true, // Save as draft by default
   })
   const [images, setImages] = useState([]) // Array of image objects: { file, preview, id }
@@ -45,6 +46,7 @@ export default function ProductForm({
         description: initialData.description || '',
         price: initialData.price || '',
         category: initialData.category || '',
+        whatsappNumber: initialData.whatsappNumber || '',
         isDraft: initialData.isDraft ?? true,
       }
       // Only update if data actually changed
@@ -110,6 +112,17 @@ export default function ProductForm({
 
     if (!formData.category) {
       errors.category = t('productForm.errors.categoryRequired') || 'Category is required'
+    }
+
+    // WhatsApp number validation
+    if (!formData.whatsappNumber.trim()) {
+      errors.whatsappNumber = t('productForm.errors.whatsappRequired') || 'WhatsApp number is required'
+    } else {
+      // Remove non-digits and check length
+      const cleaned = formData.whatsappNumber.replace(/\D/g, '')
+      if (cleaned.length < 11) {
+        errors.whatsappNumber = t('productForm.errors.whatsappInvalid') || 'Please enter a valid WhatsApp number (e.g., 2347089454544)'
+      }
     }
 
     // At least one image required for publishing
@@ -339,6 +352,17 @@ export default function ProductForm({
               <p className="text-sm text-red-500 mt-1">{validationErrors.category}</p>
             )}
           </div>
+
+          {/* WhatsApp Number Input */}
+          <Input
+            label={t('productForm.whatsappNumber') || 'WhatsApp Number'}
+            name="whatsappNumber"
+            type="tel"
+            placeholder={t('productForm.whatsappPlaceholder') || 'Enter WhatsApp number (234XXXXXXXXXX)'}
+            value={formData.whatsappNumber}
+            onChange={handleChange}
+            error={validationErrors.whatsappNumber}
+          />
 
           {/* Image Upload Section */}
           <div>
