@@ -49,8 +49,8 @@ export async function addReview(data) {
   // Expected fields: productId, sellerId, buyerId, rating, text, buyerName
   const payload = {
     ...data,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
   }
   const ref = await addDoc(collection(db, REVIEWS_COL), payload)
   return { id: ref.id, ...payload }
@@ -59,7 +59,7 @@ export async function addReview(data) {
 // Update a review
 export async function updateReview(reviewId, data) {
   const ref = doc(db, REVIEWS_COL, reviewId)
-  await updateDoc(ref, { ...data, updatedAt: new Date() })
+  await updateDoc(ref, { ...data, updatedAt: serverTimestamp() })
   return true
 }
 
