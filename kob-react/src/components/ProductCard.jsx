@@ -10,7 +10,7 @@ export default function ProductCard({ product, onEdit, onDelete, onBuyClick }) {
   // Placeholder image for failed image loads
   const imagePlaceholder = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect fill="%23d3d3d3" width="400" height="300"/%3E%3Ctext x="50%" y="50%" font-size="24" fill="%23666" text-anchor="middle" dominant-baseline="middle"%3EImage unavailable%3C/text%3E%3C/svg%3E'
   
-  const displayImage = imageError || !product.imageUrl ? imagePlaceholder : product.imageUrl
+  const displayImage = imageError || !product.images?.[0]?.url ? imagePlaceholder : product.images[0].url
 
   function handleImageError() {
     setImageError(true)
