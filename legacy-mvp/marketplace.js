@@ -76,7 +76,7 @@ if (addProductForm) {
         imageURL,
         description,
         createdAt: serverTimestamp(),
-        createdBy: user ? user.uid : null
+        ownerUid: user ? user.uid : null
       };
 
       // Attempt to create product document (may be rejected by rules)

@@ -40,9 +40,9 @@ export async function getProductById(id) {
 }
 
 export async function addProduct(data) {
-  // expected fields: title, description, price, createdBy, ownerUid, ...
-  if (!data.createdBy) {
-    throw new Error('Missing required field: createdBy (user identifier)')
+  // expected fields: title, description, price, ownerUid, ownerUid, ...
+  if (!data.ownerUid) {
+    throw new Error('Missing required field: ownerUid (user identifier)')
   }
   const payload = { ...data, createdAt: serverTimestamp() }
   console.log('addProduct - Firestore payload:', payload)

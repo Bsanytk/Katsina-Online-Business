@@ -96,10 +96,10 @@ export default function ProductDetail() {
           <div className="lg:col-span-2 space-y-8">
             {/* Product Image & Title */}
             <Card variant="elevated" className="p-6 rounded-lg">
-              {product.imageURL && (
+              {product.images?.[0]?.url && (
                 <div className="mb-6">
                   <img
-                    src={product.imageURL}
+                    src={product.images?.[0]?.url}
                     alt={product.title}
                     className="w-full h-96 object-cover rounded-lg"
                   />

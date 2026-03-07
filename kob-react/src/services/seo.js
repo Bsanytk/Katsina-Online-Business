@@ -122,7 +122,7 @@ export const STRUCTURED_DATA = {
     '@type': 'Product',
     name: product.title,
     description: product.description,
-    image: product.imageURL || 'https://res.cloudinary.com/dn5crslee/image/upload/v1768211566/20260108_135034_qj155b.png',
+    image: product.images?.[0]?.url || 'https://res.cloudinary.com/dn5crslee/image/upload/v1768211566/20260108_135034_qj155b.png',
     brand: {
       '@type': 'Brand',
       name: product.sellerName || 'KOB Seller',

@@ -16,7 +16,7 @@ products/
   ├── imageUrl (string) 
   ├── images (array)
   ├── category (string)
-  ├── createdBy (string) - Firebase UID
+  ├── ownerUid (string) - Firebase UID
   ├── ownerUid (string) - Firebase UID
   ├── sellerId (string) - Firebase UID
   ├── whatsappNumber (string) ✅ [NEW FIELD ADDED]
@@ -99,7 +99,7 @@ const payload = {
   category: formData.category,
   imageUrl: uploadedURLs[0],
   whatsappNumber: formData.whatsappNumber, ✅ [FROM FORM]
-  createdBy: user.uid,
+  ownerUid: user.uid,
   ownerUid: user.uid,
   sellerId: user.uid,
 }
@@ -210,15 +210,15 @@ match /products/{productId} {
   allow read: if true;
   
   allow create: if request.auth != null
-    && request.resource.data.createdBy == request.auth.uid;
+    && request.resource.data.ownerUid == request.auth.uid;
   
   allow update, delete: if request.auth != null
-    && resource.data.createdBy == request.auth.uid;
+    && resource.data.ownerUid == request.auth.uid;
 }
 ```
 
 ### Implementation Compliance
-✅ Payload includes `createdBy: user.uid`
+✅ Payload includes `ownerUid: user.uid`
 ✅ Payload includes `ownerUid: user.uid`
 ✅ User must be authenticated (`request.auth != null`)
 ✅ Product belongs to current user
@@ -307,7 +307,7 @@ dist/assets/ProductCard-j8aFwlnR.js      3.25 kB
   "category": "Electronics",
   "imageUrl": "https://res.cloudinary.com/...",
   "whatsappNumber": "2347089454544",
-  "createdBy": "user123",
+  "ownerUid": "user123",
   "ownerUid": "user123",
   "sellerId": "user123",
   "createdAt": "2026-03-05T10:30:00Z",

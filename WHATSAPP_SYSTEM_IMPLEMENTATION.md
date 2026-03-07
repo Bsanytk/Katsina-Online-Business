@@ -80,7 +80,7 @@ if (cleaned.length < 11) {
 {
   ...formData,
   whatsappNumber: formData.whatsappNumber, // From form
-  createdBy: user.uid,
+  ownerUid: user.uid,
   ownerUid: user.uid,
   // ... other fields
 }
@@ -219,9 +219,9 @@ const whatsappLink = product.whatsappNumber
 match /products/{productId} {
   allow read: if true;
   allow create: if request.auth != null
-    && request.resource.data.createdBy == request.auth.uid;
+    && request.resource.data.ownerUid == request.auth.uid;
   allow update, delete: if request.auth != null
-    && resource.data.createdBy == request.auth.uid;
+    && resource.data.ownerUid == request.auth.uid;
 }
 ```
 
@@ -275,7 +275,7 @@ match /products/{productId} {
     "https://res.cloudinary.com/.../image2.jpg"
   ],
   "whatsappNumber": "2347089454544",
-  "createdBy": "user_uid_123",
+  "ownerUid": "user_uid_123",
   "ownerUid": "user_uid_123",
   "sellerId": "user_uid_123",
   "createdAt": "2026-03-05T10:30:00Z",

@@ -28,7 +28,7 @@ export default function Marketplace() {
   const loadProductForEdit = useCallback(async (productId) => {
     try {
       const product = products.find(p => p.id === productId)
-      if (product && product.createdBy === user.uid) {
+      if (product && product.ownerUid === user.uid) {
         setEditingProduct(product)
         setShowForm(true)
         // Clear the URL param
@@ -103,7 +103,7 @@ export default function Marketplace() {
         category: formData.category,
         imageUrl: uploadedURLs.length > 0 ? uploadedURLs[0] : (editingProduct?.imageURL || ''),
         whatsappNumber: formData.whatsappNumber,
-        createdBy: user.uid,  // REQUIRED by Firestore rules
+        ownerUid: user.uid,  // REQUIRED by Firestore rules
         ownerUid: user.uid,
         sellerId: user.uid,  // Consistency with reviews/orders schema
       }
