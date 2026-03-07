@@ -181,11 +181,11 @@ export default function ProductForm({
         return
       }
 
-      // Validate file size (max 5MB per image)
+      // Validate file size (max 3MB per image)
       if (file.size > 5 * 1024 * 1024) {
         setValidationErrors((prev) => ({
           ...prev,
-          images: t('productForm.errors.imageSizeTooLarge') || 'Each image must be less than 5MB',
+          images: t('productForm.errors.imageSizeTooLarge') || 'Each image must be less than 2MB',
         }))
         return
       }
