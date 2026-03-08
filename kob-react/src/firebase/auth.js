@@ -1,140 +1,79 @@
-// Auth helpers and React context to track user + role
-// Exports: loginUser, registerUser, logoutUser, getCurrentUser, AuthProvider, useAuth
-
-import React, { createContext, useContext, useEffect, useState } from 'react'
+// Product service: basic Firestore CRUD operations
 import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged,
-} from 'firebase/auth'
-import { doc, getDoc, setDoc } from 'firebase/firestore'
-import { auth, db } from './firebase'
+  collection,
+  addDoc,
+  getDocs,
+  doc,
+  updateDoc,
+  deleteDoc,
+  query,
+  where, // Required for filtering by owner
+  orderBy,
+  getDoc,
+  limit as fbLimit,
+  startAfter as fbStartAfter,
+  serverTimestamp, // Better for production consistency
+} from 'firebase/firestore'
+import { db } from '../firebase/firebase'
 
-const AuthContext = createContext()
+const PRODUCTS_COL = 'products'
+const DEFAULT_PAGE_SIZE = 20
 
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-
-  useEffect(() => {
-    // subscribe to auth state changes
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      try {
-        if (firebaseUser) {
-          // fetch role from /users/{uid}
-          const ref = doc(db, 'users', firebaseUser.uid)
-          const snap = await getDoc(ref)
-          
-          if (snap.exists()) {
-            const userData = snap.data()
-            setUser({
-              uid: firebaseUser.uid,
-              email: firebaseUser.email,
-              role: userData.role || 'buyer', // buyer, seller, or admin
-              displayName: userData.displayName || null,
-              createdAt: userData.createdAt || null,
-            })
-          } else {
-            // Fallback if no user doc exists
-            setUser({
-              uid: firebaseUser.uid,
-              email: firebaseUser.email,
-              role: 'buyer',
-              displayName: null,
-              createdAt: null,
-            })
-          }
-        } else {
-          setUser(null)
-        }
-        setError(null)
-      } catch (err) {
-        console.error('Auth state error:', err)
-        setError(err.message)
-      } finally {
-        setLoading(false)
-      }
-    })
-
-    return () => unsubscribe()
-  }, [])
-
-  // Avoid JSX parsing issues - use createElement
-  return React.createElement(
-    AuthContext.Provider,
-    { value: { user, loading, error } },
-    children
-  )
-}
-
-export function useAuth() {
-  return useContext(AuthContext)
-}
-
-// Auth API helpers
-export async function loginUser(email, password) {
-  // returns firebase auth userCredential
-  try {
-    const result = await signInWithEmailAndPassword(auth, email, password)
-    return result
-  } catch (error) {
-    throw new Error(formatAuthError(error.code))
+/**
+ * Public Marketplace Listing
+ * Fetches products for the general store view.
+ */
+export async function getProducts({ pageSize = DEFAULT_PAGE_SIZE, startAfter } = {}) {
+  let q = query(collection(db, PRODUCTS_COL), orderBy('createdAt', 'desc'), fbLimit(pageSize))
+  if (startAfter) {
+    q = query(collection(db, PRODUCTS_COL), orderBy('createdAt', 'desc'), fbStartAfter(startAfter), fbLimit(pageSize))
   }
-}
-
-export async function registerUser(email, password, role = 'buyer') {
-  // registers user and creates a /users/{uid} doc with specified role
-  // Valid roles: 'buyer', 'seller', 'admin'
-  try {
-    const validRoles = ['buyer', 'seller', 'admin']
-    const userRole = validRoles.includes(role) ? role : 'buyer'
-
-    const result = await createUserWithEmailAndPassword(auth, email, password)
-    const { user: firebaseUser } = result
-
-    const ref = doc(db, 'users', firebaseUser.uid)
-    await setDoc(ref, {
-      email: firebaseUser.email,
-      role: userRole,
-      displayName: null,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    })
-
-    return result
-  } catch (error) {
-    throw new Error(formatAuthError(error.code))
-  }
-}
-
-export async function logoutUser() {
-  try {
-    return await signOut(auth)
-  } catch (error) {
-    throw new Error(formatAuthError(error.code))
-  }
-}
-
-export function getCurrentUser() {
-  return auth.currentUser
+  const snap = await getDocs(q)
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }))
 }
 
 /**
- * Format Firebase auth error codes into user-friendly messages
+ * Seller-Specific Listing
+ * CRITICAL: Used in the Seller Dashboard to show only THEIR items.
  */
-function formatAuthError(code) {
-  const errorMessages = {
-    'auth/email-already-in-use': 'This email is already registered. Try logging in.',
-    'auth/weak-password': 'Password is too weak. Use at least 6 characters.',
-    'auth/invalid-email': 'Please enter a valid email address.',
-    'auth/user-not-found': 'No account found with this email.',
-    'auth/wrong-password': 'Incorrect password. Please try again.',
-    'auth/too-many-requests': 'Too many login attempts. Please try again later.',
-    'auth/operation-not-allowed': 'This operation is not allowed. Contact support.',
-    'auth/network-request-failed': 'Network error. Please check your connection.',
-  }
+export async function getSellerProducts(ownerUid) {
+  if (!ownerUid) throw new Error('User ID is required to fetch inventory')
+  
+  const q = query(
+    collection(db, PRODUCTS_COL),
+    where('ownerUid', '==', ownerUid), // Matches the security rule
+    orderBy('createdAt', 'desc')
+  )
+  
+  const snap = await getDocs(q)
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+}
 
-  return errorMessages[code] || 'Authentication error. Please try again.'
+export async function addProduct(data) {
+  // Ensure ownerUid is present before attempting to save
+  if (!data.ownerUid) {
+    throw new Error('Missing required field: ownerUid (user identifier)')
+  }
+  
+  const payload = { 
+    ...data, 
+    price: Number(data.price),
+    createdAt: serverTimestamp() 
+  }
+  
+  const ref = await addDoc(collection(db, PRODUCTS_COL), payload)
+  return { id: ref.id, ...payload }
+}
+
+export async function updateProduct(id, data) {
+  const ref = doc(db, PRODUCTS_COL, id)
+  // Use serverTimestamp for the updated field as well
+  await updateDoc(ref, { ...data, updatedAt: serverTimestamp() })
+  return true
+}
+
+export async function deleteProduct(id) {
+  const ref = doc(db, PRODUCTS_COL, id)
+  await deleteDoc(ref)
+  return true
 }
