@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react'
 import { Card, Button, Input, Textarea, Alert } from '../ui'
 import Loading from '../Loading'
 import { useTranslation } from '../../hooks/useTranslation'
-import { useAuth } from '../../firebase/auth' // Added for production security
+import { useAuth } from '../../firebase/auth' // Added for seller identity
 
 /**
  * ProductForm Component
- * Form for creating or editing products with multi-image upload and draft support
+ * Fully updated for KOB Marketplace production
  */
 export default function ProductForm({
   onSubmit = () => {},
@@ -17,7 +17,7 @@ export default function ProductForm({
   uploadingImage = false,
 }) {
   const t = useTranslation()
-  const { user } = useAuth() // Access the logged-in seller's identity
+  const { user } = useAuth() // Access current logged-in user
   
   const [formData, setFormData] = useState({
     title: '',
@@ -25,36 +25,33 @@ export default function ProductForm({
     price: '',
     category: '',
     whatsappNumber: '',
-    isDraft: true, // Save as draft by default
+    isDraft: true,
   })
-  const [images, setImages] = useState([]) // Array of image objects: { file, preview, id }
+  
+  const [images, setImages] = useState([])
   const [validationErrors, setValidationErrors] = useState({})
 
   const MAX_IMAGES = 5
   const isEditMode = initialData !== null
 
-  // Populate form with initial data (edit mode)
+  // Sync form with initialData (for Edit Mode)
   useEffect(() => {
     if (initialData) {
       const newFormData = {
         title: initialData.title || '',
         description: initialData.description || '',
-        price: initialData.price || '',
+        price: initialData.price?.toString() || '',
         category: initialData.category || '',
         whatsappNumber: initialData.whatsappNumber || '',
         isDraft: initialData.isDraft ?? true,
       }
       
-      setFormData((prev) => {
-        const prevStr = JSON.stringify(prev)
-        const newStr = JSON.stringify(newFormData)
-        return prevStr !== newStr ? newFormData : prev
-      })
+      setFormData(newFormData)
 
       if (initialData.images && Array.isArray(initialData.images)) {
         setImages(
           initialData.images.map((img, idx) => ({
-            id: `existing-${idx}`,
+            id: img.id || `existing-${idx}`,
             preview: img.url || img,
             isExisting: true,
           }))
@@ -74,19 +71,15 @@ export default function ProductForm({
 
     if (!formData.title.trim()) {
       errors.title = t('productForm.errors.titleRequired') || 'Product title is required'
-    } else if (formData.title.length < 3) {
-      errors.title = t('productForm.errors.titleMinLength') || 'Title must be at least 3 characters'
     }
 
-    if (!formData.description.trim()) {
-      errors.description = t('productForm.errors.descriptionRequired') || 'Description is required'
+    if (!formData.description.trim() || formData.description.length < 10) {
+      errors.description = t('productForm.errors.descriptionMinLength') || 'Description must be at least 10 characters'
     }
 
     const price = Number(formData.price)
-    if (!formData.price.toString().trim()) {
-      errors.price = t('productForm.errors.priceRequired') || 'Price is required'
-    } else if (isNaN(price) || price <= 0) {
-      errors.price = t('productForm.errors.priceInvalid') || 'Price must be a positive number'
+    if (!formData.price || isNaN(price) || price <= 0) {
+      errors.price = t('productForm.errors.priceInvalid') || 'Enter a valid price'
     }
 
     if (!formData.category) {
@@ -107,17 +100,14 @@ export default function ProductForm({
 
   function handleChange(e) {
     const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
+    setFormData(prev => ({ ...prev, [name]: value }))
     if (validationErrors[name]) {
-      setValidationErrors((prev) => ({ ...prev, [name]: null }))
+      setValidationErrors(prev => ({ ...prev, [name]: null }))
     }
   }
 
   function handleToggleDraft() {
-    setFormData((prev) => ({ ...prev, isDraft: !prev.isDraft }))
-    if (validationErrors.images) {
-      setValidationErrors((prev) => ({ ...prev, images: null }))
-    }
+    setFormData(prev => ({ ...prev, isDraft: !prev.isDraft }))
   }
 
   function handleImageChange(e) {
@@ -128,97 +118,76 @@ export default function ProductForm({
 
     filesToAdd.forEach((file, index) => {
       if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) return
-      if (file.size > 5 * 1024 * 1024) return
+      if (file.size > 5 * 1024 * 1024) return // 5MB limit
 
       const reader = new FileReader()
       reader.onload = (event) => {
-        const newImage = {
+        setImages(prev => [...prev, {
           id: `new-${Date.now()}-${index}`,
           file,
           preview: event.target?.result,
           isNew: true,
-        }
-        setImages((prev) => [...prev, newImage])
+        }])
       }
       reader.readAsDataURL(file)
     })
   }
 
   function handleRemoveImage(id) {
-    setImages((prev) => prev.filter((img) => img.id !== id))
+    setImages(prev => prev.filter(img => img.id !== id))
   }
 
-  function handleMoveImage(id, direction) {
-    const index = images.findIndex((img) => img.id === id)
-    if (index === -1) return
-    const newIndex = direction === 'up' ? index - 1 : index + 1
-    if (newIndex < 0 || newIndex >= images.length) return
-    const newImages = [...images]
-    ;[newImages[index], newImages[newIndex]] = [newImages[newIndex], newImages[index]]
-    setImages(newImages)
-  }
-
-  /**
-   * Submission handler updated for Production Security
-   */
   async function handleSubmit(e) {
     e.preventDefault()
 
     if (!validateForm()) return
 
-    // CRITICAL SECURITY CHECK
+    // Critical Production Security Check
     if (!user?.uid) {
-      alert("Session expired. Please log in again.")
+      alert("Error: You must be logged in to post products.")
       return
     }
 
     onSubmit({
       ...formData,
-      ownerUid: user.uid, // Explicitly linking this product to the current seller
+      ownerUid: user.uid, // Automatically link product to seller
       price: Number(formData.price),
       images, 
     })
   }
 
-  const canAddMoreImages = images.length < MAX_IMAGES
-
   return (
     <Card variant="elevated" className="p-6">
       <div className="space-y-6">
+        {/* Header */}
         <div>
           <h2 className="text-2xl font-bold text-kob-dark mb-2">
             {isEditMode ? '✏️ ' + (t('productForm.editProduct') || 'Edit Product') : '➕ ' + (t('productForm.addProduct') || 'Add New Product')}
           </h2>
-          <p className="text-gray-600">
-            {isEditMode
-              ? t('productForm.editDescription') || 'Update your product information'
-              : t('productForm.addDescription') || 'Fill in the details below to list your product'}
-          </p>
         </div>
 
-        <div className="flex items-center gap-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-          <div className="flex-1">
-            <label className="flex items-center gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={formData.isDraft}
-                onChange={handleToggleDraft}
-                className="w-5 h-5 rounded accent-kob-primary"
-              />
-              <span className="font-medium text-blue-900">
-                {formData.isDraft ? '📝 Save as Draft' : '✅ Publish Now'}
-              </span>
-            </label>
-          </div>
+        {/* Status Toggle */}
+        <div className={`p-4 rounded-lg border ${formData.isDraft ? 'bg-amber-50 border-amber-200' : 'bg-green-50 border-green-200'}`}>
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={formData.isDraft}
+              onChange={handleToggleDraft}
+              className="w-5 h-5 rounded accent-kob-primary"
+            />
+            <span className={`font-bold ${formData.isDraft ? 'text-amber-900' : 'text-green-900'}`}>
+              {formData.isDraft ? '📝 Save as Draft' : '🚀 Publish to Marketplace'}
+            </span>
+          </label>
         </div>
 
-        {error && <Alert type="error" title="Submission Error">{error}</Alert>}
+        {error && <Alert type="error">{error}</Alert>}
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <Input
             label="Product Title"
             name="title"
-            type="text"
+            placeholder="e.g. Toyota Corolla 2022"
             value={formData.title}
             onChange={handleChange}
             error={validationErrors.title}
@@ -227,38 +196,42 @@ export default function ProductForm({
           <Textarea
             label="Description"
             name="description"
+            placeholder="Describe your product..."
             value={formData.description}
             onChange={handleChange}
             rows={5}
             error={validationErrors.description}
           />
 
-          <Input
-            label="Price (₦)"
-            name="price"
-            type="number"
-            value={formData.price}
-            onChange={handleChange}
-            error={validationErrors.price}
-          />
-
-          <div>
-            <label className="block text-sm font-semibold text-kob-dark mb-2">Category</label>
-            <select
-              name="category"
-              value={formData.category}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Input
+              label="Price (₦)"
+              name="price"
+              type="number"
+              value={formData.price}
               onChange={handleChange}
-              className={`w-full px-4 py-2 border-2 rounded-lg ${validationErrors.category ? 'border-red-500' : 'border-gray-300'}`}
-            >
-              <option value="">Select a category...</option>
-              {categories.map((cat) => <option key={cat} value={cat}>{cat}</option>)}
-            </select>
+              error={validationErrors.price}
+            />
+
+            <div>
+              <label className="block text-sm font-semibold text-kob-dark mb-2">Category</label>
+              <select
+                name="category"
+                value={formData.category}
+                onChange={handleChange}
+                className={`w-full px-4 py-2 border-2 rounded-lg ${validationErrors.category ? 'border-red-500' : 'border-gray-300'}`}
+              >
+                <option value="">Select Category</option>
+                {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+              </select>
+              {validationErrors.category && <p className="text-xs text-red-500 mt-1">{validationErrors.category}</p>}
+            </div>
           </div>
 
           <Input
-            label="WhatsApp Number"
+            label="WhatsApp Contact"
             name="whatsappNumber"
-            type="tel"
+            placeholder="23480..."
             value={formData.whatsappNumber}
             onChange={handleChange}
             error={validationErrors.whatsappNumber}
@@ -267,30 +240,30 @@ export default function ProductForm({
           {/* Image Section */}
           <div>
             <label className="block text-sm font-semibold text-kob-dark mb-2">Images ({images.length}/{MAX_IMAGES})</label>
-            <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-5">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-4">
               {images.map((img, index) => (
-                <div key={img.id} className="relative group rounded-lg overflow-hidden bg-gray-100 aspect-square">
-                  <img src={img.preview} alt="Preview" className="w-full h-full object-cover" />
+                <div key={img.id} className="relative aspect-square rounded-lg overflow-hidden border bg-gray-50">
+                  <img src={img.preview} alt="preview" className="w-full h-full object-cover" />
                   <button
                     type="button"
                     onClick={() => handleRemoveImage(img.id)}
-                    className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full text-xs"
+                    className="absolute top-1 right-1 bg-red-600 text-white w-6 h-6 rounded-full"
                   >✕</button>
                 </div>
               ))}
+              {images.length < MAX_IMAGES && (
+                <label className="aspect-square flex flex-col items-center justify-center border-2 border-dashed rounded-lg cursor-pointer hover:bg-gray-50">
+                  <span className="text-2xl">📷</span>
+                  <input type="file" accept="image/*" multiple className="hidden" onChange={handleImageChange} />
+                </label>
+              )}
             </div>
-
-            {canAddMoreImages && (
-              <label className="block border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:bg-gray-50">
-                <p>📷 Click to add images</p>
-                <input type="file" accept="image/*" multiple onChange={handleImageChange} className="hidden" />
-              </label>
-            )}
+            {validationErrors.images && <p className="text-xs text-red-500">{validationErrors.images}</p>}
           </div>
 
-          <div className="flex gap-3 pt-4">
-            <Button type="submit" variant="primary" size="lg" disabled={loading || uploadingImage} className="flex-1">
-              {loading ? 'Saving...' : formData.isDraft ? 'Save Draft' : 'Publish Product'}
+          <div className="flex gap-4">
+            <Button type="submit" variant="primary" size="lg" className="flex-1" disabled={loading || uploadingImage}>
+              {loading ? 'Processing...' : (formData.isDraft ? 'Save Draft' : 'Submit Listing')}
             </Button>
             <Button type="button" variant="outline" size="lg" onClick={onCancel}>Cancel</Button>
           </div>
@@ -298,5 +271,4 @@ export default function ProductForm({
       </div>
     </Card>
   )
-      }
-            
+}
