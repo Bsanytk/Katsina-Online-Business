@@ -1,10 +1,9 @@
-import { doc, getDoc, updateDoc } from 'firebase/firestore'
+import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore'
 import { db } from '../firebase/firebase'
 
 /**
  * Fetch user profile by UID
  * @param {string} uid - Firebase user ID
- * @returns {Promise<Object>} User profile data
  */
 export async function getUserProfile(uid) {
   if (!uid) throw new Error('User ID is required')
@@ -27,51 +26,45 @@ export async function getUserProfile(uid) {
 }
 
 /**
- * Format WhatsApp number: remove non-digits, validate Nigerian format
- * @param {string} input - Raw phone number input
- * @returns {Object} { isValid: boolean, formatted: string, error: string }
+ * Format WhatsApp number: 
+ * Wannan sabon version din yana cire 0 na farko kuma yana barin lambobi kawai.
+ * Ba a takaita shi ga Najeriya kadai ba domin ba da damar wasu kasashen.
  */
 export function formatWhatsAppNumber(input) {
   if (!input) {
     return { isValid: false, formatted: '', error: 'Phone number is required' }
   }
 
-  // Remove all non-digits
-  const cleaned = input.replace(/\D/g, '')
+  // Cire komai banda lambobi
+  let cleaned = input.replace(/\D/g, '')
 
-  // Nigerian number must be 13 digits starting with 234
-  if (cleaned.length === 13 && cleaned.startsWith('234')) {
-    return { isValid: true, formatted: cleaned, error: null }
+  // Idan lambar ta fara da 0 (kamar 080...), cire 0 din
+  if (cleaned.startsWith('0')) {
+    cleaned = cleaned.substring(1)
   }
 
-  // If it's 11 digits (Nigerian format without country code), prepend 234
-  if (cleaned.length === 11 && cleaned.startsWith('0')) {
-    const formatted = '234' + cleaned.slice(1)
-    return { isValid: true, formatted, error: null }
+  // Tabbatar da tsawon lamba (yawancin kasashe tsakanin 7 zuwa 15)
+  if (cleaned.length < 7 || cleaned.length > 15) {
+    return {
+      isValid: false,
+      formatted: '',
+      error: 'Please enter a valid phone number with country code (e.g., 2348012345678)',
+    }
   }
 
-  if (cleaned.length === 10) {
-    const formatted = '234' + cleaned
-    return { isValid: true, formatted, error: null }
-  }
-
-  return {
-    isValid: false,
-    formatted: '',
-    error: 'Please enter a valid Nigerian phone number (e.g., 08012345678 or +2348012345678)',
+  return { 
+    isValid: true, 
+    formatted: cleaned, 
+    error: null 
   }
 }
 
 /**
  * Update user profile with WhatsApp number
- * @param {string} uid - Firebase user ID
- * @param {string} whatsappNumber - WhatsApp number (formatted)
- * @returns {Promise<Object>} Updated user data
  */
 export async function updateUserWhatsApp(uid, whatsappNumber) {
   if (!uid) throw new Error('User ID is required')
 
-  // Validate format
   const validation = formatWhatsAppNumber(whatsappNumber)
   if (!validation.isValid) {
     throw new Error(validation.error)
@@ -82,7 +75,7 @@ export async function updateUserWhatsApp(uid, whatsappNumber) {
     
     const updateData = {
       whatsappNumber: validation.formatted,
-      updatedAt: new Date().toISOString(),
+      updatedAt: serverTimestamp(), // Amfani da lokacin server
     }
 
     await updateDoc(ref, updateData)
@@ -90,7 +83,7 @@ export async function updateUserWhatsApp(uid, whatsappNumber) {
     return {
       uid,
       whatsappNumber: validation.formatted,
-      updatedAt: updateData.updatedAt,
+      updatedAt: new Date().toISOString(), // Domin UI ta nuna nan take
     }
   } catch (err) {
     throw new Error(`Failed to update WhatsApp number: ${err.message}`)
@@ -99,9 +92,6 @@ export async function updateUserWhatsApp(uid, whatsappNumber) {
 
 /**
  * Update user profile with multiple fields
- * @param {string} uid - Firebase user ID
- * @param {Object} updates - Fields to update
- * @returns {Promise<Object>} Updated user data
  */
 export async function updateUserProfile(uid, updates) {
   if (!uid) throw new Error('User ID is required')
@@ -111,7 +101,7 @@ export async function updateUserProfile(uid, updates) {
     
     const updateData = {
       ...updates,
-      updatedAt: new Date().toISOString(),
+      updatedAt: serverTimestamp(),
     }
 
     await updateDoc(ref, updateData)
@@ -124,25 +114,22 @@ export async function updateUserProfile(uid, updates) {
     throw new Error(`Failed to update user profile: ${err.message}`)
   }
 }
-export function generateWhatsAppLink(whatsappNumber, product) {
-  if (!whatsappNumber || !product?.name) {
-    throw new Error('WhatsApp number and product name are required')
-  }
 
-  // Message template
-  const message = `Hello 👋\nI saw your product "${product.name}" on Katsina Online Business.\nIs it still available?`
-
-  // Encode message properly for URL
+/**
+ * Generate WhatsApp Link for contacting sellers
+ */
+export function generateWhatsAppLink(whatsappNumber, productTitle) {
+  if (!whatsappNumber) return '#'
+  
+  // Sako na musamman don B-SANI BIO-CARE MED
+  const message = `Hello 👋, I am interested in your product: "${productTitle}" on Katsina Online Business. Is it available?`
   const encodedMessage = encodeURIComponent(message)
 
-  // Generate WhatsApp Web link (works on mobile and desktop)
   return `https://wa.me/${whatsappNumber}?text=${encodedMessage}`
 }
 
 /**
- * Get seller WhatsApp for contacting from product
- * @param {string} sellerUid - Seller's Firebase UID
- * @returns {Promise<string|null>} WhatsApp number or null
+ * Get seller WhatsApp number
  */
 export async function getSellerWhatsApp(sellerUid) {
   if (!sellerUid) return null
@@ -151,27 +138,22 @@ export async function getSellerWhatsApp(sellerUid) {
     const profile = await getUserProfile(sellerUid)
     return profile.whatsappNumber || null
   } catch (err) {
-    if (import.meta.env.DEV) {
-      console.error('Error fetching seller WhatsApp:', err)
-    }
+    console.error('Error fetching seller WhatsApp:', err)
     return null
   }
 }
 
 /**
- * Remove/clear WhatsApp number from user profile
- * @param {string} uid - Firebase user ID
- * @returns {Promise<void>}
+ * Clear WhatsApp number from profile
  */
 export async function clearUserWhatsApp(uid) {
   if (!uid) throw new Error('User ID is required')
 
   try {
     const ref = doc(db, 'users', uid)
-    
     await updateDoc(ref, {
-      whatsappNumber: '',
-      updatedAt: new Date().toISOString(),
+      whatsappNumber: null,
+      updatedAt: serverTimestamp(),
     })
   } catch (err) {
     throw new Error(`Failed to clear WhatsApp number: ${err.message}`)
