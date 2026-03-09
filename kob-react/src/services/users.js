@@ -30,7 +30,7 @@ export async function updateUserProfile(uid, data) {
 
 /**
  * NEW: Fetches the seller's WhatsApp number specifically for the Contact Button
- * This resolves the Vercel build error.
+ * This resolves the Vercel build error ya gyaru.
  */
 export async function getSellerWhatsApp(sellerUid) {
   if (!sellerUid) return null
