@@ -29,6 +29,22 @@ export async function updateUserProfile(uid, data) {
 }
 
 /**
+ * NEW: Fetches the seller's WhatsApp number specifically for the Contact Button
+ * This resolves the Vercel build error.
+ */
+export async function getSellerWhatsApp(sellerUid) {
+  if (!sellerUid) return null
+  try {
+    const profile = await getUserProfile(sellerUid)
+    // Checks for 'whatsapp' field first, then 'phone' as fallback
+    return profile.whatsapp || profile.phone || null
+  } catch (err) {
+    console.error('Error fetching seller WhatsApp:', err)
+    return null
+  }
+}
+
+/**
  * Production-grade WhatsApp Validator
  * Handles multiple countries and strips formatting
  */
@@ -44,9 +60,8 @@ export function formatWhatsAppNumber(input) {
   }
 
   // 3. Validation Logic
-  // Most African/International numbers (excluding country code) are 8-11 digits
   const minLength = 8
-  const maxLength = 15 // Global max for E.164 standard
+  const maxLength = 15 
 
   if (cleaned.length < minLength) {
     return { 
@@ -62,10 +77,21 @@ export function formatWhatsAppNumber(input) {
     }
   }
 
-  // 4. Return the "Clean" version for the wa.me link
   return {
     isValid: true,
-    formatted: cleaned, // This is what goes into the https://wa.me/XXXXXX link
+    formatted: cleaned, 
     error: null
   }
+}
+
+/**
+ * NEW: Generates the safe WhatsApp link used by the Marketplace
+ * This resolves the second missing export error.
+ */
+export function generateWhatsAppLink(number, product) {
+  const validation = formatWhatsAppNumber(number)
+  if (!validation.isValid) return '#'
+
+  const message = `Hello, I'm interested in your product: ${product?.name || 'this item'} on KOB Marketplace.`
+  return `https://wa.me/${validation.formatted}?text=${encodeURIComponent(message)}`
 }
