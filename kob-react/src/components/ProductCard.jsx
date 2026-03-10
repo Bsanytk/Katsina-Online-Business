@@ -3,7 +3,7 @@ import { useAuth } from '../firebase/auth'
 
 /**
  * ProductCard Component
- * Updated for production with owner-based actions and status indicators.
+ * Updated to handle Cloudinary strings and array fallbacks perfectly.
  */
 export default function ProductCard({ product, onEdit, onDelete, onBuyClick }) {
   const { user: authUser } = useAuth()
@@ -15,7 +15,30 @@ export default function ProductCard({ product, onEdit, onDelete, onBuyClick }) {
   // Professional SVG placeholder for missing images
   const imagePlaceholder = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect fill="%23f3f4f6" width="400" height="300"/%3E%3Ctext x="50%" y="50%" font-size="16" fill="%239ca3af" text-anchor="middle" dominant-baseline="middle"%3EPhoto Coming Soon%3C/text%3E%3C/svg%3E'
   
-  const displayImage = imageError || !product.images?.[0]?.preview ? imagePlaceholder : product.images[0].preview
+  // CORRECTION: Logic to find the best image URL from Firestore
+  const getDisplayImage = () => {
+    if (imageError) return imagePlaceholder;
+
+    // 1. Check for imageUrl (New String Format)
+    if (product.imageUrl && typeof product.imageUrl === 'string') {
+      return product.imageUrl;
+    }
+    
+    // 2. Check for mainImage (Fallback String)
+    if (product.mainImage && typeof product.mainImage === 'string') {
+      return product.mainImage;
+    }
+
+    // 3. Check for images array (Old Format)
+    if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+      const firstImg = product.images[0];
+      return typeof firstImg === 'string' ? firstImg : firstImg.url || firstImg.preview;
+    }
+
+    return imagePlaceholder;
+  };
+
+  const displayImage = getDisplayImage();
 
   function handleImageError() {
     setImageError(true)
@@ -83,7 +106,6 @@ export default function ProductCard({ product, onEdit, onDelete, onBuyClick }) {
         {/* Context-Aware Actions */}
         <div className="flex gap-2">
           {canManage ? (
-            /* Seller Management Controls */
             <div className="flex gap-2 w-full">
               <button 
                 onClick={() => onEdit?.(product)} 
@@ -99,7 +121,6 @@ export default function ProductCard({ product, onEdit, onDelete, onBuyClick }) {
               </button>
             </div>
           ) : (
-            /* Buyer Experience Controls */
             <div className="flex gap-2 w-full">
               <button
                 onClick={() => onBuyClick?.(product)}
@@ -125,3 +146,4 @@ export default function ProductCard({ product, onEdit, onDelete, onBuyClick }) {
     </article>
   )
 }
+              
