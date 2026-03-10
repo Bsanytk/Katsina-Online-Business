@@ -60,7 +60,7 @@ export default function Marketplace() {
     }
   }
 
-  // --- Logic: Handle Product Submission ---
+  // --- Logic: Handle Product Submission (UPDATED FOR CLOUDINARY) ---
   async function handleProductSubmit(formData) {
     if (!user) return setFormError("You must be logged in to perform this action.")
     
@@ -84,16 +84,21 @@ export default function Marketplace() {
       }
       setUploadingImage(false)
 
+      const firstImageUrl = finalImages[0]?.url || ''
+
       const payload = {
         title: formData.title,
         description: formData.description,
         price: Number(formData.price),
         category: formData.category,
         whatsappNumber: formData.whatsappNumber,
-        isDraft: formData.isDraft, // Important: Tracks if item is live
+        isDraft: formData.isDraft, 
         ownerUid: user.uid,
-        images: finalImages, // Save the full array of images
-        mainImage: finalImages[0]?.url || '', // Quick access for thumbnails
+        // CORRECTION: Save direct string URL to prevent broken images
+        imageUrl: firstImageUrl, 
+        mainImage: firstImageUrl, 
+        // Save simple string array for secondary images
+        images: finalImages.map(img => img.url), 
         updatedAt: new Date()
       }
 
@@ -202,4 +207,4 @@ export default function Marketplace() {
     </main>
   )
 }
-      
+
