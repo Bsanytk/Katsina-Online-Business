@@ -1,10 +1,8 @@
 import React from 'react'
 
 /**
- * Card component with optional padding and shadow variants
- * @param {string} variant - 'default', 'elevated', 'outlined'
- * @param {boolean} hover - Add hover effect
- * @param {string} className - Additional Tailwind classes
+ * Card component updated for KOB Marketplace
+ * Added 'flat' variant and improved KOB-specific styling
  */
 export default function Card({
   children,
@@ -13,17 +11,26 @@ export default function Card({
   className = '',
   ...props
 }) {
-  const baseStyles = 'rounded-lg border border-gray-200 bg-white transition-all duration-200'
+  // Base styles improved with better border colors for mobile readability
+  const baseStyles = 'rounded-xl bg-white transition-all duration-300 overflow-hidden'
 
   const variantStyles = {
-    default: 'shadow-sm',
-    elevated: 'shadow-md',
-    outlined: 'border-2 border-gray-300 shadow-none',
+    // Standard shadow
+    default: 'border border-neutral-200 shadow-sm',
+    // More depth for important items like Product details
+    elevated: 'border border-neutral-100 shadow-xl',
+    // Clean look for dashboard sections
+    outlined: 'border-2 border-neutral-200 shadow-none',
+    // Simple flat style for inner cards
+    flat: 'border border-neutral-100 bg-neutral-50/50'
   }
 
-  const hoverStyles = hover ? 'hover:shadow-lg hover:border-kob-primary' : ''
+  // Hover effect now includes a slight lift (translate-y) for a "Pro" feel
+  const hoverStyles = hover 
+    ? 'hover:shadow-card-hover hover:border-kob-primary/50 hover:-translate-y-1' 
+    : ''
 
-  const finalClass = `${baseStyles} ${variantStyles[variant]} ${hoverStyles} ${className}`
+  const finalClass = `${baseStyles} ${variantStyles[variant] || variantStyles.default} ${hoverStyles} ${className}`
 
   return (
     <div className={finalClass} {...props}>

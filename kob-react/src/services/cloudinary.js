@@ -1,24 +1,26 @@
-  // Cloudinary upload helper (unsigned upload preset)
-// Required env vars (vite):
-// VITE_CLOUDINARY_CLOUD_NAME
-// VITE_CLOUDINARY_UPLOAD_PRESET
+/**
+ * Cloudinary upload helper (unsigned upload preset)
+ * Updated for KOB Marketplace "Pro-Update" branch
+ */
 
-// Usage: import { uploadImage } from '../services/cloudinary'
-// const url = await uploadImage(file)
-
-export async function uploadImage(file, timeoutMs = 10000) {
+export async function uploadImage(file, timeoutMs = 15000) { // Increased timeout for better stability
   if (!file) throw new Error('No file provided')
+
   const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
   const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET
-  if (!cloudName || !uploadPreset) throw new Error('Missing Cloudinary config env vars')
+
+  if (!cloudName || !uploadPreset) {
+    throw new Error('Cloudinary configuration is missing. Check your .env file.')
+  }
   
   try {
     const url = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`
     const form = new FormData()
     form.append('file', file)
     form.append('upload_preset', uploadPreset)
+    // Optional: Add folder tag for organization in Cloudinary
+    form.append('folder', 'kob_marketplace_products')
 
-    // Create abort controller for timeout
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
 
@@ -33,44 +35,44 @@ export async function uploadImage(file, timeoutMs = 10000) {
     
     if (!res.ok) {
       const errorMsg = data.error?.message || 'Upload failed'
-      if (import.meta.env.DEV) {
-        console.error('Cloudinary upload error:', { 
-          status: res.status, 
-          error: errorMsg,
-          fullResponse: data 
-        })
-      }
       throw new Error(errorMsg)
     }
     
-    // Validate response contains secure_url
     if (!data.secure_url) {
       throw new Error('Upload succeeded but no URL returned')
     }
+
+    /**
+     * OPTIMIZATION STEP:
+     * We modify the URL to include auto-format and auto-quality.
+     * This saves up to 70% bandwidth for your users in Katsina.
+     */
+    const optimizedUrl = data.secure_url.replace(
+      '/upload/',
+      '/upload/f_auto,q_auto/'
+    )
     
-    return data.secure_url
+    return optimizedUrl
+
   } catch (err) {
-    // Handle abort/timeout error
+    // Timeout Handling
     if (err.name === 'AbortError') {
-      const timeoutError = new Error('Upload timeout: request took too long')
-      if (import.meta.env.DEV) console.error('Cloudinary upload timeout:', { timeoutMs })
-      throw timeoutError
+      throw new Error('Upload took too long. Please check your internet connection.')
     }
     
-    // Handle network errors
-    if (err instanceof TypeError && err.message.includes('fetch')) {
-      const networkError = new Error('Network error: failed to reach upload service')
-      if (import.meta.env.DEV) console.error('Cloudinary network error:', { message: err.message })
-      throw networkError
+    // Network Connectivity Handling
+    if (err instanceof TypeError) {
+      throw new Error('Network error: Could not reach the image server.')
     }
     
-    // Log all other errors
     if (import.meta.env.DEV) {
-      console.error('Cloudinary upload exception:', { 
-        message: err.message,
-        stack: err.stack
-      })
+      console.error('Cloudinary Exception:', err)
     }
     throw err
   }
 }
+
+/**
+ * Helper to delete/transform images if needed (Requires Admin API or Signed Uploads)
+ * For unsigned uploads, deletion is usually handled via Cloudinary Dashboard.
+ */

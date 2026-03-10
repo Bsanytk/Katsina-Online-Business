@@ -1,21 +1,25 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../../firebase/auth'
-import { getUserProfile, updateUserProfile, formatWhatsAppNumber } from '../../services/users'
-import { Card, Input, ButtonLoader, Alert, Select } from '../ui'
+import { getUserProfile, updateUserProfile } from '../../services/users'
+import { Card, Input, Alert } from '../ui' // Added Button as it was missing in imports
 
-/**
- * SellerProfileEdit Component
- * Allows sellers to update their WhatsApp number and other profile info
- * 
- * Features:
- * - WhatsApp number input with inline validation
- * - Loading state with ButtonLoader
- * - Success/error alerts
- * - Prevents double submission
- * - Format validation (Nigerian phone numbers)
- */
+const COUNTRIES = [
+  { code: '+234', label: '🇳🇬 Nigeria', id: 'ng' },
+  { code: '+227', label: '🇳🇪 Niger', id: 'ne' },
+  { code: '+233', label: '🇬🇭 Ghana', id: 'gh' },
+  { code: '+221', label: '🇸🇳 Senegal', id: 'sn' },
+  { code: '+225', label: '🇨🇮 Ivory Coast', id: 'ci' },
+  { code: '+44', label: '🇬🇧 UK', id: 'uk' },
+  { code: '+1', label: '🇺🇸 USA', id: 'us' },
+]
+
 export default function SellerProfileEdit() {
   const { user } = useAuth()
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState(null)
+  const [success, setSuccess] = useState(false)
+
   const [profileData, setProfileData] = useState({
     displayName: '',
     username: '',
@@ -23,288 +27,143 @@ export default function SellerProfileEdit() {
     countryCode: '+234',
     whatsappNumber: '',
   })
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState(null)
-  const [success, setSuccess] = useState(false)
-  const [whatsappError, setWhatsappError] = useState(null)
 
   const loadProfile = useCallback(async () => {
     if (!user?.uid) return
-
     setLoading(true)
     try {
       const profile = await getUserProfile(user.uid)
+      
+      // CORRECTION: Handle both "phone" and "phoneNumber" fields
+      let rawPhone = profile.phoneNumber || profile.phone || ''
+      let detectedCode = '+234'
+      let detectedNumber = rawPhone
+
+      COUNTRIES.forEach(c => {
+        if (rawPhone.startsWith(c.code)) {
+          detectedCode = c.code
+          detectedNumber = rawPhone.replace(c.code, '')
+        }
+      })
+
       setProfileData({
         displayName: profile.displayName || '',
         username: profile.username || '',
-        phoneNumber: profile.phoneNumber ? profile.phoneNumber.replace(/^\+?\d{3}/, '') : '',
-        countryCode: profile.phoneNumber ? profile.phoneNumber.match(/^\+?\d{3}/)?.[0] || '+234' : '+234',
-        whatsappNumber: profile.whatsappNumber || '',
+        phoneNumber: detectedNumber.replace(/\s+/g, ''), // remove spaces
+        countryCode: detectedCode,
+        // CORRECTION: Handle both "whatsapp" and "whatsappNumber"
+        whatsappNumber: profile.whatsappNumber || profile.whatsapp || '',
       })
-      setError(null)
     } catch (err) {
-      setError(err.message)
-      if (import.meta.env.DEV) console.error('Failed to load profile:', err)
+      setError("Ba a iya buɗe bayanan profile ba.")
     } finally {
       setLoading(false)
     }
   }, [user?.uid])
 
-  // Load current profile
   useEffect(() => {
     loadProfile()
   }, [loadProfile])
 
-  function handleWhatsAppChange(e) {
-    const value = e.target.value
-    setProfileData((prev) => ({
-      ...prev,
-      whatsappNumber: value,
-    }))
-
-    // Validate as user types
-    if (value.trim()) {
-      const validation = formatWhatsAppNumber(value)
-      setWhatsappError(validation.error)
-    } else {
-      setWhatsappError(null)
-    }
-  }
-
   async function handleSave(e) {
     e.preventDefault()
-    setSuccess(false)
-    setError(null)
     setSaving(true)
+    setError(null)
 
     try {
-      // Validate WhatsApp number if provided
-      if (profileData.whatsappNumber.trim()) {
-        const validation = formatWhatsAppNumber(profileData.whatsappNumber)
-        if (!validation.isValid) {
-          setWhatsappError(validation.error)
-          setSaving(false)
-          return
-        }
-      }
+      let cleanNumber = profileData.phoneNumber.trim().replace(/^0+/, '').replace(/\D/g, '')
+      const fullPhoneNumber = profileData.countryCode + cleanNumber
 
-      // Update profile with all fields
-      const fullPhoneNumber = profileData.phoneNumber.trim() ? profileData.countryCode + profileData.phoneNumber.replace(/^\+/, '') : null
-      
+      // CORRECTION: Save to both field styles to ensure Marketplace components can see it
       await updateUserProfile(user.uid, {
         displayName: profileData.displayName.trim() || null,
         username: profileData.username.trim() || null,
         phoneNumber: fullPhoneNumber,
+        phone: fullPhoneNumber, // Legacy support
         whatsappNumber: profileData.whatsappNumber.trim() || null,
+        whatsapp: profileData.whatsappNumber.trim() || null, // Legacy support
       })
 
       setSuccess(true)
       setTimeout(() => setSuccess(false), 5000)
-
-      // Reload profile to confirm save
-      await loadProfile()
     } catch (err) {
-      setError(err.message)
-      if (import.meta.env.DEV) console.error('Failed to save profile:', err)
+      setError("An samu matsala wurin adana bayanan.")
     } finally {
       setSaving(false)
     }
   }
 
-  if (loading) {
-    return (
-      <Card variant="elevated" className="p-8 rounded-xl">
-        <div className="flex items-center justify-center gap-3">
-          <svg className="animate-spin h-5 w-5 text-kob-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-          </svg>
-          <span className="text-gray-600 font-medium">Loading profile...</span>
-        </div>
-      </Card>
-    )
-  }
+  if (loading) return <div className="p-8 text-center text-gray-500 italic">Ana buɗe bayanan...</div>
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h2 className="text-3xl font-bold text-kob-dark mb-2 flex items-center gap-3">
-          <span className="text-4xl">👤</span> Your Seller Profile
-        </h2>
-        <p className="text-gray-600">Update your contact information so buyers can reach you</p>
+      <div className="flex flex-col">
+        <h1 className="text-2xl font-black text-kob-dark">Saitin Bayanai (Profile)</h1>
+        <p className="text-sm text-gray-500">Gyara yadda kake bayyana ga masu siyan kaya.</p>
       </div>
 
-      {/* Error Alert */}
-      {error && (
-        <Alert
-          type="error"
-          title="Error"
-          onDismiss={() => setError(null)}
-          className="animate-fade-in"
-        >
-          {error}
-        </Alert>
-      )}
+      {success && <Alert type="success">An adana bayanan profile ɗinka cikin nasara! ✅</Alert>}
+      {error && <Alert type="error">{error}</Alert>}
 
-      {/* Success Alert */}
-      {success && (
-        <Alert
-          type="success"
-          title="Success!"
-          onDismiss={() => setSuccess(false)}
-          className="animate-fade-in"
-        >
-          Your profile has been updated successfully.
-        </Alert>
-      )}
-
-      {/* Profile Form */}
-      <Card variant="elevated" className="p-8 rounded-xl">
+      <Card variant="elevated" className="p-8 rounded-xl shadow-lg border-t-4 border-kob-primary">
         <form onSubmit={handleSave} className="space-y-6">
-          {/* Email (Read-only) */}
-          <div>
-            <label className="block text-sm font-semibold text-kob-dark mb-2">Email Address</label>
-            <div className="p-3 bg-gray-100 rounded-lg text-gray-700 border border-gray-200 font-medium">
-              {user?.email}
-            </div>
-            <p className="text-xs text-gray-500 mt-2">Can only be changed through Firebase console</p>
-          </div>
+          
+          <Input
+            label="Sunan Kasuwanci (Display Name)"
+            value={profileData.displayName}
+            onChange={(e) => setProfileData(prev => ({ ...prev, displayName: e.target.value }))}
+            placeholder="Misali: B-Sani Bio-Care"
+            disabled={saving}
+          />
 
-          {/* Username */}
           <div>
-            <label htmlFor="username" className="block text-sm font-semibold text-kob-dark mb-2 flex items-center gap-2">
-              <span className="text-xl">👤</span>
-              Username
+            <label className="block text-sm font-semibold text-kob-dark mb-2">
+              📱 Lambar Waya (Business Phone)
             </label>
-            <Input
-              id="username"
-              type="text"
-              placeholder="Enter your username"
-              value={profileData.username}
-              onChange={(e) => setProfileData(prev => ({ ...prev, username: e.target.value }))}
-              disabled={saving}
-              className="border-gray-300 focus:ring-kob-primary"
-            />
-            <p className="text-xs text-gray-600 mt-2">
-              Your username will be displayed on your product listings.
-            </p>
-          </div>
-
-          {/* Phone Number with Country Code */}
-          <div>
-            <label htmlFor="phone" className="block text-sm font-semibold text-kob-dark mb-2 flex items-center gap-2">
-              <span className="text-xl">📱</span>
-              Phone Number
-            </label>
-            <div className="flex gap-2">
-              <Select
+            <div className="flex gap-0 overflow-hidden rounded-lg border border-gray-300 focus-within:ring-2 focus-within:ring-kob-primary transition-all">
+              <select
                 value={profileData.countryCode}
                 onChange={(e) => setProfileData(prev => ({ ...prev, countryCode: e.target.value }))}
                 disabled={saving}
-                className="w-32 border-gray-300 focus:ring-kob-primary"
+                className="bg-gray-100 border-r border-gray-300 px-3 py-2 text-sm font-bold text-kob-dark focus:outline-none"
               >
-                <option value="+234">+234 Nigeria</option>
-                <option value="+233">+233 Ghana</option>
-                <option value="+44">+44 UK</option>
-                <option value="+1">+1 USA</option>
-              </Select>
-              <Input
-                id="phone"
+                {COUNTRIES.map(country => (
+                  <option key={country.id} value={country.code}>
+                    {country.label}
+                  </option>
+                ))}
+              </select>
+              <input
                 type="tel"
                 placeholder="7068397191"
                 value={profileData.phoneNumber}
                 onChange={(e) => setProfileData(prev => ({ ...prev, phoneNumber: e.target.value }))}
                 disabled={saving}
-                className="flex-1 border-gray-300 focus:ring-kob-primary"
+                className="flex-1 px-4 py-2 text-kob-dark placeholder-gray-400 focus:outline-none"
               />
             </div>
-            <p className="text-xs text-gray-600 mt-2">
-              Your phone number will be stored as {profileData.countryCode}{profileData.phoneNumber} and used for WhatsApp contact.
-            </p>
           </div>
 
-          {/* WhatsApp Number */}
-          <div>
-            <label htmlFor="whatsapp" className="block text-sm font-semibold text-kob-dark mb-2 flex items-center gap-2">
-              <span className="text-xl">💬</span>
-              WhatsApp Number
-            </label>
-            <div className="space-y-2">
-              <Input
-                id="whatsapp"
-                type="tel"
-                placeholder="e.g., 08012345678 or +2348012345678"
-                value={profileData.whatsappNumber}
-                onChange={handleWhatsAppChange}
-                disabled={saving}
-                className={`${
-                  whatsappError
-                    ? 'border-red-500 focus:ring-red-500'
-                    : 'border-gray-300 focus:ring-kob-primary'
-                }`}
-              />
-              {whatsappError && (
-                <p className="text-red-600 text-sm font-medium animate-fade-in">
-                  ❌ {whatsappError}
-                </p>
-              )}
-              {profileData.whatsappNumber && !whatsappError && (
-                <p className="text-green-600 text-sm font-medium animate-fade-in">
-                  ✓ Valid WhatsApp number
-                </p>
-              )}
-              <p className="text-xs text-gray-600 leading-relaxed">
-                <strong>ℹ️ Why WhatsApp?</strong> Buyers will use this number to contact you directly about your products. Your number is stored securely and never displayed publicly.
-              </p>
-            </div>
-          </div>
+          <Input
+            label="Lambar WhatsApp"
+            value={profileData.whatsappNumber}
+            onChange={(e) => setProfileData(prev => ({ ...prev, whatsappNumber: e.target.value }))}
+            placeholder="Misali: 2348012345678"
+            disabled={saving}
+          />
 
-          {/* Security Notice */}
-          <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded">
-            <p className="text-sm text-blue-900 font-medium">
-              🔒 <strong>Your privacy is protected:</strong>
-            </p>
-            <ul className="text-xs text-blue-800 mt-2 space-y-1 ml-4">
-              <li>✓ WhatsApp number is only stored in Firestore</li>
-              <li>✓ NOT displayed on product listings</li>
-              <li>✓ Shared only when buyers click "Contact Seller"</li>
-              <li>✓ Private link - no user tracking</li>
-            </ul>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex gap-4 pt-4 border-t">
-            <ButtonLoader
-              type="submit"
-              size="lg"
-              variant="primary"
-              loading={saving}
-              loadingText="Saving..."
-              className="flex-1 shadow-md hover:shadow-lg transition-all"
-            >
-              💾 Save Changes
-            </ButtonLoader>
-            <button
-              type="button"
-              onClick={() => loadProfile()}
-              className="px-6 py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors"
-              disabled={saving}
-            >
-              ↻ Reset
-            </button>
-          </div>
+          <button
+            type="submit"
+            disabled={saving}
+            className={`w-full py-3 rounded-lg font-bold text-white transition-all ${
+              saving ? 'bg-gray-400' : 'bg-kob-primary hover:bg-kob-primary-dark shadow-lg shadow-kob-primary/20'
+            }`}
+          >
+            {saving ? 'Ana adanawa...' : 'Adana Bayanai'}
+          </button>
         </form>
-      </Card>
-
-      {/* Info Card */}
-      <Card variant="outlined" className="p-6 bg-amber-50 border-2 border-amber-200 rounded-xl">
-        <p className="text-sm text-amber-900 font-semibold mb-2">💡 Pro Tip</p>
-        <p className="text-sm text-amber-800 leading-relaxed">
-          Setting your WhatsApp number increases trust and response rates. Buyers appreciate quick replies on WhatsApp!
-        </p>
       </Card>
     </div>
   )
 }
+

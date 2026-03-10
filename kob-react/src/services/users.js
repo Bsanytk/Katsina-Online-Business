@@ -1,179 +1,97 @@
 import { doc, getDoc, updateDoc } from 'firebase/firestore'
 import { db } from '../firebase/firebase'
 
+const USERS_COL = 'users'
+
 /**
- * Fetch user profile by UID
- * @param {string} uid - Firebase user ID
- * @returns {Promise<Object>} User profile data
+ * Fetches the full profile for a specific user
  */
 export async function getUserProfile(uid) {
-  if (!uid) throw new Error('User ID is required')
-  
-  try {
-    const ref = doc(db, 'users', uid)
-    const snap = await getDoc(ref)
-    
-    if (!snap.exists()) {
-      throw new Error('User profile not found')
-    }
-    
-    return {
-      uid,
-      ...snap.data(),
-    }
-  } catch (err) {
-    throw new Error(`Failed to fetch user profile: ${err.message}`)
-  }
+  if (!uid) throw new Error('User UID is required')
+  const ref = doc(db, USERS_COL, uid)
+  const snap = await getDoc(ref)
+  if (!snap.exists()) throw new Error('User profile not found')
+  return { uid: snap.id, ...snap.data() }
 }
 
 /**
- * Format WhatsApp number: remove non-digits, validate Nigerian format
- * @param {string} input - Raw phone number input
- * @returns {Object} { isValid: boolean, formatted: string, error: string }
+ * Updates user profile fields in Firestore
  */
-export function formatWhatsAppNumber(input) {
-  if (!input) {
-    return { isValid: false, formatted: '', error: 'Phone number is required' }
+export async function updateUserProfile(uid, data) {
+  if (!uid) throw new Error('User UID is required')
+  const ref = doc(db, USERS_COL, uid)
+  const payload = { 
+    ...data, 
+    updatedAt: new Date().toISOString() 
   }
-
-  // Remove all non-digits
-  const cleaned = input.replace(/\D/g, '')
-
-  // Nigerian number must be 13 digits starting with 234
-  if (cleaned.length === 13 && cleaned.startsWith('234')) {
-    return { isValid: true, formatted: cleaned, error: null }
-  }
-
-  // If it's 11 digits (Nigerian format without country code), prepend 234
-  if (cleaned.length === 11 && cleaned.startsWith('0')) {
-    const formatted = '234' + cleaned.slice(1)
-    return { isValid: true, formatted, error: null }
-  }
-
-  if (cleaned.length === 10) {
-    const formatted = '234' + cleaned
-    return { isValid: true, formatted, error: null }
-  }
-
-  return {
-    isValid: false,
-    formatted: '',
-    error: 'Please enter a valid Nigerian phone number (e.g., 08012345678 or +2348012345678)',
-  }
+  await updateDoc(ref, payload)
+  return true
 }
 
 /**
- * Update user profile with WhatsApp number
- * @param {string} uid - Firebase user ID
- * @param {string} whatsappNumber - WhatsApp number (formatted)
- * @returns {Promise<Object>} Updated user data
- */
-export async function updateUserWhatsApp(uid, whatsappNumber) {
-  if (!uid) throw new Error('User ID is required')
-
-  // Validate format
-  const validation = formatWhatsAppNumber(whatsappNumber)
-  if (!validation.isValid) {
-    throw new Error(validation.error)
-  }
-
-  try {
-    const ref = doc(db, 'users', uid)
-    
-    const updateData = {
-      whatsappNumber: validation.formatted,
-      updatedAt: new Date().toISOString(),
-    }
-
-    await updateDoc(ref, updateData)
-
-    return {
-      uid,
-      whatsappNumber: validation.formatted,
-      updatedAt: updateData.updatedAt,
-    }
-  } catch (err) {
-    throw new Error(`Failed to update WhatsApp number: ${err.message}`)
-  }
-}
-
-/**
- * Update user profile with multiple fields
- * @param {string} uid - Firebase user ID
- * @param {Object} updates - Fields to update
- * @returns {Promise<Object>} Updated user data
- */
-export async function updateUserProfile(uid, updates) {
-  if (!uid) throw new Error('User ID is required')
-
-  try {
-    const ref = doc(db, 'users', uid)
-    
-    const updateData = {
-      ...updates,
-      updatedAt: new Date().toISOString(),
-    }
-
-    await updateDoc(ref, updateData)
-
-    return {
-      uid,
-      ...updateData,
-    }
-  } catch (err) {
-    throw new Error(`Failed to update user profile: ${err.message}`)
-  }
-}
-export function generateWhatsAppLink(whatsappNumber, product) {
-  if (!whatsappNumber || !product?.name) {
-    throw new Error('WhatsApp number and product name are required')
-  }
-
-  // Message template
-  const message = `Hello 👋\nI saw your product "${product.name}" on Katsina Online Business.\nIs it still available?`
-
-  // Encode message properly for URL
-  const encodedMessage = encodeURIComponent(message)
-
-  // Generate WhatsApp Web link (works on mobile and desktop)
-  return `https://wa.me/${whatsappNumber}?text=${encodedMessage}`
-}
-
-/**
- * Get seller WhatsApp for contacting from product
- * @param {string} sellerUid - Seller's Firebase UID
- * @returns {Promise<string|null>} WhatsApp number or null
+ * NEW: Fetches the seller's WhatsApp number specifically for the Contact Button
+ * This resolves the Vercel build error ya gyaru.
  */
 export async function getSellerWhatsApp(sellerUid) {
   if (!sellerUid) return null
-  
   try {
     const profile = await getUserProfile(sellerUid)
-    return profile.whatsappNumber || null
+    // Checks for 'whatsapp' field first, then 'phone' as fallback
+    return profile.whatsapp || profile.phone || null
   } catch (err) {
-    if (import.meta.env.DEV) {
-      console.error('Error fetching seller WhatsApp:', err)
-    }
+    console.error('Error fetching seller WhatsApp:', err)
     return null
   }
 }
 
 /**
- * Remove/clear WhatsApp number from user profile
- * @param {string} uid - Firebase user ID
- * @returns {Promise<void>}
+ * Production-grade WhatsApp Validator
+ * Handles multiple countries and strips formatting
  */
-export async function clearUserWhatsApp(uid) {
-  if (!uid) throw new Error('User ID is required')
+export function formatWhatsAppNumber(input) {
+  if (!input) return { isValid: false, error: 'Number is required' }
 
-  try {
-    const ref = doc(db, 'users', uid)
-    
-    await updateDoc(ref, {
-      whatsappNumber: '',
-      updatedAt: new Date().toISOString(),
-    })
-  } catch (err) {
-    throw new Error(`Failed to clear WhatsApp number: ${err.message}`)
+  // 1. Remove all non-numeric characters (spaces, dashes, plus signs)
+  let cleaned = input.replace(/\D/g, '')
+
+  // 2. Handle leading zeros (e.g., 070... becomes 70...)
+  if (cleaned.startsWith('0')) {
+    cleaned = cleaned.substring(1)
   }
+
+  // 3. Validation Logic
+  const minLength = 8
+  const maxLength = 15 
+
+  if (cleaned.length < minLength) {
+    return { 
+      isValid: false, 
+      error: `Number too short (min ${minLength} digits required)` 
+    }
+  }
+
+  if (cleaned.length > maxLength) {
+    return { 
+      isValid: false, 
+      error: 'Number too long. Please check for extra digits.' 
+    }
+  }
+
+  return {
+    isValid: true,
+    formatted: cleaned, 
+    error: null
+  }
+}
+
+/**
+ * NEW: Generates the safe WhatsApp link used by the Marketplace
+ * This resolves the second missing export error.
+ */
+export function generateWhatsAppLink(number, product) {
+  const validation = formatWhatsAppNumber(number)
+  if (!validation.isValid) return '#'
+
+  const message = `Hello, I'm interested in your product: ${product?.name || 'this item'} on KOB Marketplace.`
+  return `https://wa.me/${validation.formatted}?text=${encodeURIComponent(message)}`
 }

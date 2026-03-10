@@ -25,17 +25,13 @@ export default function Marketplace() {
   const { user } = useAuth()
   const [searchParams, setSearchParams] = useSearchParams()
 
-  const loadProductForEdit = useCallback(async (productId) => {
-    try {
-      const product = products.find(p => p.id === productId)
-      if (product && product.ownerUid === user.uid) {
-        setEditingProduct(product)
-        setShowForm(true)
-        // Clear the URL param
-        setSearchParams({})
-      }
-    } catch (err) {
-      console.error('Failed to load product for edit:', err)
+  // --- Logic: Load Product for Editing ---
+  const loadProductForEdit = useCallback((productId) => {
+    const product = products.find(p => p.id === productId)
+    if (product && product.ownerUid === user?.uid) {
+      setEditingProduct(product)
+      setShowForm(true)
+      setSearchParams({}) // Clear URL params after loading
     }
   }, [products, user?.uid, setSearchParams])
 
@@ -45,203 +41,170 @@ export default function Marketplace() {
 
   useEffect(() => {
     const editId = searchParams.get('edit')
-    if (editId && user?.uid) {
+    if (editId && user?.uid && products.length > 0) {
       loadProductForEdit(editId)
     }
-  }, [searchParams, user?.uid, loadProductForEdit])
+  }, [searchParams, user?.uid, products, loadProductForEdit])
 
   async function fetchProducts() {
     setLoading(true)
     try {
-      // fetch a limited set to avoid reading full collection
       const items = await getProducts({ pageSize: 50 })
       setProducts(items)
       setFilteredProducts(items)
+      setError(null)
     } catch (err) {
-      setError(err.message)
+      setError("Failed to load products. Please check your connection.")
     } finally {
       setLoading(false)
     }
   }
 
-  // Handle form submission (create or edit)
+  // --- Logic: Handle Product Submission (UPDATED FOR CLOUDINARY) ---
   async function handleProductSubmit(formData) {
+    if (!user) return setFormError("You must be logged in to perform this action.")
+    
     setSubmitting(true)
     setFormError(null)
 
     try {
-      // Collect uploaded image URLs (handle multi-image formData.images)
-      let uploadedURLs = []
+      let finalImages = []
+      setUploadingImage(true)
 
-      if (formData.images && Array.isArray(formData.images) && formData.images.length > 0) {
-        setUploadingImage(true)
-        try {
-          // Upload new images and preserve existing image URLs
-          for (const img of formData.images) {
-            if (img && img.file) {
-              const url = await uploadImage(img.file)
-              uploadedURLs.push(url)
-            } else if (img && img.preview && img.isExisting) {
-              // preview for existing images contains the URL
-              uploadedURLs.push(img.preview)
-            }
-          }
-        } catch (err) {
-          setFormError('Image upload failed: ' + err.message)
-          setUploadingImage(false)
-          setSubmitting(false)
-          return
+      // Loop through images to either upload new ones or keep existing ones
+      for (const img of formData.images) {
+        if (img.isNew && img.file) {
+          // Upload to Cloudinary
+          const uploadedUrl = await uploadImage(img.file)
+          finalImages.push({ url: uploadedUrl, id: `img-${Date.now()}-${Math.random()}` })
+        } else if (img.isExisting) {
+          // Keep existing URL
+          finalImages.push({ url: img.preview, id: img.id })
         }
-        setUploadingImage(false)
       }
+      setUploadingImage(false)
 
-      // Prepare payload
+      const firstImageUrl = finalImages[0]?.url || ''
+
       const payload = {
         title: formData.title,
         description: formData.description,
-        price: formData.price,
+        price: Number(formData.price),
         category: formData.category,
-        imageUrl: uploadedURLs.length > 0 ? uploadedURLs[0] : (editingProduct?.imageURL || ''),
         whatsappNumber: formData.whatsappNumber,
-        ownerUid: user.uid,  // REQUIRED by Firestore rules
-        sellerId: user.uid,  // Consistency with reviews/orders schema
+        isDraft: formData.isDraft, 
+        ownerUid: user.uid,
+        // CORRECTION: Save direct string URL to prevent broken images
+        imageUrl: firstImageUrl, 
+        mainImage: firstImageUrl, 
+        // Save simple string array for secondary images
+        images: finalImages.map(img => img.url), 
+        updatedAt: new Date()
       }
 
-      // Log submission for debugging
-      console.log("Submitting product:", payload)
-
-      // If we have uploaded or existing URLs, set images array
-      if (uploadedURLs.length > 0) {
-        payload.images = uploadedURLs
-      } else if (editingProduct) {
-        // Preserve existing image(s) when editing and no new uploads
-        if (editingProduct.images) payload.images = editingProduct.images
-      }
-
-      // Create or update
       if (editingProduct) {
         await updateProduct(editingProduct.id, payload)
       } else {
         await addProduct(payload)
       }
 
-      // Reset form and refresh products
       setShowForm(false)
       setEditingProduct(null)
-      fetchProducts()
+      fetchProducts() // Refresh the list
     } catch (err) {
       setFormError(err.message)
     } finally {
       setSubmitting(false)
+      setUploadingImage(false)
     }
   }
 
-  async function handleEdit(product) {
+  // --- Logic: Edit & Delete ---
+  function handleEdit(product) {
     setEditingProduct(product)
     setShowForm(true)
-    setFormError(null)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   async function handleDelete(product) {
-    if (!confirm(`Delete "${product.title}"?`)) return
-
+    if (!window.confirm(`Are you sure you want to delete "${product.title}"?`)) return
     try {
       await deleteProduct(product.id)
       fetchProducts()
     } catch (err) {
-      setError(err.message)
+      alert("Delete failed: " + err.message)
     }
   }
 
-  function handleCancelForm() {
-    setShowForm(false)
-    setEditingProduct(null)
-    setFormError(null)
-  }
-
-  const canCreate = user != null  // Any authenticated user can create products (no role checks)
-
   return (
     <main className="min-h-screen bg-kob-light">
-      <div className="container py-4">
-        <BackButton />
-      </div>
-      {/* Header Section */}
-      <div className="bg-gradient-to-r from-kob-primary to-kob-gold text-white py-12 md:py-16">
+      <div className="container py-4"><BackButton /></div>
+
+      {/* Hero Header */}
+      <header className="bg-gradient-to-r from-kob-primary to-kob-gold text-white py-12 shadow-inner">
         <div className="container">
-          <div className="max-w-2xl">
-            <h1 className="text-5xl md:text-6xl font-extrabold mb-3">Marketplace</h1>
-            <p className="text-xl md:text-2xl opacity-95 font-light">Browse and discover amazing products from verified sellers in Katsina</p>
-          </div>
+          <h1 className="text-4xl md:text-6xl font-black mb-2 tracking-tight">KOB Marketplace</h1>
+          <p className="text-lg opacity-90 max-w-xl">The heart of business in Katsina. Sell faster, reach further.</p>
         </div>
-      </div>
+      </header>
 
-      <div className="container pb-16 pt-12">
-        {/* Global Error Alert */}
-        {error && (
-          <Alert type="error" className="mb-8 animate-fade-in">
-            {error}
-          </Alert>
-        )}
+      <div className="container pb-20 pt-10">
+        {error && <Alert type="error" className="mb-6">{error}</Alert>}
 
-        {/* Add Product Section - Sellers Only */}
-        {canCreate && (
-          <div className="mb-16">
+        {/* Seller Section */}
+        {user && (
+          <section className="mb-12">
             {!showForm ? (
-              <Card variant="elevated" className="p-8 md:p-10 text-center rounded-2xl border-2 border-dashed border-kob-primary bg-gradient-to-br from-white to-kob-light">
-                <div className="mb-4 inline-block">
-                  <span className="text-6xl block">📦</span>
-                </div>
-                <h3 className="text-2xl font-bold text-kob-dark mb-3">Ready to Sell Your Products?</h3>
-                <p className="text-gray-600 text-lg mb-8 max-w-xl mx-auto">Create a product listing and start selling to thousands of active buyers across Katsina</p>
+              <Card variant="outlined" hover className="p-8 text-center border-dashed border-2 border-kob-primary/40 bg-white/50 backdrop-blur-sm">
+                <h3 className="text-xl font-bold text-kob-dark mb-2">Have something to sell?</h3>
+                <p className="text-gray-500 mb-6">List your items today and reach buyers across the state.</p>
                 <button
                   onClick={() => setShowForm(true)}
-                  className="inline-block px-8 py-3 bg-gradient-to-r from-kob-primary to-kob-primary-dark hover:shadow-lg text-white rounded-lg font-bold transition-all duration-300 transform hover:scale-105 shadow-md"
+                  className="px-10 py-3 bg-kob-primary text-white rounded-full font-bold shadow-kob-primary/20 shadow-lg hover:scale-105 transition-transform"
                 >
-                  ➕ Add New Product
+                  ➕ Create New Listing
                 </button>
               </Card>
             ) : (
-              <div className="animate-fade-in">
-                <ProductForm
-                  onSubmit={handleProductSubmit}
-                  onCancel={handleCancelForm}
-                  initialData={editingProduct}
-                  loading={submitting}
-                  error={formError}
-                  uploadingImage={uploadingImage}
-                />
-              </div>
+              <ProductForm
+                onSubmit={handleProductSubmit}
+                onCancel={() => { setShowForm(false); setEditingProduct(null); }}
+                initialData={editingProduct}
+                loading={submitting}
+                error={formError}
+                uploadingImage={uploadingImage}
+              />
             )}
-          </div>
+          </section>
         )}
 
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Filters Sidebar */}
-          <div className="lg:col-span-1">
-            <div className="sticky top-20">
-              <ProductFilter
-                products={products}
-                onFilter={setFilteredProducts}
-              />
+        {/* Filters & Products Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-10">
+          <aside className="lg:col-span-1">
+            <div className="sticky top-24">
+              <ProductFilter products={products} onFilter={setFilteredProducts} />
             </div>
-          </div>
+          </aside>
 
-          {/* Products List */}
           <div className="lg:col-span-3">
-            <ProductList
-              products={filteredProducts}
-              loading={loading}
-              error={error}
-              user={user}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              itemsPerPage={12}
-            />
+            {loading ? (
+              <div className="flex flex-col items-center py-20">
+                <Loading size="lg" />
+                <p className="mt-4 text-gray-400 animate-pulse">Fetching latest listings...</p>
+              </div>
+            ) : (
+              <ProductList
+                products={filteredProducts}
+                user={user}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                itemsPerPage={12}
+              />
+            )}
           </div>
         </div>
       </div>
     </main>
   )
 }
+
