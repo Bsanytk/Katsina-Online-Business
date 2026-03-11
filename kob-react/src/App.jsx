@@ -4,14 +4,16 @@ import { AuthProvider, useAuth } from './firebase/auth'
 import TopBar from './layouts/TopBar'
 import Footer from './layouts/Footer'
 import ProtectedRoute from './components/ProtectedRoute'
+import AdminRoute from './components/AdminRoute' // 1. Muka ƙara wannan
 import SupportWidget from './components/widgets/SupportWidget'
 import { PageLoader } from './components/ui'
-import './i18n' // Initialize i18n
+import './i18n'
 
-// lazy load large pages for performance
+// lazy load large pages
 const Home = lazy(() => import('./pages/Home'))
 const Marketplace = lazy(() => import('./pages/Marketplace'))
 const Dashboard = lazy(() => import('./pages/Dashboard'))
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard')) // 2. Muka ƙara wannan (Admin)
 const Login = lazy(() => import('./pages/Login'))
 const Register = lazy(() => import('./pages/Register'))
 const Contact = lazy(() => import('./pages/Contact'))
@@ -28,17 +30,14 @@ const ProductDetail = lazy(() => import('./pages/ProductDetail'))
 function AppContent() {
   const { loading } = useAuth()
 
-  // Show page loader while Firebase auth initializes
   if (loading) {
     return <PageLoader message="Initializing..." show={true} />
   }
 
   return (
     <div className="flex flex-col min-h-screen bg-kob-light text-kob-dark">
-      {/* Sticky Header */}
       <TopBar />
       
-      {/* Main Content Area */}
       <main className="flex-grow">
         <Suspense fallback={<PageLoader message="Loading..." show={true} />}>
           <Routes>
@@ -66,14 +65,21 @@ function AppContent() {
               }
             />
 
+            {/* 3. Sabon Admin Route - Cikin Tsaro */}
+            <Route
+              path="/admin/*"
+              element={
+                <AdminRoute>
+                  <AdminDashboard />
+                </AdminRoute>
+              }
+            />
+
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
       </main>
-      {/* Footer */}
       <Footer />
-
-      {/* Floating Support Widget */}
       <SupportWidget />
     </div>
   )
