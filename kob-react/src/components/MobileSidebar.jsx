@@ -1,7 +1,7 @@
 import React from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth, logoutUser } from '../firebase/auth'
-import { X, Menu, Home, ShoppingBag, User, FileText, Shield, Cookie, Twitter, Facebook, Instagram, LogIn, UserPlus, LogOut, MessageSquare } from 'lucide-react'
+import { X, Menu, Home, ShoppingBag, User, FileText, Shield, Twitter, Facebook, Instagram, LogIn, UserPlus, LogOut, MessageSquare } from 'lucide-react'
 
 export default function MobileSidebar({ isOpen, onClose }) {
   const { user } = useAuth()
@@ -29,7 +29,7 @@ export default function MobileSidebar({ isOpen, onClose }) {
         />
       )}
 
-      {/* Sidebar Drawer - Sliding from RIGHT to LEFT */}
+      {/* Sidebar Drawer - Right Side to Left Sliding */}
       <div
         className={`fixed top-0 right-0 h-full w-80 bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out border-l-4 border-[#4B3621] ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
@@ -37,7 +37,7 @@ export default function MobileSidebar({ isOpen, onClose }) {
       >
         <div className="flex flex-col h-full">
           
-          {/* Header with User Profile integration */}
+          {/* Header - No Firebase Storage Dependency */}
           <div className="p-6 border-b border-gray-100 bg-gray-50/50">
             <div className="flex items-center justify-between mb-6">
                <button onClick={onClose} className="p-2 hover:bg-white rounded-full transition-colors shadow-sm">
@@ -53,15 +53,20 @@ export default function MobileSidebar({ isOpen, onClose }) {
               </div>
             </div>
 
-            {/* Profile Section inside Header */}
+            {/* Profile Integration - Uses URLs from Cloudinary/Firestore */}
             {user ? (
               <div className="flex items-center gap-4 animate-fade-in">
                 <div className="relative">
-                  <div className="w-14 h-14 rounded-full border-2 border-[#4B3621] p-0.5 overflow-hidden">
+                  <div className="w-14 h-14 rounded-full border-2 border-[#4B3621] p-0.5 overflow-hidden bg-gray-100">
                     {user.photoURL ? (
-                      <img src={user.photoURL} alt="Profile" className="w-full h-full object-cover rounded-full" />
+                      <img 
+                        src={user.photoURL} 
+                        alt="Profile" 
+                        className="w-full h-full object-cover rounded-full" 
+                        onError={(e) => { e.target.src = 'https://ui-avatars.com/api/?name=' + (user.displayName || 'K') + '&background=4B3621&color=fff'; }}
+                      />
                     ) : (
-                      <div className="w-full h-full bg-[#4B3621] text-white flex items-center justify-center font-bold text-xs">
+                      <div className="w-full h-full bg-[#4B3621] text-white flex items-center justify-center font-bold text-xs uppercase">
                         {user.displayName?.charAt(0) || 'K'}
                       </div>
                     )}
@@ -72,7 +77,7 @@ export default function MobileSidebar({ isOpen, onClose }) {
                   <h4 className="font-black text-[#4B3621] leading-tight truncate w-40">
                     {user.displayName || 'KOB Merchant'}
                   </h4>
-                  <p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Verified Seller</p>
+                  <p className="text-[10px] text-gray-500 uppercase font-black tracking-[0.15em]">Verified Merchant</p>
                 </div>
               </div>
             ) : (
@@ -80,69 +85,52 @@ export default function MobileSidebar({ isOpen, onClose }) {
             )}
           </div>
 
-          {/* Scrollable Content */}
+          {/* Navigation Links */}
           <div className="flex-1 overflow-y-auto p-5 space-y-8">
-            
-            {/* 1. DASHBOARD & SHOP */}
             <div>
-              <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4 px-4">Management</h3>
+              <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4 px-4">Dashboard</h3>
               <div className="space-y-1">
                 {!user ? (
                   <>
-                    <Link to="/login" onClick={onClose} className="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-gray-100 text-[#4B3621] font-bold transition-all">
+                    <Link to="/login" onClick={onClose} className="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-gray-100 text-[#4B3621] font-bold">
                       <LogIn className="w-5 h-5 text-gray-400" /> Login
                     </Link>
-                    <Link to="/register" onClick={onClose} className="flex items-center gap-4 px-4 py-3 rounded-xl bg-[#4B3621] text-white font-bold shadow-lg shadow-gray-200">
-                      <UserPlus className="w-5 h-5" /> Join Marketplace
+                    <Link to="/register" onClick={onClose} className="flex items-center gap-4 px-4 py-3 rounded-xl bg-[#4B3621] text-white font-bold">
+                      <UserPlus className="w-5 h-5" /> Start Selling
                     </Link>
                   </>
                 ) : (
                   <>
-                    <Link to="/dashboard" onClick={onClose} className="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-gray-100 text-[#4B3621] font-bold transition-all">
-                      <Home className="w-5 h-5 text-gray-400" /> Dashboard
+                    <Link to="/dashboard" onClick={onClose} className="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-gray-100 text-[#4B3621] font-bold">
+                      <Home className="w-5 h-5 text-gray-400" /> My Home
                     </Link>
-                    <Link to="/dashboard/messages" onClick={onClose} className="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-gray-100 text-[#4B3621] font-bold transition-all">
+                    <Link to="/dashboard/messages" onClick={onClose} className="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-gray-100 text-[#4B3621] font-bold">
                       <div className="flex items-center gap-4">
-                        <MessageSquare className="w-5 h-5 text-gray-400" /> Messages
+                        <MessageSquare className="w-5 h-5 text-gray-400" /> Chats
                       </div>
-                      <span className="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full">New</span>
                     </Link>
-                    <Link to="/dashboard/profile" onClick={onClose} className="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-gray-100 text-[#4B3621] font-bold transition-all">
-                      <User className="w-5 h-5 text-gray-400" /> Edit Profile
+                    <Link to="/dashboard/profile" onClick={onClose} className="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-gray-100 text-[#4B3621] font-bold">
+                      <User className="w-5 h-5 text-gray-400" /> Settings
                     </Link>
                   </>
                 )}
               </div>
             </div>
 
-            {/* 2. MARKET SECTION */}
             <div className="pt-2">
-              <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4 px-4">Marketplace</h3>
+              <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4 px-4">Browse</h3>
               <div className="space-y-1">
-                <Link to="/marketplace" onClick={onClose} className="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-gray-100 text-[#4B3621] font-bold transition-all">
-                  <ShoppingBag className="w-5 h-5 text-gray-400" /> All Products
+                <Link to="/marketplace" onClick={onClose} className="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-gray-100 text-[#4B3621] font-bold">
+                  <ShoppingBag className="w-5 h-5 text-gray-400" /> Shop Items
                 </Link>
-                <Link to="/dashboard/add-product" onClick={onClose} className="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-gray-100 text-[#4B3621] font-bold transition-all">
-                  <Menu className="w-5 h-5 text-gray-400" /> Add New Item
-                </Link>
-              </div>
-            </div>
-
-            {/* 3. LEGAL SECTION */}
-            <div className="pt-2">
-              <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4 px-4">Support</h3>
-              <div className="space-y-1">
-                <Link to="/terms" onClick={onClose} className="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-gray-100 text-gray-500 font-medium text-sm transition-all">
-                  <FileText className="w-5 h-5" /> Terms of Service
-                </Link>
-                <Link to="/privacy" onClick={onClose} className="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-gray-100 text-gray-500 font-medium text-sm transition-all">
-                  <Shield className="w-5 h-5" /> Privacy Policy
+                <Link to="/dashboard/add-product" onClick={onClose} className="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-gray-100 text-[#4B3621] font-bold">
+                  <Menu className="w-5 h-5 text-gray-400" /> Post Product
                 </Link>
               </div>
             </div>
           </div>
 
-          {/* Sidebar Footer */}
+          {/* Footer with Facebook link */}
           <div className="p-6 border-t border-gray-100">
             <div className="flex justify-around mb-6">
               <a href="https://facebook.com/B-SANI-BIO-CARE-MED" target="_blank" rel="noreferrer" className="p-2 text-[#4B3621] hover:scale-125 transition-transform"><Facebook /></a>
@@ -152,9 +140,9 @@ export default function MobileSidebar({ isOpen, onClose }) {
             {user && (
               <button
                 onClick={handleLogout}
-                className="flex items-center justify-center gap-3 w-full py-4 bg-gray-100 text-[#4B3621] rounded-2xl font-black uppercase tracking-widest hover:bg-red-50 hover:text-red-600 transition-all border-2 border-transparent hover:border-red-100"
+                className="flex items-center justify-center gap-3 w-full py-4 bg-gray-50 text-[#4B3621] rounded-2xl font-black uppercase tracking-widest hover:bg-red-50 hover:text-red-600 transition-all"
               >
-                <LogOut className="w-5 h-5" /> Logout
+                <LogOut className="w-5 h-5" /> Sign Out
               </button>
             )}
           </div>
