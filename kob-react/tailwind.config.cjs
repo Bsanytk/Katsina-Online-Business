@@ -20,6 +20,8 @@ module.exports = {
         'kob-error-light': '#FEE2E2',
         'kob-info': '#3B82F6',
         'kob-info-light': '#DBEAFE',
+        // ADDED: Delivery Specific
+        'kob-delivery': '#16a34a', 
         // Neutral Palette
         'kob-neutral-50': '#FAFAF9',
         'kob-neutral-100': '#F5F5F4',
@@ -135,6 +137,11 @@ module.exports = {
           '0%, 100%': { transform: 'translateY(0)' },
           '50%': { transform: 'translateY(-2px)' },
         },
+        // ADDED: For the Delivery Badge
+        'pulse-subtle': {
+          '0%, 100%': { transform: 'scale(1)', opacity: '1' },
+          '50%': { transform: 'scale(1.05)', opacity: '0.9' },
+        },
       },
       animation: {
         'fade-in': 'fade-in 300ms ease-out',
@@ -145,8 +152,10 @@ module.exports = {
         'slide-down': 'slide-down 200ms ease-out',
         'scale-in': 'scale-in 200ms ease-out',
         'bounce-subtle': 'bounce-subtle 2s infinite',
+        'pulse-subtle': 'pulse-subtle 3s ease-in-out infinite',
       },
     },
   },
   plugins: [],
 }
+
