@@ -2,51 +2,35 @@ import React, { useState } from 'react'
 import { useAuth } from '../firebase/auth'
 
 /**
- * ProductCard Component
- * Updated to handle Cloudinary strings and array fallbacks perfectly.
+ * Merged ProductCard Component
+ * Includes: Image Fallbacks, Seller Security, KOB ID, Location, and Delivery Status.
  */
 export default function ProductCard({ product, onEdit, onDelete, onBuyClick }) {
   const { user: authUser } = useAuth()
   const [imageError, setImageError] = useState(false)
 
-  // Security: Check if the current user owns this product
+  // --- 1-YEAR-OLD LOGIC: Security & Image Fallbacks ---
   const canManage = authUser && product.ownerUid === authUser.uid
-  
-  // Professional SVG placeholder for missing images
   const imagePlaceholder = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect fill="%23f3f4f6" width="400" height="300"/%3E%3Ctext x="50%" y="50%" font-size="16" fill="%239ca3af" text-anchor="middle" dominant-baseline="middle"%3EPhoto Coming Soon%3C/text%3E%3C/svg%3E'
   
-  // CORRECTION: Logic to find the best image URL from Firestore
   const getDisplayImage = () => {
     if (imageError) return imagePlaceholder;
-
-    // 1. Check for imageUrl (New String Format)
-    if (product.imageUrl && typeof product.imageUrl === 'string') {
-      return product.imageUrl;
-    }
-    
-    // 2. Check for mainImage (Fallback String)
-    if (product.mainImage && typeof product.mainImage === 'string') {
-      return product.mainImage;
-    }
-
-    // 3. Check for images array (Old Format)
+    if (product.imageUrl && typeof product.imageUrl === 'string') return product.imageUrl;
+    if (product.mainImage && typeof product.mainImage === 'string') return product.mainImage;
     if (product.images && Array.isArray(product.images) && product.images.length > 0) {
       const firstImg = product.images[0];
       return typeof firstImg === 'string' ? firstImg : firstImg.url || firstImg.preview;
     }
-
     return imagePlaceholder;
   };
 
   const displayImage = getDisplayImage();
+  function handleImageError() { setImageError(true) }
 
-  function handleImageError() {
-    setImageError(true)
-  }
-
-  // Dynamic WhatsApp messaging
+  // --- NEW LOGIC: KOB ID & Delivery Message ---
+  const kobID = product.sellerIDNumber || 'N/A';
   const whatsappMessage = encodeURIComponent(
-    `Hi, I saw your listing on KOB Marketplace:\n\n*Product:* ${product.title}\n*Price:* ₦${product.price?.toLocaleString() || 'N/A'}\n\nIs this still available?`
+    `Hi, I saw your listing on KOB Marketplace:\n\n*Product:* ${product.title}\n*ID:* ${kobID}\n*Price:* ₦${product.price?.toLocaleString() || 'N/A'}\n\nIs this still available?`
   )
   
   const whatsappLink = product.whatsappNumber 
@@ -54,8 +38,15 @@ export default function ProductCard({ product, onEdit, onDelete, onBuyClick }) {
     : `https://wa.me/?text=${whatsappMessage}`
 
   return (
-    <article className="group bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 border border-neutral-200 overflow-hidden flex flex-col h-full animate-fade-in">
+    <article className="group bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 border border-neutral-200 overflow-hidden flex flex-col h-full animate-fade-in relative">
       
+      {/* --- NEW: Floating KOB ID Badge --- */}
+      {product.sellerIDNumber && (
+        <div className="absolute top-2 left-2 z-20 bg-kob-dark/90 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm">
+          🆔 {product.sellerIDNumber}
+        </div>
+      )}
+
       {/* Image Section */}
       <div className="relative w-full h-52 bg-neutral-100 overflow-hidden">
         <img 
@@ -66,15 +57,17 @@ export default function ProductCard({ product, onEdit, onDelete, onBuyClick }) {
         />
         
         {/* Status Overlays */}
-        <div className="absolute top-3 left-3 flex gap-2">
-          {product.isDraft && (
-            <span className="bg-amber-500 text-white px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider shadow-sm">
-              Draft
-            </span>
+        <div className="absolute top-3 right-3 flex flex-col gap-2 items-end">
+          {product.isDraft ? (
+            <span className="bg-amber-500 text-white px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider shadow-sm">Draft</span>
+          ) : (
+            <span className="bg-green-600 text-white px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider shadow-sm">Live</span>
           )}
-          {!product.isDraft && (
-            <span className="bg-green-600 text-white px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider shadow-sm">
-              Live
+          
+          {/* --- NEW: KOB Express Badge --- */}
+          {product.deliveryOption === 'KOB Express Delivery' && (
+            <span className="bg-kob-primary text-white px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider shadow-md border border-white/20">
+              🚚 KOB Express
             </span>
           )}
         </div>
@@ -91,6 +84,11 @@ export default function ProductCard({ product, onEdit, onDelete, onBuyClick }) {
         <h3 className="text-md font-bold text-neutral-800 line-clamp-1 mb-1 capitalize">
           {product.title}
         </h3>
+        
+        {/* --- NEW: Location Display --- */}
+        <div className="flex items-center gap-1 text-[11px] text-neutral-500 font-medium mb-2">
+          <span>📍</span> {product.location || 'Katsina Metropolis'}
+        </div>
         
         <p className="text-xs text-neutral-500 mb-3 line-clamp-2 flex-grow">
           {product.description}
@@ -126,7 +124,7 @@ export default function ProductCard({ product, onEdit, onDelete, onBuyClick }) {
                 onClick={() => onBuyClick?.(product)}
                 className="flex-1 px-3 py-2 bg-kob-primary hover:bg-kob-primary-dark text-white rounded-lg font-bold transition-all text-xs"
               >
-                Interested
+                Details
               </button>
               <a 
                 href={whatsappLink}
@@ -146,4 +144,3 @@ export default function ProductCard({ product, onEdit, onDelete, onBuyClick }) {
     </article>
   )
 }
-              
