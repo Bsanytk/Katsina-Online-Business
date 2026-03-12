@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../../firebase/auth'
 import { getUserProfile, updateUserProfile } from '../../services/users'
-import { storage } from '../../firebase/firebase' 
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
+// Removed: firebase/storage and storage imports to fix Vercel build error
 import { Card, Input, Alert, Button } from '../ui'
 
 const COUNTRIES = [
@@ -24,7 +23,6 @@ export default function SellerProfileEdit() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
   const [success, setSuccess] = useState(false)
-  const [uploadingPhoto, setUploadingPhoto] = useState(false)
 
   const [profileData, setProfileData] = useState({
     displayName: '',
@@ -67,27 +65,6 @@ export default function SellerProfileEdit() {
 
   useEffect(() => { loadProfile() }, [loadProfile])
 
-  // Photo Upload Handler
-  const handlePhotoUpload = async (e) => {
-    const file = e.target.files[0]
-    if (!file) return
-    if (file.size > 2 * 1024 * 1024) return setError("Image size must be less than 2MB")
-    
-    setUploadingPhoto(true)
-    try {
-      const storageRef = ref(storage, `profiles/${user.uid}`)
-      await uploadBytes(storageRef, file)
-      const url = await getDownloadURL(storageRef)
-      setProfileData(prev => ({ ...prev, photoURL: url }))
-      // Update Firestore immediately for the photo
-      await updateUserProfile(user.uid, { photoURL: url })
-    } catch (err) {
-      setError("Failed to upload profile picture.")
-    } finally {
-      setUploadingPhoto(false)
-    }
-  }
-
   // Final Save Handler
   async function handleSave(e) {
     e.preventDefault()
@@ -99,11 +76,11 @@ export default function SellerProfileEdit() {
 
       await updateUserProfile(user.uid, {
         displayName: profileData.displayName.trim(),
-        photoURL: profileData.photoURL,
+        photoURL: profileData.photoURL.trim(), // Saves the Cloudinary link as text
         phoneNumber: fullPhoneNumber,
-        phone: fullPhoneNumber, // Sync for older components
+        phone: fullPhoneNumber,
         whatsappNumber: profileData.whatsappNumber.trim() || fullPhoneNumber,
-        whatsapp: profileData.whatsappNumber.trim() || fullPhoneNumber, // Sync for older components
+        whatsapp: profileData.whatsappNumber.trim() || fullPhoneNumber,
       })
       setSuccess(true)
       setTimeout(() => setSuccess(false), 5000)
@@ -116,42 +93,45 @@ export default function SellerProfileEdit() {
 
   if (loading) return (
     <div className="flex flex-col items-center justify-center p-20 animate-pulse">
-      <div className="w-12 h-12 border-4 border-kob-primary border-t-transparent rounded-full animate-spin mb-4"></div>
-      <p className="text-kob-neutral-500 font-bold uppercase tracking-widest">Loading Profile...</p>
+      <div className="w-12 h-12 border-4 border-[#4B3621] border-t-transparent rounded-full animate-spin mb-4"></div>
+      <p className="text-gray-500 font-bold uppercase tracking-widest">Loading Profile...</p>
     </div>
   )
 
   return (
     <div className="max-w-3xl mx-auto space-y-8 animate-fade-in p-4 pb-20">
       <div className="text-center space-y-2">
-        <h1 className="text-4xl font-black text-kob-dark tracking-tighter uppercase">Business Identity</h1>
-        <p className="text-kob-neutral-500">Manage how your brand appears on KOB Marketplace.</p>
+        <h1 className="text-4xl font-black text-[#4B3621] tracking-tighter uppercase">Business Identity</h1>
+        <p className="text-gray-500">Update your B-SANI brand details using Cloudinary links.</p>
       </div>
 
       {success && <Alert type="success">Profile updated successfully! ✅</Alert>}
       {error && <Alert type="error">{error}</Alert>}
 
-      <Card className="p-8 md:p-12 rounded-[2rem] shadow-2xl border-b-[12px] border-kob-primary bg-white relative overflow-hidden">
+      <Card className="p-8 md:p-12 rounded-[2rem] shadow-2xl border-b-[12px] border-[#4B3621] bg-white relative overflow-hidden">
         <form onSubmit={handleSave} className="space-y-10">
           
-          {/* Circular Photo with Pulse Animation */}
+          {/* Circular Photo Preview */}
           <div className="flex flex-col items-center group">
             <div className="relative">
-              <div className={`w-40 h-40 rounded-full border-[6px] border-kob-primary p-1 transition-all duration-500 shadow-2xl ${uploadingPhoto ? 'animate-pulse scale-95' : 'hover:scale-105'}`}>
-                <div className="w-full h-full rounded-full overflow-hidden bg-kob-neutral-100">
+              <div className="w-40 h-40 rounded-full border-[6px] border-[#4B3621] p-1 transition-all duration-500 shadow-2xl hover:scale-105">
+                <div className="w-full h-full rounded-full overflow-hidden bg-gray-100">
                   {profileData.photoURL ? (
                     <img src={profileData.photoURL} alt="Brand" className="w-full h-full object-cover" />
                   ) : (
-                    <div className="flex items-center justify-center h-full text-kob-neutral-400 font-black text-2xl">B-SANI</div>
+                    <div className="flex items-center justify-center h-full text-gray-400 font-black text-2xl uppercase">KOB</div>
                   )}
                 </div>
               </div>
-              <label className="absolute bottom-1 right-1 bg-kob-dark text-white p-3 rounded-full cursor-pointer hover:bg-kob-primary border-4 border-white shadow-xl transition-all hover:rotate-12">
-                <input type="file" className="hidden" onChange={handlePhotoUpload} accept="image/*" />
-                📸
-              </label>
             </div>
-            <p className="mt-3 text-xs font-bold text-kob-neutral-400 uppercase tracking-widest">Click icon to change photo</p>
+            <div className="w-full mt-6">
+              <Input
+                label="Profile Photo URL (Cloudinary)"
+                value={profileData.photoURL}
+                onChange={(e) => setProfileData(p => ({ ...p, photoURL: e.target.value }))}
+                placeholder="Paste your https://res.cloudinary.com/... link here"
+              />
+            </div>
           </div>
 
           <Input
@@ -162,9 +142,9 @@ export default function SellerProfileEdit() {
             required
           />
 
-          {/* Locked Country Code Radio Grid */}
+          {/* Country Selection */}
           <div className="space-y-4">
-            <label className="text-xs font-black text-kob-dark uppercase tracking-[0.2em] block">Select Business Location</label>
+            <label className="text-xs font-black text-[#4B3621] uppercase tracking-[0.2em] block">Select Business Location</label>
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
               {COUNTRIES.map((c) => (
                 <button
@@ -173,22 +153,22 @@ export default function SellerProfileEdit() {
                   onClick={() => setProfileData(p => ({ ...p, countryCode: c.code }))}
                   className={`flex items-center justify-center gap-2 p-3 rounded-2xl border-2 transition-all duration-300 ${
                     profileData.countryCode === c.code 
-                    ? 'border-kob-primary bg-kob-primary/10 scale-105 shadow-lg' 
-                    : 'border-kob-neutral-100 bg-white hover:border-kob-neutral-300'
+                    ? 'border-[#4B3621] bg-[#4B3621]/10 scale-105 shadow-lg' 
+                    : 'border-gray-100 bg-white hover:border-gray-300'
                   }`}
                 >
                   <span className="text-2xl">{c.flag}</span>
-                  <span className="text-sm font-black text-kob-dark">{c.code}</span>
+                  <span className="text-sm font-black text-[#4B3621]">{c.code}</span>
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Locked Prefix Phone Input */}
+          {/* Phone Input */}
           <div className="space-y-2">
-            <label className="text-xs font-black text-kob-dark uppercase tracking-[0.2em]">Phone Number (Mobile)</label>
-            <div className="flex items-center bg-kob-neutral-50 rounded-2xl border-2 border-kob-neutral-200 focus-within:border-kob-primary focus-within:bg-white transition-all overflow-hidden shadow-inner">
-              <div className="px-6 py-4 bg-kob-neutral-200 text-kob-dark font-black text-lg">
+            <label className="text-xs font-black text-[#4B3621] uppercase tracking-[0.2em]">Phone Number (Mobile)</label>
+            <div className="flex items-center bg-gray-50 rounded-2xl border-2 border-gray-200 focus-within:border-[#4B3621] focus-within:bg-white transition-all overflow-hidden shadow-inner">
+              <div className="px-6 py-4 bg-gray-200 text-[#4B3621] font-black text-lg">
                 {profileData.countryCode}
               </div>
               <input 
@@ -211,8 +191,8 @@ export default function SellerProfileEdit() {
 
           <Button 
             type="submit" 
-            className="w-full py-6 text-xl font-black uppercase tracking-[0.3em] shadow-2xl hover:shadow-kob-primary/50 transition-all active:scale-95"
-            loading={saving || uploadingPhoto}
+            className="w-full py-6 text-xl font-black uppercase tracking-[0.3em] shadow-2xl bg-[#4B3621] text-white hover:opacity-90 transition-all active:scale-95"
+            loading={saving}
           >
             {saving ? 'Synchronizing...' : 'Update Merchant Profile'}
           </Button>
@@ -221,4 +201,3 @@ export default function SellerProfileEdit() {
     </div>
   )
 }
-        
