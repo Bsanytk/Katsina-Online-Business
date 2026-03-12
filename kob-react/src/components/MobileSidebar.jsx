@@ -1,7 +1,7 @@
 import React from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth, logoutUser } from '../firebase/auth'
-import { X, Menu, Home, ShoppingBag, User, FileText, Shield, Cookie, Twitter, Facebook, Instagram, LogIn, UserPlus } from 'lucide-react'
+import { X, Menu, Home, ShoppingBag, User, FileText, Shield, Cookie, Twitter, Facebook, Instagram, LogIn, UserPlus, LogOut, MessageSquare } from 'lucide-react'
 
 export default function MobileSidebar({ isOpen, onClose }) {
   const { user } = useAuth()
@@ -24,58 +24,91 @@ export default function MobileSidebar({ isOpen, onClose }) {
       {/* Overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/60 z-40 transition-opacity duration-300"
+          className="fixed inset-0 bg-black/60 z-40 transition-opacity duration-300 backdrop-blur-sm"
           onClick={onClose}
         />
       )}
 
-      {/* Sidebar Drawer - Sliding from LEFT to RIGHT */}
+      {/* Sidebar Drawer - Sliding from RIGHT to LEFT */}
       <div
-        className={`fixed top-0 left-0 h-full w-72 bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
+        className={`fixed top-0 right-0 h-full w-80 bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out border-l-4 border-[#4B3621] ${
+          isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
         <div className="flex flex-col h-full">
-          {/* Header with KOB Logo */}
-          <div className="flex items-center justify-between p-5 border-b border-gray-100">
-            <div className="flex items-center gap-3">
-              <img
-                src="https://collection.cloudinary.com/dn5crslee/6aca0ae6e8cafa5b6a8ea03258efdc5c"
-                alt="KOB Logo"
-                className="h-10 w-auto"
-              />
-              <span className="font-bold text-xl text-[#4B3621]">KOB</span>
+          
+          {/* Header with User Profile integration */}
+          <div className="p-6 border-b border-gray-100 bg-gray-50/50">
+            <div className="flex items-center justify-between mb-6">
+               <button onClick={onClose} className="p-2 hover:bg-white rounded-full transition-colors shadow-sm">
+                <X className="w-6 h-6 text-[#4B3621]" />
+              </button>
+              <div className="flex items-center gap-2">
+                <span className="font-black text-2xl text-[#4B3621] tracking-tighter">KOB</span>
+                <img
+                  src="https://collection.cloudinary.com/dn5crslee/6aca0ae6e8cafa5b6a8ea03258efdc5c"
+                  alt="KOB Logo"
+                  className="h-8 w-auto"
+                />
+              </div>
             </div>
-            <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-              <X className="w-6 h-6 text-[#4B3621]" />
-            </button>
+
+            {/* Profile Section inside Header */}
+            {user ? (
+              <div className="flex items-center gap-4 animate-fade-in">
+                <div className="relative">
+                  <div className="w-14 h-14 rounded-full border-2 border-[#4B3621] p-0.5 overflow-hidden">
+                    {user.photoURL ? (
+                      <img src={user.photoURL} alt="Profile" className="w-full h-full object-cover rounded-full" />
+                    ) : (
+                      <div className="w-full h-full bg-[#4B3621] text-white flex items-center justify-center font-bold text-xs">
+                        {user.displayName?.charAt(0) || 'K'}
+                      </div>
+                    )}
+                  </div>
+                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
+                </div>
+                <div>
+                  <h4 className="font-black text-[#4B3621] leading-tight truncate w-40">
+                    {user.displayName || 'KOB Merchant'}
+                  </h4>
+                  <p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Verified Seller</p>
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm font-bold text-gray-500 italic">Welcome to KOB Marketplace</p>
+            )}
           </div>
 
           {/* Scrollable Content */}
-          <div className="flex-1 overflow-y-auto p-5">
+          <div className="flex-1 overflow-y-auto p-5 space-y-8">
             
-            {/* 1. AUTH SECTION: Login/Register if Signed Out, Profile if Signed In */}
-            <div className="mb-8">
-              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">
-                {user ? `Welcome, ${user.displayName || 'User'}` : 'Account Access'}
-              </h3>
-              <div className="space-y-2">
+            {/* 1. DASHBOARD & SHOP */}
+            <div>
+              <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4 px-4">Management</h3>
+              <div className="space-y-1">
                 {!user ? (
                   <>
-                    <Link to="/login" onClick={onClose} className="flex items-center gap-4 px-4 py-3 rounded-lg hover:bg-gray-50 text-[#4B3621] font-semibold">
-                      <LogIn className="w-5 h-5" /> Login
+                    <Link to="/login" onClick={onClose} className="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-gray-100 text-[#4B3621] font-bold transition-all">
+                      <LogIn className="w-5 h-5 text-gray-400" /> Login
                     </Link>
-                    <Link to="/register" onClick={onClose} className="flex items-center gap-4 px-4 py-3 rounded-lg hover:bg-gray-50 text-[#4B3621] font-semibold">
-                      <UserPlus className="w-5 h-5" /> Register
+                    <Link to="/register" onClick={onClose} className="flex items-center gap-4 px-4 py-3 rounded-xl bg-[#4B3621] text-white font-bold shadow-lg shadow-gray-200">
+                      <UserPlus className="w-5 h-5" /> Join Marketplace
                     </Link>
                   </>
                 ) : (
                   <>
-                    <Link to="/dashboard" onClick={onClose} className="flex items-center gap-4 px-4 py-3 rounded-lg hover:bg-gray-50 text-[#4B3621] font-semibold">
-                      <User className="w-5 h-5" /> Dashboard
+                    <Link to="/dashboard" onClick={onClose} className="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-gray-100 text-[#4B3621] font-bold transition-all">
+                      <Home className="w-5 h-5 text-gray-400" /> Dashboard
                     </Link>
-                    <Link to="/dashboard/add-product" onClick={onClose} className="flex items-center gap-4 px-4 py-3 rounded-lg hover:bg-gray-50 text-[#4B3621] font-semibold">
-                      <ShoppingBag className="w-5 h-5" /> My Shop
+                    <Link to="/dashboard/messages" onClick={onClose} className="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-gray-100 text-[#4B3621] font-bold transition-all">
+                      <div className="flex items-center gap-4">
+                        <MessageSquare className="w-5 h-5 text-gray-400" /> Messages
+                      </div>
+                      <span className="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full">New</span>
+                    </Link>
+                    <Link to="/dashboard/profile" onClick={onClose} className="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-gray-100 text-[#4B3621] font-bold transition-all">
+                      <User className="w-5 h-5 text-gray-400" /> Edit Profile
                     </Link>
                   </>
                 )}
@@ -83,48 +116,45 @@ export default function MobileSidebar({ isOpen, onClose }) {
             </div>
 
             {/* 2. MARKET SECTION */}
-            <div className="mb-8 border-t pt-6">
-              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Marketplace</h3>
-              <div className="space-y-2">
-                <Link to="/marketplace" onClick={onClose} className="flex items-center gap-4 px-4 py-3 rounded-lg hover:bg-gray-50 text-[#4B3621] font-semibold">
-                  <Menu className="w-5 h-5" /> Browse Products
+            <div className="pt-2">
+              <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4 px-4">Marketplace</h3>
+              <div className="space-y-1">
+                <Link to="/marketplace" onClick={onClose} className="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-gray-100 text-[#4B3621] font-bold transition-all">
+                  <ShoppingBag className="w-5 h-5 text-gray-400" /> All Products
                 </Link>
-                <Link to="/marketplace?filter=new" onClick={onClose} className="flex items-center gap-4 px-4 py-3 rounded-lg hover:bg-gray-50 text-[#4B3621] font-semibold">
-                  <Home className="w-5 h-5" /> New Arrivals
+                <Link to="/dashboard/add-product" onClick={onClose} className="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-gray-100 text-[#4B3621] font-bold transition-all">
+                  <Menu className="w-5 h-5 text-gray-400" /> Add New Item
                 </Link>
               </div>
             </div>
 
             {/* 3. LEGAL SECTION */}
-            <div className="mb-8 border-t pt-6">
-              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Support & Legal</h3>
-              <div className="space-y-2">
-                <Link to="/terms" onClick={onClose} className="flex items-center gap-4 px-4 py-3 rounded-lg hover:bg-gray-50 text-[#4B3621] font-medium">
+            <div className="pt-2">
+              <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4 px-4">Support</h3>
+              <div className="space-y-1">
+                <Link to="/terms" onClick={onClose} className="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-gray-100 text-gray-500 font-medium text-sm transition-all">
                   <FileText className="w-5 h-5" /> Terms of Service
                 </Link>
-                <Link to="/privacy" onClick={onClose} className="flex items-center gap-4 px-4 py-3 rounded-lg hover:bg-gray-50 text-[#4B3621] font-medium">
+                <Link to="/privacy" onClick={onClose} className="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-gray-100 text-gray-500 font-medium text-sm transition-all">
                   <Shield className="w-5 h-5" /> Privacy Policy
-                </Link>
-                <Link to="/cookies" onClick={onClose} className="flex items-center gap-4 px-4 py-3 rounded-lg hover:bg-gray-50 text-[#4B3621] font-medium">
-                  <Cookie className="w-5 h-5" /> Cookie Policy
                 </Link>
               </div>
             </div>
           </div>
 
           {/* Sidebar Footer */}
-          <div className="p-6 border-t border-gray-100 bg-gray-50/50">
+          <div className="p-6 border-t border-gray-100">
             <div className="flex justify-around mb-6">
-              <a href="#" className="p-2 text-[#4B3621] hover:scale-110 transition-transform"><Twitter /></a>
-              <a href="#" className="p-2 text-[#4B3621] hover:scale-110 transition-transform"><Facebook /></a>
-              <a href="#" className="p-2 text-[#4B3621] hover:scale-110 transition-transform"><Instagram /></a>
+              <a href="https://facebook.com/B-SANI-BIO-CARE-MED" target="_blank" rel="noreferrer" className="p-2 text-[#4B3621] hover:scale-125 transition-transform"><Facebook /></a>
+              <a href="#" className="p-2 text-[#4B3621] hover:scale-125 transition-transform"><Twitter /></a>
+              <a href="#" className="p-2 text-[#4B3621] hover:scale-125 transition-transform"><Instagram /></a>
             </div>
             {user && (
               <button
                 onClick={handleLogout}
-                className="w-full py-3 bg-[#4B3621] text-white rounded-xl font-bold hover:opacity-90 transition-opacity shadow-md"
+                className="flex items-center justify-center gap-3 w-full py-4 bg-gray-100 text-[#4B3621] rounded-2xl font-black uppercase tracking-widest hover:bg-red-50 hover:text-red-600 transition-all border-2 border-transparent hover:border-red-100"
               >
-                Logout
+                <LogOut className="w-5 h-5" /> Logout
               </button>
             )}
           </div>
@@ -133,3 +163,4 @@ export default function MobileSidebar({ isOpen, onClose }) {
     </>
   )
 }
+
