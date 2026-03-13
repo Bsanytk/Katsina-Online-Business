@@ -46,7 +46,7 @@ export default function MobileSidebar({ isOpen, onClose }) {
               <div className="flex items-center gap-2">
                 <span className="font-black text-2xl text-[#4B3621] tracking-tighter">KOB</span>
                 <img
-                  src="https://collection.cloudinary.com/dn5crslee/6aca0ae6e8cafa5b6a8ea03258efdc5c"
+                  src="https://res.cloudinary.com/dn5crslee/image/upload/v1768211566/20260108_135034_qj155b.png"
                   alt="KOB Logo"
                   className="h-8 w-auto"
                 />
