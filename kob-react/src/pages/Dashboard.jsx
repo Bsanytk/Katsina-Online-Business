@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../firebase/auth'
 import Loading from '../components/Loading'
 import { Card, Button, Alert } from '../components/ui'
@@ -7,165 +8,451 @@ import BackButton from '../components/BackButton'
 import OrdersTab from '../components/dashboard/OrdersTab'
 import MessagesTab from '../components/dashboard/MessagesTab'
 import SellerProfileEdit from '../components/dashboard/SellerProfileEdit'
-import { LayoutDashboard, Package, MessageSquare, User, TrendingUp, Plus } from 'lucide-react'
 
-// Seller Dashboard View
+/* ------------------------------
+   Helper Utilities
+--------------------------------*/
+
+const getUsername = (email = '') => email.split('@')[0] || 'User'
+
+/* ------------------------------
+   Reusable Tab Navigation
+--------------------------------*/
+
+function TabNavigation({ tabs, activeTab, setActiveTab }) {
+  return (
+    <div className="flex gap-4 border-b-2 border-gray-200 overflow-x-auto">
+      {tabs.map((tab) => (
+        <button
+          key={tab.id}
+          onClick={() => setActiveTab(tab.id)}
+          className={`px-6 py-4 font-semibold transition-all whitespace-nowrap ${
+            activeTab === tab.id
+              ? 'text-kob-primary border-b-4 border-kob-primary'
+              : 'text-gray-600 hover:text-kob-primary'
+          }`}
+        >
+          {tab.label}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+/* ------------------------------
+   Buyer Dashboard
+--------------------------------*/
+
+function BuyerDashboard({ user }) {
+
+  const navigate = useNavigate()
+
+  const [savedProducts] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState('overview')
+
+  const tabs = [
+    { id: 'overview', label: '📊 Overview' },
+    { id: 'orders', label: '📦 Orders' },
+    { id: 'messages', label: '💬 Messages' }
+  ]
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        // future Firestore saved products fetch
+      } catch (err) {
+        if (import.meta.env.DEV) console.error(err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadData()
+  }, [])
+
+  return (
+    <div className="space-y-8">
+
+      <TabNavigation
+        tabs={tabs}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+      />
+
+      {activeTab === 'overview' && (
+        <div className="space-y-8">
+
+          {/* Welcome */}
+          <Card variant="elevated" className="bg-gradient-to-br from-kob-primary via-kob-primary-light to-kob-gold text-white p-8 rounded-2xl">
+            <h1 className="text-3xl font-bold">
+              Welcome, {getUsername(user.email)} 👋
+            </h1>
+            <p className="opacity-90 mt-2">
+              Browse and buy products from trusted sellers across Katsina.
+            </p>
+          </Card>
+
+          {/* Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+            <Card variant="elevated" className="p-6 text-center">
+              ❤️
+              <p className="text-sm text-gray-500">Saved Products</p>
+              <p className="text-3xl font-bold text-kob-primary">
+                {savedProducts.length}
+              </p>
+            </Card>
+
+            <Card variant="elevated" className="p-6 text-center">
+              📦
+              <p className="text-sm text-gray-500">Active Orders</p>
+              <p className="text-3xl font-bold text-kob-primary">0</p>
+            </Card>
+
+            <Card variant="elevated" className="p-6 text-center">
+              ⭐
+              <p className="text-sm text-gray-500">Reviews</p>
+              <p className="text-3xl font-bold text-kob-primary">0</p>
+            </Card>
+
+          </div>
+
+          {/* Saved Products */}
+          <Card variant="elevated" className="p-8">
+
+            <h2 className="text-2xl font-bold mb-6">
+              ❤️ Saved Products
+            </h2>
+
+            {loading ? (
+              <Loading message="Loading saved products..." />
+            ) : savedProducts.length === 0 ? (
+              <div className="text-center py-10">
+
+                <p className="text-gray-600 mb-6">
+                  No saved products yet.
+                </p>
+
+                <Button
+                  onClick={() => navigate('/marketplace')}
+                  variant="primary"
+                >
+                  Browse Marketplace
+                </Button>
+
+              </div>
+            ) : (
+              <div className="grid md:grid-cols-2 gap-6">
+                {/* products will render here */}
+              </div>
+            )}
+
+          </Card>
+
+        </div>
+      )}
+
+      {activeTab === 'orders' && <OrdersTab />}
+      {activeTab === 'messages' && <MessagesTab />}
+    </div>
+  )
+}
+
+/* ------------------------------
+   Seller Dashboard
+--------------------------------*/
+
 function SellerDashboard({ user }) {
+
+  const navigate = useNavigate()
+
   const [products, setProducts] = useState([])
   const [loadingProducts, setLoadingProducts] = useState(true)
   const [deleteLoading, setDeleteLoading] = useState(null)
   const [showDeleteSuccess, setShowDeleteSuccess] = useState(false)
   const [activeTab, setActiveTab] = useState('products')
 
-  const brandColor = "#4B3621";
+  const tabs = [
+    { id: 'products', label: '📦 Products' },
+    { id: 'sales', label: '💰 Sales' },
+    { id: 'messages', label: '💬 Messages' },
+    { id: 'profile', label: '👤 Profile' }
+  ]
 
-  useEffect(() => {
-    fetchProducts()
+  const fetchProducts = useCallback(async () => {
+
+    setLoadingProducts(true)
+
+    try {
+
+      const items = await getProducts({ pageSize: 20 })
+
+      setProducts(items)
+
+    } catch (err) {
+
+      if (import.meta.env.DEV) console.error(err)
+
+    } finally {
+
+      setLoadingProducts(false)
+
+    }
+
   }, [])
 
-  async function fetchProducts() {
-    setLoadingProducts(true)
+  useEffect(() => {
+
+    fetchProducts()
+
+  }, [fetchProducts])
+
+
+  const handleDelete = async (productId, title) => {
+
+    if (!window.confirm(`Delete "${title}"?`)) return
+
+    setDeleteLoading(productId)
+
     try {
-      const items = await getProducts({ pageSize: 20 })
-      setProducts(items)
+
+      await deleteProduct(productId)
+
+      setShowDeleteSuccess(true)
+
+      await fetchProducts()
+
+      setTimeout(() => setShowDeleteSuccess(false), 4000)
+
     } catch (err) {
-      console.error('Error fetching products:', err)
+
+      alert('Failed to delete product.')
+
     } finally {
-      setLoadingProducts(false)
+
+      setDeleteLoading(null)
+
     }
+
   }
 
   return (
-    <div className="space-y-6">
-      {/* Navigation Pills - Modern Classic Style */}
-      <div className="flex gap-2 p-1 bg-gray-100 rounded-2xl w-fit overflow-x-auto no-scrollbar">
-        {[
-          { id: 'products', label: 'Inventory', icon: <Package size={18}/> },
-          { id: 'sales', label: 'Sales', icon: <TrendingUp size={18}/> },
-          { id: 'messages', label: 'Messages', icon: <MessageSquare size={18}/> },
-          { id: 'profile', label: 'My Brand', icon: <User size={18}/> },
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all text-sm uppercase tracking-widest ${
-              activeTab === tab.id
-                ? 'bg-[#4B3621] text-white shadow-lg'
-                : 'text-gray-500 hover:text-[#4B3621]'
-            }`}
-          >
-            {tab.icon} {tab.label}
-          </button>
-        ))}
-      </div>
 
-      {/* Tab Content */}
+    <div className="space-y-8">
+
+      <TabNavigation
+        tabs={tabs}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+      />
+
       {activeTab === 'products' && (
-        <div className="space-y-6">
-          {/* Welcome Card - High Impact */}
-          <div className="relative overflow-hidden bg-[#4B3621] rounded-[2.5rem] p-8 md:p-12 text-white shadow-2xl">
-            <div className="relative z-10">
-              <span className="text-xs font-black uppercase tracking-[0.4em] opacity-60">Verified Merchant</span>
-              <h1 className="text-4xl md:text-5xl font-black mt-2 tracking-tighter italic">
-                Sannu, {user.displayName || user.email.split('@')[0]}!
-              </h1>
-              <p className="mt-4 text-white/80 max-w-md font-medium leading-relaxed">
-                Manage your **B-SANI** inventory and connect with customers across Katsina State.
-              </p>
-            </div>
-            {/* Decorative background circle */}
-            <div className="absolute -bottom-20 -right-20 w-80 h-80 bg-white/10 rounded-full blur-3xl"></div>
-          </div>
 
-          {/* Clean Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {[
-              { label: 'Active Items', value: products.length, icon: '📦' },
-              { label: 'Shop Views', value: '0', icon: '👁️' },
-              { label: 'Rating', value: 'New', icon: '⭐' },
-            ].map((stat, i) => (
-              <Card key={i} className="p-6 rounded-3xl border-b-4 border-gray-100 hover:border-[#4B3621] transition-all group">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{stat.label}</p>
-                    <p className="text-3xl font-black text-[#4B3621] mt-1">{stat.value}</p>
-                  </div>
-                  <span className="text-3xl grayscale group-hover:grayscale-0 transition-all">{stat.icon}</span>
-                </div>
-              </Card>
-            ))}
-          </div>
+        <div className="space-y-8">
 
-          {/* Inventory Management */}
-          <Card className="p-8 rounded-[2.5rem] shadow-sm border border-gray-100">
-            <div className="flex flex-col sm:flex-row items-center justify-between mb-8 gap-4">
-              <h2 className="text-xl font-black text-[#4B3621] uppercase tracking-tighter">Inventory List</h2>
+          <Card variant="elevated" className="p-8 bg-kob-primary text-white rounded-xl">
+
+            <h1 className="text-3xl font-bold">
+
+              Welcome, {getUsername(user.email)} 👋
+
+            </h1>
+
+            <p className="opacity-90">
+
+              Manage your marketplace products easily.
+
+            </p>
+
+          </Card>
+
+
+          {showDeleteSuccess && (
+            <Alert
+              type="success"
+              title="Product Deleted"
+              onDismiss={() => setShowDeleteSuccess(false)}
+            >
+              Your product was deleted successfully.
+            </Alert>
+          )}
+
+
+          <Card variant="elevated" className="p-8">
+
+            <div className="flex justify-between mb-6">
+
+              <h2 className="text-2xl font-bold">
+
+                My Products
+
+              </h2>
+
               <Button
-                onClick={() => window.location.href = '/marketplace'}
-                className="bg-[#4B3621] hover:scale-105 rounded-2xl px-8 py-3 font-black uppercase text-xs tracking-widest flex items-center gap-2"
+                onClick={() => navigate('/marketplace')}
+                variant="primary"
               >
-                <Plus size={16}/> New Product
+                + Add Product
               </Button>
+
             </div>
+
 
             {loadingProducts ? (
-              <div className="py-20 text-center"><Loading message="Syncing Inventory..." /></div>
-            ) : products.length > 0 ? (
-              <div className="grid grid-cols-1 gap-4">
-                {products.map((product) => (
-                  <div key={product.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl hover:bg-white hover:shadow-md transition-all border border-transparent hover:border-gray-100">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-gray-200 rounded-xl overflow-hidden font-black text-[10px] flex items-center justify-center text-gray-400">IMG</div>
-                      <div>
-                        <p className="font-black text-[#4B3621] uppercase text-sm">{product.title}</p>
-                        <p className="text-xs text-[#4B3621] font-bold">₦{product.price}</p>
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <button onClick={() => window.location.href = `/marketplace?edit=${product.id}`} className="p-2 hover:bg-[#4B3621]/10 text-[#4B3621] rounded-lg font-bold text-xs uppercase">Edit</button>
-                    </div>
-                  </div>
-                ))}
+
+              <Loading message="Loading products..." />
+
+            ) : products.length === 0 ? (
+
+              <div className="text-center py-10">
+
+                <p className="text-gray-600 mb-6">
+
+                  No products yet.
+
+                </p>
+
+                <Button
+                  onClick={() => navigate('/marketplace')}
+                  variant="primary"
+                >
+                  Create First Product
+                </Button>
+
               </div>
+
             ) : (
-              <div className="text-center py-12">
-                <p className="text-gray-400 font-bold uppercase text-xs tracking-widest">No products listed yet.</p>
-              </div>
+
+              <table className="w-full text-sm">
+
+                <thead>
+
+                  <tr>
+
+                    <th>Title</th>
+                    <th>Price</th>
+                    <th>Actions</th>
+
+                  </tr>
+
+                </thead>
+
+                <tbody>
+
+                  {products.map((p) => (
+
+                    <tr key={p.id}>
+
+                      <td>{p.title}</td>
+
+                      <td>₦{p.price}</td>
+
+                      <td className="space-x-2">
+
+                        <Button
+                          variant="secondary"
+                          onClick={() => navigate(`/marketplace?edit=${p.id}`)}
+                        >
+                          Edit
+                        </Button>
+
+                        <Button
+                          variant="danger"
+                          onClick={() => handleDelete(p.id, p.title)}
+                          disabled={deleteLoading === p.id}
+                        >
+                          {deleteLoading === p.id ? '⏳' : 'Delete'}
+                        </Button>
+
+                      </td>
+
+                    </tr>
+
+                  ))}
+
+                </tbody>
+
+              </table>
+
             )}
+
           </Card>
+
         </div>
+
       )}
 
-      {/* Tab Switcher Logic */}
-      {activeTab === 'sales' && <div className="animate-fade-in"><OrdersTab /></div>}
-      {activeTab === 'messages' && <div className="animate-fade-in"><MessagesTab /></div>}
-      {activeTab === 'profile' && <div className="animate-fade-in"><SellerProfileEdit /></div>}
+      {activeTab === 'sales' && <OrdersTab />}
+      {activeTab === 'messages' && <MessagesTab />}
+      {activeTab === 'profile' && <SellerProfileEdit />}
+
     </div>
+
   )
+
 }
 
+/* ------------------------------
+   Root Dashboard
+--------------------------------*/
+
 export default function Dashboard() {
+
   const { user, loading } = useAuth()
 
-  if (loading) return <Loading fullScreen message="Accessing KOB Dashboard..." />
+  if (loading) return <Loading fullScreen message="Loading dashboard..." />
 
   if (!user) {
+
     return (
-      <div className="min-h-screen bg-[#FDFDFD] flex items-center justify-center p-4">
-        <Card className="text-center p-12 max-w-sm rounded-[3rem] shadow-2xl border-b-[12px] border-[#4B3621]">
-          <h1 className="text-2xl font-black text-[#4B3621] uppercase mb-4">Access Denied</h1>
-          <Button onClick={() => window.location.href = '/login'} className="w-full bg-[#4B3621] rounded-2xl py-4 font-black">LOGIN</Button>
+
+      <div className="min-h-screen flex items-center justify-center">
+
+        <Card className="p-8 text-center">
+
+          <h1 className="text-xl font-bold mb-4">
+
+            Sign In Required
+
+          </h1>
+
+          <Button
+            onClick={() => window.location.href = '/login'}
+            variant="primary"
+          >
+            Login
+          </Button>
+
         </Card>
+
       </div>
+
     )
+
   }
 
   return (
-    <main className="min-h-screen bg-[#FDFDFD] pb-20">
-      <div className="container py-8 max-w-5xl mx-auto">
-        <SellerDashboard user={user} />
+
+    <main className="min-h-screen bg-kob-light">
+
+      <div className="container py-4">
+
+        <BackButton />
+
       </div>
+
+      <div className="container py-8">
+
+        {user.role === 'seller'
+          ? <SellerDashboard user={user} />
+          : <BuyerDashboard user={user} />
+        }
+
+      </div>
+
     </main>
+
   )
+
 }
-            
