@@ -299,7 +299,7 @@ function SellerDashboard({ user }) {
                             size="sm"
                             disabled={deleteLoading === product.id}
                           >
-                            {deleteLoading === product.id ? 'Delete': '🕳️'}
+                            {deleteLoading === product.id ? '⌛': 'Delete'}
                           </Button>
                         </td>
                       </tr>
