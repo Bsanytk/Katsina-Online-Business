@@ -113,13 +113,18 @@ export default function ProductForm({
 
   async function handleSubmit(e) {
     e.preventDefault()
+    if (!user?.uid) {
+      alert("You must be Logged in")
+      return
+    }
     if (!validateForm()) return
     
     // Auto-attach Google Form link if KOB Express is chosen
     const submissionData = { 
       ...formData, 
-      ownerUid: user.uid, 
-      price: Number(formData.price), 
+      ownerUid: user?.uid,
+      whatsappNumber: cleanWhatsapp,
+      price: parselFloat(formData.price), 
       images,
       deliveryLink: formData.deliveryOption === 'KOB Express Delivery' ? GOOGLE_FORM_URL : null
     }
