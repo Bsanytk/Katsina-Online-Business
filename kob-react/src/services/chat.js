@@ -9,6 +9,7 @@ import {
   doc,
   updateDoc,
   getDoc,
+  setDoc
   getDocs,
   limit as fbLimit,
 } from 'firebase/firestore'
@@ -21,8 +22,10 @@ const MAX_MESSAGES_LISTEN = 500
 const MAX_MARK_READ = 200
 
 // Create or get conversation between buyer and seller
+
 export async function createOrGetConversation(buyerId, sellerId, productId) {
-  // Unique conversation ID (sorted IDs to ensure single conversation)
+
+  // Ensure consistent conversation ID
   const participantA = buyerId < sellerId ? buyerId : sellerId
   const participantB = buyerId < sellerId ? sellerId : buyerId
   const conversationId = `${participantA}_${participantB}_${productId}`
@@ -31,8 +34,8 @@ export async function createOrGetConversation(buyerId, sellerId, productId) {
   const snap = await getDoc(ref)
 
   if (!snap.exists()) {
-    // Create new conversation document with explicit ID
-    await updateDoc(ref, {
+
+    await setDoc(ref, {
       buyerId,
       sellerId,
       productId,
@@ -40,26 +43,17 @@ export async function createOrGetConversation(buyerId, sellerId, productId) {
       lastMessage: null,
       lastMessageTime: new Date(),
       createdAt: new Date(),
-    }).catch(async () => {
-      // Fallback: if update fails because doc doesn't exist, create with set via addDoc
-      await addDoc(collection(db, CONVERSATIONS_COL), {
-        id: conversationId,
-        buyerId,
-        sellerId,
-        productId,
-        participants: [buyerId, sellerId],
-        lastMessage: null,
-        lastMessageTime: new Date(),
-        createdAt: new Date(),
-      })
     })
+
   }
 
   return conversationId
 }
-
 // Send a message
 export async function sendMessage(conversationId, senderId, text) {
+  if (!text || text.trim() === '') {
+    throw new Error('Message cannot be empty')
+  }
   const messageRef = await addDoc(collection(db, MESSAGES_COL), {
     conversationId,
     senderId,
