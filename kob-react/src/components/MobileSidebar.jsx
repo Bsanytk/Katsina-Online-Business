@@ -1,7 +1,7 @@
 import React from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth, logoutUser } from '../firebase/auth'
-import { X, Menu, Home, ShoppingBag, User, FileText, Shield, Twitter, Facebook, Instagram, LogIn, UserPlus, LogOut, MessageSquare } from 'lucide-react'
+import { X, Home, ShoppingBag, User, FileText, Shield, Twitter, Facebook, Instagram, LogIn, UserPlus, LogOut, PlusCircle } from 'lucide-react'
 
 export default function MobileSidebar({ isOpen, onClose }) {
   const { user } = useAuth()
@@ -29,7 +29,7 @@ export default function MobileSidebar({ isOpen, onClose }) {
         />
       )}
 
-      {/* Sidebar Drawer - Right Side to Left Sliding */}
+      {/* Sidebar Drawer - Sliding from Right to Left */}
       <div
         className={`fixed top-0 right-0 h-full w-80 bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out border-l-4 border-[#4B3621] ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
@@ -37,7 +37,7 @@ export default function MobileSidebar({ isOpen, onClose }) {
       >
         <div className="flex flex-col h-full">
           
-          {/* Header - No Firebase Storage Dependency */}
+          {/* Header Section */}
           <div className="p-6 border-b border-gray-100 bg-gray-50/50">
             <div className="flex items-center justify-between mb-6">
                <button onClick={onClose} className="p-2 hover:bg-white rounded-full transition-colors shadow-sm">
@@ -53,7 +53,7 @@ export default function MobileSidebar({ isOpen, onClose }) {
               </div>
             </div>
 
-            {/* Profile Integration - Uses URLs from Cloudinary/Firestore */}
+            {/* Profile Integration */}
             {user ? (
               <div className="flex items-center gap-4 animate-fade-in">
                 <div className="relative">
@@ -77,72 +77,84 @@ export default function MobileSidebar({ isOpen, onClose }) {
                   <h4 className="font-black text-[#4B3621] leading-tight truncate w-40">
                     {user.displayName || 'KOB Merchant'}
                   </h4>
-                  <p className="text-[10px] text-gray-500 uppercase font-black tracking-[0.15em]">Verified Merchant</p>
+                  <p className="text-[10px] text-gray-400 uppercase font-black tracking-widest">Welcome Back</p>
                 </div>
               </div>
             ) : (
-              <p className="text-sm font-bold text-gray-500 italic">Welcome to KOB Marketplace</p>
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest px-2">KOB Marketplace</p>
             )}
           </div>
 
-          {/* Navigation Links */}
+          {/* Navigation Links - Simplified */}
           <div className="flex-1 overflow-y-auto p-5 space-y-8">
+            
+            {/* Account/Dashboard Section */}
             <div>
-              <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4 px-4">Dashboard</h3>
+              <h3 className="text-[10px] font-black text-gray-300 uppercase tracking-[0.2em] mb-4 px-4">Account Access</h3>
               <div className="space-y-1">
                 {!user ? (
                   <>
-                    <Link to="/login" onClick={onClose} className="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-gray-100 text-[#4B3621] font-bold">
+                    <Link to="/login" onClick={onClose} className="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-gray-100 text-[#4B3621] font-bold transition-all">
                       <LogIn className="w-5 h-5 text-gray-400" /> Login
                     </Link>
-                    <Link to="/register" onClick={onClose} className="flex items-center gap-4 px-4 py-3 rounded-xl bg-[#4B3621] text-white font-bold">
-                      <UserPlus className="w-5 h-5" /> Start Selling
+                    <Link to="/register" onClick={onClose} className="flex items-center gap-4 px-4 py-3 rounded-xl bg-[#4B3621] text-white font-bold shadow-md">
+                      <UserPlus className="w-5 h-5" /> Register
                     </Link>
                   </>
                 ) : (
                   <>
-                    <Link to="/dashboard" onClick={onClose} className="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-gray-100 text-[#4B3621] font-bold">
-                      <Home className="w-5 h-5 text-gray-400" /> My Home
+                    <Link to="/dashboard" onClick={onClose} className="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-gray-100 text-[#4B3621] font-bold transition-all">
+                      <Home className="w-5 h-5 text-gray-400" /> Dashboard
                     </Link>
-                    <Link to="/dashboard/messages" onClick={onClose} className="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-gray-100 text-[#4B3621] font-bold">
-                      <div className="flex items-center gap-4">
-                        <MessageSquare className="w-5 h-5 text-gray-400" /> Chats
-                      </div>
-                    </Link>
-                    <Link to="/dashboard/profile" onClick={onClose} className="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-gray-100 text-[#4B3621] font-bold">
-                      <User className="w-5 h-5 text-gray-400" /> Settings
+                    <Link to="/dashboard/profile" onClick={onClose} className="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-gray-100 text-[#4B3621] font-bold transition-all">
+                      <User className="w-5 h-5 text-gray-400" /> My Shop
                     </Link>
                   </>
                 )}
               </div>
             </div>
 
-            <div className="pt-2">
-              <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4 px-4">Browse</h3>
+            {/* Marketplace Section */}
+            <div>
+              <h3 className="text-[10px] font-black text-gray-300 uppercase tracking-[0.2em] mb-4 px-4">Marketplace</h3>
               <div className="space-y-1">
-                <Link to="/marketplace" onClick={onClose} className="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-gray-100 text-[#4B3621] font-bold">
-                  <ShoppingBag className="w-5 h-5 text-gray-400" /> Shop Items
+                <Link to="/marketplace" onClick={onClose} className="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-gray-100 text-[#4B3621] font-bold transition-all">
+                  <ShoppingBag className="w-5 h-5 text-gray-400" /> Browse Products
                 </Link>
-                <Link to="/dashboard/add-product" onClick={onClose} className="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-gray-100 text-[#4B3621] font-bold">
-                  <Menu className="w-5 h-5 text-gray-400" /> Post Product
+                {user && (
+                  <Link to="/dashboard/add-product" onClick={onClose} className="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-gray-100 text-[#4B3621] font-bold transition-all">
+                    <PlusCircle className="w-5 h-5 text-gray-400" /> New Arrivals
+                  </Link>
+                )}
+              </div>
+            </div>
+
+            {/* Legal Section */}
+            <div className="pt-4 border-t border-gray-50">
+               <div className="space-y-1">
+                <Link to="/terms" onClick={onClose} className="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-gray-50 text-gray-500 font-medium text-xs transition-all">
+                  <FileText className="w-4 h-4" /> Terms of Service
+                </Link>
+                <Link to="/privacy" onClick={onClose} className="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-gray-50 text-gray-500 font-medium text-xs transition-all">
+                  <Shield className="w-4 h-4" /> Privacy Policy
                 </Link>
               </div>
             </div>
           </div>
 
-          {/* Footer with Facebook link */}
-          <div className="p-6 border-t border-gray-100">
-            <div className="flex justify-around mb-6">
-              <a href="https://facebook.com/B-SANI-BIO-CARE-MED" target="_blank" rel="noreferrer" className="p-2 text-[#4B3621] hover:scale-125 transition-transform"><Facebook /></a>
-              <a href="#" className="p-2 text-[#4B3621] hover:scale-125 transition-transform"><Twitter /></a>
-              <a href="#" className="p-2 text-[#4B3621] hover:scale-125 transition-transform"><Instagram /></a>
+          {/* Sidebar Footer */}
+          <div className="p-6 border-t border-gray-100 bg-gray-50/30">
+            <div className="flex justify-around mb-6 text-gray-400">
+              <a href="https://facebook.com/B-SANI-BIO-CARE-MED" target="_blank" rel="noreferrer" className="p-2 hover:text-[#4B3621] hover:scale-110 transition-all"><Facebook className="w-5 h-5"/></a>
+              <a href="#" className="p-2 hover:text-[#4B3621] hover:scale-110 transition-all"><Twitter className="w-5 h-5"/></a>
+              <a href="#" className="p-2 hover:text-[#4B3621] hover:scale-110 transition-all"><Instagram className="w-5 h-5"/></a>
             </div>
             {user && (
               <button
                 onClick={handleLogout}
-                className="flex items-center justify-center gap-3 w-full py-4 bg-gray-50 text-[#4B3621] rounded-2xl font-black uppercase tracking-widest hover:bg-red-50 hover:text-red-600 transition-all"
+                className="flex items-center justify-center gap-3 w-full py-4 bg-[#4B3621] text-white rounded-2xl font-black uppercase tracking-widest hover:opacity-90 transition-all shadow-lg"
               >
-                <LogOut className="w-5 h-5" /> Sign Out
+                <LogOut className="w-5 h-5" /> Logout
               </button>
             )}
           </div>
