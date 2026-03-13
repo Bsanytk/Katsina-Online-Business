@@ -9,6 +9,7 @@ import {
   updateDoc,
   deleteDoc,
   query,
+  where,
   orderBy,
   getDoc,
   limit as fbLimit,
@@ -21,16 +22,61 @@ const PRODUCTS_COL = 'products'
 const DEFAULT_PAGE_SIZE = 20
 
 // Paginated product listing. Pass { pageSize, startAfter } optionally.
-export async function getProducts({ pageSize = DEFAULT_PAGE_SIZE, startAfter } = {}) {
-  let q = query(collection(db, PRODUCTS_COL), orderBy('createdAt', 'desc'), fbLimit(pageSize))
-  if (startAfter) {
-    q = query(collection(db, PRODUCTS_COL), orderBy('createdAt', 'desc'), fbStartAfter(startAfter), fbLimit(pageSize))
+// Paginated product listing.
+// Pass { pageSize, startAfter, ownerUid } optionally.
+
+export async function getProducts({ pageSize = DEFAULT_PAGE_SIZE, startAfter, ownerUid } = {}) {
+
+  let q
+
+  // Seller dashboard (only their products)
+  if (ownerUid) {
+
+    if (startAfter) {
+      q = query(
+        collection(db, PRODUCTS_COL),
+        where('ownerUid', '==', ownerUid),
+        orderBy('createdAt', 'desc'),
+        fbStartAfter(startAfter),
+        fbLimit(pageSize)
+      )
+    } else {
+      q = query(
+        collection(db, PRODUCTS_COL),
+        where('ownerUid', '==', ownerUid),
+        orderBy('createdAt', 'desc'),
+        fbLimit(pageSize)
+      )
+    }
+
+  } else {
+
+    // Marketplace (all products)
+    if (startAfter) {
+      q = query(
+        collection(db, PRODUCTS_COL),
+        orderBy('createdAt', 'desc'),
+        fbStartAfter(startAfter),
+        fbLimit(pageSize)
+      )
+    } else {
+      q = query(
+        collection(db, PRODUCTS_COL),
+        orderBy('createdAt', 'desc'),
+        fbLimit(pageSize)
+      )
+    }
+
   }
+
   const snap = await getDocs(q)
+
   const items = []
   snap.forEach((d) => items.push({ id: d.id, ...d.data() }))
+
   return items
 }
+
 
 export async function getProductById(id) {
   const ref = doc(db, PRODUCTS_COL, id)
