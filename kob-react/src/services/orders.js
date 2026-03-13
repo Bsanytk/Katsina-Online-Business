@@ -18,14 +18,20 @@ const DEFAULT_PAGE_SIZE = 20
 
 // Create a simplified "request" (lightweight order) to reduce complexity.
 export async function createOrder(data) {
-  // Expected fields: buyerId, sellerId, productId, productTitle, price, quantity, buyerEmail
+
+  if (!data.buyerId || !data.sellerId || !data.productId) {
+    throw new Error('Missing required order fields')
+  }
+
   const payload = {
     ...data,
-    status: 'requested', // simplified statuses: requested, confirmed, closed, cancelled
+    status: 'requested', // requested → confirmed → closed
     createdAt: new Date(),
     updatedAt: new Date(),
   }
+
   const ref = await addDoc(collection(db, ORDERS_COL), payload)
+
   return { id: ref.id, ...payload }
 }
 
