@@ -73,11 +73,20 @@ export async function getOrder(orderId) {
 
 // Update order status (seller-only should be enforced in security rules)
 export async function updateOrderStatus(orderId, newStatus) {
+
+  const allowedStatuses = ['requested', 'confirmed', 'closed', 'cancelled']
+
+  if (!allowedStatuses.includes(newStatus)) {
+    throw new Error('Invalid order status')
+  }
+
   const ref = doc(db, ORDERS_COL, orderId)
+
   await updateDoc(ref, {
     status: newStatus,
     updatedAt: new Date(),
   })
+
   return true
 }
 
