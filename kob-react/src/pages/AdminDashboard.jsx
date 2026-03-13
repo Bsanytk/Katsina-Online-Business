@@ -24,11 +24,24 @@ export default function AdminDashboard() {
 
   async function handleVerify(userId, currentStatus) {
     try {
+      // Optimistic UI update
+      setSellers((prev) =>
+        prev.map((seller) =>
+          seller.id === userId ? { ...seller, isVerified: !currentStatus } : seller
+        )
+      )
+
       await toggleSellerVerification(userId, currentStatus)
-      setMessage({ type: 'success', text: "Seller status updated successfully!" })
-      fetchSellers() // Refresh the list
+      setMessage({ type: 'success', text: 'Seller status updated successfully!' })
+
     } catch (err) {
-      setMessage({ type: 'error', text: "Failed to update status." })
+      // Revert UI change if failed
+      setSellers((prev) =>
+        prev.map((seller) =>
+          seller.id === userId ? { ...seller, isVerified: currentStatus } : seller
+        )
+      )
+      setMessage({ type: 'error', text: 'Failed to update status.' })
     }
   }
 
