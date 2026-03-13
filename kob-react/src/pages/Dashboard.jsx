@@ -157,7 +157,7 @@ function SellerDashboard({ user }) {
     setLoadingProducts(true)
     try {
       // fetch with pagination defaults to keep reads low
-      const items = await getProducts({ pageSize: 20 })
+      const items = await getProducts({ pageSize: 10 })
       setProducts(items)
     } catch (err) {
       if (import.meta.env.DEV) console.error('Error fetching products:', err)
@@ -186,7 +186,7 @@ function SellerDashboard({ user }) {
   return (
     <div className="space-y-8">
       {/* Tab Navigation */}
-      <div className="flex gap-4 border-b-2 border-gray-200 overflow-x-auto">
+      <div className="flex gap-2 border-b-2 border-gray-100 overflow-x-auto">
         {[
           { id: 'products', label: '📦 Products', icon: '📦' },
           { id: 'sales', label: '💰 Sales', icon: '💰' },
@@ -198,8 +198,8 @@ function SellerDashboard({ user }) {
             onClick={() => setActiveTab(tab.id)}
             className={`px-6 py-4 font-semibold transition-all whitespace-nowrap ${
               activeTab === tab.id
-                ? 'text-kob-primary border-b-4 border-kob-primary'
-                : 'text-gray-600 hover:text-kob-primary'
+                ? 'text-kob-primary border-b-2 border-kob-primary'
+                : 'text-gray-400 hover:text-kob-primary'
             }`}
           >
             {tab.label}
@@ -212,11 +212,11 @@ function SellerDashboard({ user }) {
         <div className="space-y-8">
           {/* Welcome Card */}
           <Card variant="elevated" className="bg-gradient-to-br from-kob-primary via-kob-primary-light to-kob-gold text-white p-8 md:p-10 rounded-2xl">
-            <div className="flex items-start gap-4">
+            <div className="flex items-start gap-3">
               <div className="text-6xl">👋</div>
               <div>
-                <h1 className="text-4xl font-extrabold mb-3">Welcome, {user.email.split('@')[0]}!</h1>
-                <p className="text-lg opacity-95 font-light">
+                <h1 className="text-3xl font-extrabold mb-3">Welcome, {user.email.split('@')[0]}!</h1>
+                <p className="text-lg opacity-90 font-light">
                   ✓ You can manage your products and reach thousands of customers across Katsina.
                 </p>
               </div>
@@ -299,7 +299,7 @@ function SellerDashboard({ user }) {
                             size="sm"
                             disabled={deleteLoading === product.id}
                           >
-                            {deleteLoading === product.id ? '' : ''}
+                            {deleteLoading === product.id ? 'Delete'}
                           </Button>
                         </td>
                       </tr>
