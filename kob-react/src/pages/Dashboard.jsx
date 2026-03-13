@@ -7,139 +7,7 @@ import BackButton from '../components/BackButton'
 import OrdersTab from '../components/dashboard/OrdersTab'
 import MessagesTab from '../components/dashboard/MessagesTab'
 import SellerProfileEdit from '../components/dashboard/SellerProfileEdit'
-
-// Buyer Dashboard View
-function BuyerDashboard({ user }) {
-  const [savedProducts] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState('overview')
-
-  useEffect(() => {
-    // TODO: Fetch user's saved products from Firestore
-    const loadData = async () => {
-      setLoading(false)
-    }
-    loadData()
-  }, [])
-
-  return (
-    <div className="space-y-8">
-      {/* Tab Navigation */}
-      <div className="flex gap-4 border-b-2 border-gray-200 overflow-x-auto">
-        {[
-          { id: 'overview', label: '📊 Overview', icon: '📊' },
-          { id: 'orders', label: '📦 Orders', icon: '📦' },
-          { id: 'messages', label: '💬 Messages', icon: '💬' },
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`px-6 py-4 font-semibold transition-all whitespace-nowrap ${
-              activeTab === tab.id
-                ? 'text-kob-primary border-b-4 border-kob-primary'
-                : 'text-gray-600 hover:text-kob-primary'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Tab Content */}
-      {activeTab === 'overview' && (
-        <div className="space-y-8">
-          {/* Welcome Card */}
-          <Card variant="elevated" className="bg-gradient-to-br from-kob-primary via-kob-primary-light to-kob-gold text-white p-8 md:p-10 rounded-2xl">
-            <div className="flex items-start gap-4">
-              <div className="text-6xl">👋</div>
-              <div>
-                <h1 className="text-4xl font-extrabold mb-3">Welcome, {user.email.split('@')[0]}!</h1>
-                <p className="text-lg opacity-95 font-light">
-                  Browse, save, and purchase products from verified sellers across Katsina with confidence.
-                </p>
-              </div>
-            </div>
-          </Card>
-
-          {/* Quick Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card variant="elevated" className="p-7 rounded-xl text-center card-hover">
-              <div className="text-5xl mb-3 inline-block">❤️</div>
-              <p className="text-sm text-gray-600 font-semibold uppercase tracking-wider mb-2">Saved Products</p>
-              <p className="text-4xl font-bold text-kob-primary">{savedProducts.length}</p>
-            </Card>
-            <Card variant="elevated" className="p-7 rounded-xl text-center card-hover">
-              <div className="text-5xl mb-3 inline-block">📦</div>
-              <p className="text-sm text-gray-600 font-semibold uppercase tracking-wider mb-2">Active Orders</p>
-              <p className="text-4xl font-bold text-kob-primary">0</p>
-            </Card>
-            <Card variant="elevated" className="p-7 rounded-xl text-center card-hover">
-              <div className="text-5xl mb-3 inline-block">⭐</div>
-              <p className="text-sm text-gray-600 font-semibold uppercase tracking-wider mb-2">My Reviews</p>
-              <p className="text-4xl font-bold text-kob-primary">0</p>
-            </Card>
-          </div>
-
-          {/* Saved Products Section */}
-          <Card variant="elevated" className="p-8 rounded-xl">
-            <h2 className="text-3xl font-bold text-kob-dark mb-8 flex items-center gap-3">
-              <span className="text-5xl">❤️</span> Saved Products
-            </h2>
-
-            {loading ? (
-              <Loading message="Loading saved products..." />
-            ) : savedProducts.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Products will be displayed here */}
-              </div>
-            ) : (
-              <div className="text-center py-16">
-                <div className="text-7xl mb-6">📭</div>
-                <p className="text-gray-600 text-lg mb-8 font-medium">No saved products yet.</p>
-                <Button
-                  onClick={() => window.location.href = '/marketplace'}
-                  variant="primary"
-                  size="lg"
-                  className="shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
-                >
-                  Start Browsing Marketplace
-                </Button>
-              </div>
-            )}
-          </Card>
-
-          {/* Resources */}
-          <Card variant="outlined" className="p-8 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-200">
-            <h3 className="text-2xl font-bold text-blue-900 mb-6 flex items-center gap-3">
-              <span className="text-4xl">💡</span> Quick Tips for Smart Shopping
-            </h3>
-            <ul className="space-y-3 text-base text-blue-900">
-              <li className="flex items-start gap-3">
-                <span className="text-xl">✓</span>
-                <span>Save products to your favorites for easy access later</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="text-xl">✓</span>
-                <span>Check seller ratings before making a purchase</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="text-xl">✓</span>
-                <span>Use WhatsApp to contact sellers directly for inquiries</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="text-xl">✓</span>
-                <span>Read buyer reviews to make informed purchasing decisions</span>
-              </li>
-            </ul>
-          </Card>
-        </div>
-      )}
-
-      {activeTab === 'orders' && <OrdersTab />}
-      {activeTab === 'messages' && <MessagesTab />}
-    </div>
-  )
-}
+import { Package, TrendingUp, MessageSquare, User, Plus, Trash2, Edit3, ShieldCheck } from 'lucide-react'
 
 // Seller Dashboard View
 function SellerDashboard({ user }) {
@@ -149,26 +17,32 @@ function SellerDashboard({ user }) {
   const [showDeleteSuccess, setShowDeleteSuccess] = useState(false)
   const [activeTab, setActiveTab] = useState('products')
 
+  // KOB BRAND COLORS
+  const KOB_BROWN = "#4B3621"
+  const KOB_GOLD = "#D4AF37"
+
   useEffect(() => {
     fetchProducts()
-  }, [])
+  }, [user.uid])
 
   async function fetchProducts() {
     setLoadingProducts(true)
     try {
-      // fetch with pagination defaults to keep reads low
-      const items = await getProducts({ pageSize: 20 })
+      // Filtering by sellerId ensures the merchant only sees their own stock
+      const items = await getProducts({ 
+        pageSize: 50,
+        sellerId: user.uid 
+      })
       setProducts(items)
     } catch (err) {
-      if (import.meta.env.DEV) console.error('Error fetching products:', err)
+      console.error('Error fetching inventory:', err)
     } finally {
       setLoadingProducts(false)
     }
   }
 
   async function handleDelete(productId, productTitle) {
-    if (!window.confirm(`Delete "${productTitle}"? This action cannot be undone.`)) return
-
+    if (!window.confirm(`Permanently remove ${productTitle}?`)) return
     setDeleteLoading(productId)
     try {
       await deleteProduct(productId)
@@ -176,169 +50,127 @@ function SellerDashboard({ user }) {
       await fetchProducts()
       setTimeout(() => setShowDeleteSuccess(false), 5000)
     } catch (err) {
-      if (import.meta.env.DEV) console.error('Error deleting product:', err)
-      alert('Failed to delete product. Please try again.')
+      alert('Delete failed. Check permissions.')
     } finally {
       setDeleteLoading(null)
     }
   }
 
   return (
-    <div className="space-y-8">
-      {/* Tab Navigation */}
-      <div className="flex gap-4 border-b-2 border-gray-200 overflow-x-auto">
+    <div className="max-w-6xl mx-auto space-y-8 animate-fade-in px-4">
+      
+      {/* NAVIGATION - Modern Pill Style */}
+      <div className="flex bg-white shadow-sm p-1.5 rounded-2xl w-fit overflow-x-auto no-scrollbar border border-gray-100">
         {[
-          { id: 'products', label: '📦 Products', icon: '📦' },
-          { id: 'sales', label: '💰 Sales', icon: '💰' },
-          { id: 'messages', label: '💬 Messages', icon: '💬' },
-          { id: 'profile', label: '👤 Profile', icon: '👤' },
+          { id: 'products', label: 'Inventory', icon: <Package size={18}/> },
+          { id: 'sales', label: 'Sales', icon: <TrendingUp size={18}/> },
+          { id: 'messages', label: 'Messages', icon: <MessageSquare size={18}/> },
+          { id: 'profile', label: 'Identity', icon: <User size={18}/> },
         ].map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`px-6 py-4 font-semibold transition-all whitespace-nowrap ${
+            className={`flex items-center gap-3 px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] transition-all ${
               activeTab === tab.id
-                ? 'text-kob-primary border-b-4 border-kob-primary'
-                : 'text-gray-600 hover:text-kob-primary'
+                ? 'bg-[#4B3621] text-white shadow-lg scale-105'
+                : 'text-gray-400 hover:text-[#4B3621]'
             }`}
           >
-            {tab.label}
+            {tab.icon} {tab.label}
           </button>
         ))}
       </div>
 
-      {/* Tab Content */}
-      {activeTab === 'products' && (
-        <div className="space-y-8">
-          {/* Welcome Card */}
-          <Card variant="elevated" className="bg-gradient-to-br from-kob-primary via-kob-primary-light to-kob-gold text-white p-8 md:p-10 rounded-2xl">
-            <div className="flex items-start gap-4">
-              <div className="text-6xl">👋</div>
-              <div>
-                <h1 className="text-4xl font-extrabold mb-3">Welcome, {user.email.split('@')[0]}!</h1>
-                <p className="text-lg opacity-95 font-light">
-                  ✓ You can manage your products and reach thousands of customers across Katsina.
+      {/* MAIN CONTENT AREA */}
+      <div className="min-h-[60vh]">
+        {activeTab === 'products' && (
+          <div className="space-y-8">
+            {/* HERO BANNER - KOB BRANDING */}
+            <div className={`relative overflow-hidden bg-[#4B3621] rounded-[3rem] p-10 md:p-16 text-white shadow-2xl border-b-[12px] border-[#D4AF37]`}>
+              <div className="relative z-10">
+                <div className="flex items-center gap-2 mb-4">
+                  <ShieldCheck size={16} className="text-[#D4AF37]" />
+                  <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[#D4AF37]">Verified Merchant</span>
+                </div>
+                <h1 className="text-4xl md:text-6xl font-black tracking-tighter italic leading-none">
+                  Welcome, {user.displayName || 'Seller'}
+                </h1>
+                <p className="mt-6 text-white/70 max-w-sm font-medium text-sm leading-relaxed uppercase tracking-widest">
+                  Katsina Online Business • Global Standards
                 </p>
               </div>
-            </div>
-          </Card>
-
-          {/* Quick Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card variant="elevated" className="p-7 rounded-xl text-center card-hover">
-              <div className="text-5xl mb-3 inline-block">📦</div>
-              <p className="text-sm text-gray-600 font-semibold uppercase tracking-wider mb-2">Active Products</p>
-              <p className="text-4xl font-bold text-kob-primary">{products.length}</p>
-            </Card>
-            <Card variant="elevated" className="p-7 rounded-xl text-center card-hover">
-              <div className="text-5xl mb-3 inline-block">👥</div>
-              <p className="text-sm text-gray-600 font-semibold uppercase tracking-wider mb-2">Total Views</p>
-              <p className="text-4xl font-bold text-kob-primary">0</p>
-            </Card>
-            <Card variant="elevated" className="p-7 rounded-xl text-center card-hover">
-              <div className="text-5xl mb-3 inline-block">⭐</div>
-              <p className="text-sm text-gray-600 font-semibold uppercase tracking-wider mb-2">Average Rating</p>
-              <p className="text-4xl font-bold text-kob-primary">—</p>
-            </Card>
-          </div>
-
-          {/* Delete Success Alert */}
-          {showDeleteSuccess && (
-            <Alert type="success" title="Product Deleted" onDismiss={() => setShowDeleteSuccess(false)}>
-              Your product has been successfully deleted.
-            </Alert>
-          )}
-
-          {/* Products Management Section */}
-          <Card variant="elevated" className="p-8 rounded-xl">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
-              <h2 className="text-3xl font-bold text-kob-dark flex items-center gap-3">
-                <span className="text-5xl">📦</span> My Products
-              </h2>
-              <Button
-                onClick={() => window.location.href = '/marketplace'}
-                variant="primary"
-                size="lg"
-                className="shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300"
-              >
-                + Add Product
-              </Button>
+              <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl"></div>
             </div>
 
-            {loadingProducts ? (
-              <Loading message="Loading your products..." />
-            ) : products.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="border-b-2 border-kob-primary">
-                    <tr>
-                      <th className="text-left py-3 px-2 font-semibold text-kob-dark">Title</th>
-                      <th className="text-left py-3 px-2 font-semibold text-kob-dark">Price</th>
-                      <th className="text-left py-3 px-2 font-semibold text-kob-dark">Description</th>
-                      <th className="text-center py-3 px-2 font-semibold text-kob-dark">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {products.map((product) => (
-                      <tr key={product.id} className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
-                        <td className="py-3 px-2 font-medium text-kob-dark truncate">{product.title}</td>
-                        <td className="py-3 px-2 text-kob-primary font-bold">₦{product.price || '—'}</td>
-                        <td className="py-3 px-2 text-gray-600 text-xs truncate">{product.description}</td>
-                        <td className="py-3 px-2 text-center space-x-2">
-                          <Button
-                            onClick={() => window.location.href = `/marketplace?edit=${product.id}`}
-                            variant="secondary"
-                            size="sm"
-                            disabled={deleteLoading === product.id}
-                          >
-                            ✏️ Edit
-                          </Button>
-                          <Button
-                            onClick={() => handleDelete(product.id, product.title)}
-                            variant="danger"
-                            size="sm"
-                            disabled={deleteLoading === product.id}
-                          >
-                            {deleteLoading === product.id ? '⏳' : '🗑️'}
-                          </Button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                <div className="text-5xl mb-4">📭</div>
-                <p className="text-gray-600 mb-4">No products yet.</p>
+            {/* QUICK STATS */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {[
+                { label: 'Your Listings', value: products.length, icon: '📦' },
+                { label: 'Sales Status', value: 'Live', icon: '💰' },
+                { label: 'Brand Power', value: 'High', icon: '⚡' },
+              ].map((stat, i) => (
+                <Card key={i} className="p-8 rounded-[2rem] border-b-4 border-transparent hover:border-[#D4AF37] bg-white shadow-sm transition-all group">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{stat.label}</p>
+                      <p className={`text-4xl font-black text-[#4B3621] mt-2`}>{stat.value}</p>
+                    </div>
+                    <span className="text-4xl opacity-20 group-hover:opacity-100 transition-all">{stat.icon}</span>
+                  </div>
+                </Card>
+              ))}
+            </div>
+
+            {/* PRODUCT LIST */}
+            <Card className="p-8 md:p-12 rounded-[3rem] shadow-xl bg-white border border-gray-50">
+              <div className="flex flex-col sm:flex-row items-center justify-between mb-10 gap-6">
+                <div>
+                  <h2 className="text-2xl font-black text-[#4B3621] uppercase tracking-tighter">My Inventory</h2>
+                  <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Private Seller View</p>
+                </div>
                 <Button
                   onClick={() => window.location.href = '/marketplace'}
-                  variant="primary"
-                  size="lg"
+                  className="bg-[#4B3621] text-white px-8 py-4 rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-lg hover:shadow-2xl transition-all flex items-center gap-2"
                 >
-                  Create Your First Product
+                  <Plus size={18} /> Add Product
                 </Button>
               </div>
-            )}
-          </Card>
 
-          {/* Resources */}
-          <Card variant="outlined" className="p-6 bg-green-50">
-            <h3 className="text-lg font-bold text-kob-dark mb-4">🚀 Seller Resources</h3>
-            <ul className="space-y-2 text-sm text-gray-700">
-              <li>✓ <strong>Product Tips:</strong> Use clear titles and detailed descriptions</li>
-              <li>✓ <strong>Pricing:</strong> Competitive pricing helps products sell faster</li>
-              <li>✓ <strong>Images:</strong> High-quality images increase buyer confidence</li>
-              <li>✓ <strong>Communication:</strong> Respond to buyer inquiries quickly</li>
-              <li>✓ <a href="/help" className="text-kob-primary hover:underline font-bold">View Seller Guide →</a></li>
-            </ul>
-          </Card>
-        </div>
-      )}
+              {loadingProducts ? (
+                <div className="py-20 flex justify-center"><div className="w-10 h-10 border-4 border-[#4B3621] border-t-transparent rounded-full animate-spin"></div></div>
+              ) : products.length > 0 ? (
+                <div className="space-y-4">
+                  {products.map((product) => (
+                    <div key={product.id} className="group flex items-center justify-between p-6 bg-gray-50 rounded-[2rem] border-2 border-transparent hover:border-gray-100 hover:bg-white hover:shadow-xl transition-all">
+                      <div className="flex items-center gap-6">
+                        <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center font-black text-[10px] text-gray-300 border border-gray-100 shadow-inner overflow-hidden uppercase">
+                          {product.imageUrl ? <img src={product.imageUrl} className="w-full h-full object-cover" /> : 'KOB'}
+                        </div>
+                        <div>
+                          <h4 className="font-black text-[#4B3621] uppercase text-sm">{product.title}</h4>
+                          <p className="text-lg font-black text-[#D4AF37]">₦{product.price}</p>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <button onClick={() => window.location.href = `/marketplace?edit=${product.id}`} className="p-3 bg-white rounded-xl shadow-sm text-[#4B3621] hover:bg-[#4B3621] hover:text-white transition-all"><Edit3 size={18}/></button>
+                        <button onClick={() => handleDelete(product.id, product.title)} className="p-3 bg-white rounded-xl shadow-sm text-red-500 hover:bg-red-500 hover:text-white transition-all"><Trash2 size={18}/></button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-20 bg-gray-50 rounded-[2rem] border-2 border-dashed border-gray-200">
+                  <p className="text-gray-400 font-black uppercase tracking-widest text-xs">No items found in your inventory</p>
+                </div>
+              )}
+            </Card>
+          </div>
+        )}
 
-      {activeTab === 'sales' && <OrdersTab />}
-      {activeTab === 'messages' && <MessagesTab />}
-      {activeTab === 'profile' && <SellerProfileEdit />}
+        {activeTab === 'sales' && <div className="animate-fade-in"><OrdersTab /></div>}
+        {activeTab === 'messages' && <div className="animate-fade-in"><MessagesTab /></div>}
+        {activeTab === 'profile' && <div className="animate-fade-in"><SellerProfileEdit /></div>}
+      </div>
     </div>
   )
 }
@@ -346,40 +178,26 @@ function SellerDashboard({ user }) {
 export default function Dashboard() {
   const { user, loading } = useAuth()
 
-  if (loading) return <Loading fullScreen message="Loading dashboard..." />
+  if (loading) return <Loading fullScreen message="Accessing KOB Portal..." />
 
-  // Redirect if not logged in
   if (!user) {
     return (
-      <div className="min-h-screen bg-kob-light flex items-center justify-center p-4">
-        <Card variant="elevated" className="text-center p-8 max-w-md">
-          <div className="text-5xl mb-4">🔒</div>
-          <h1 className="text-2xl font-bold text-kob-dark mb-2">Sign In Required</h1>
-          <p className="text-gray-600 mb-6">Please sign in to access your dashboard.</p>
-          <Button onClick={() => window.location.href = '/login'} variant="primary" size="lg" className="w-full">
-            Go to Login
-          </Button>
+      <div className="min-h-screen flex items-center justify-center bg-[#F9F9F9] p-6">
+        <Card className="p-12 text-center rounded-[3rem] shadow-2xl bg-white border-b-[12px] border-[#4B3621] max-w-sm">
+          <h2 className="text-2xl font-black text-[#4B3621] uppercase mb-6 tracking-tighter">Login Required</h2>
+          <Button onClick={() => window.location.href = '/login'} className="w-full bg-[#4B3621] py-5 rounded-2xl font-black uppercase tracking-widest">SIGN IN</Button>
         </Card>
       </div>
     )
   }
 
   return (
-    <main className="min-h-screen bg-kob-light">
-      <div className="container py-4">
-        <BackButton />
-      </div>
-      <div className="container py-8">
-        {/* Render appropriate dashboard based on user role */}
-        {user.role === 'seller' ? (
-          <SellerDashboard user={user} />
-        ) : user.role === 'buyer' ? (
-          <BuyerDashboard user={user} />
-        ) : (
-          // Admin view or default
-          <SellerDashboard user={user} />
-        )}
+    <main className="min-h-screen bg-[#F9F9F9] pb-20 pt-10">
+      <div className="container mx-auto">
+        <div className="mb-8 px-4"><BackButton /></div>
+        <SellerDashboard user={user} />
       </div>
     </main>
-  )
+  ) 
 }
+            
