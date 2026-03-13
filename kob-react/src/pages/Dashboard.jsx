@@ -154,17 +154,17 @@ function SellerDashboard({ user }) {
   }, [])
 
   async function fetchProducts() {
-    setLoadingProducts(true)
-    try {
-      // fetch with pagination defaults to keep reads low
-      const items = await getProducts({ pageSize: 10 })
-      setProducts(items)
-    } catch (err) {
-      if (import.meta.env.DEV) console.error('Error fetching products:', err)
-    } finally {
-      setLoadingProducts(false)
-    }
+  setLoadingProducts(true)
+  try {
+    // Pass sellerId to only get their own products
+    const items = await getProducts({ pageSize: 10, sellerId: user.uid })
+    setProducts(items)
+  } catch (err) {
+    console.error('Error fetching products:', err)
+  } finally {
+    setLoadingProducts(false)
   }
+}
 
   async function handleDelete(productId, productTitle) {
     if (!window.confirm(`Delete "${productTitle}"? This action cannot be undone.`)) return
