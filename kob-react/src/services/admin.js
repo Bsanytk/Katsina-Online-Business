@@ -1,17 +1,21 @@
 import { db } from '../firebase/firebase'; 
-import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, updateDoc, where } from 'firebase/firestore';
 
 /**
  * Fetches all users from the 'users' collection
  */
 export const getAllSellers = async () => {
-  try {
-    const usersRef = collection(db, 'users');
-    const snapshot = await getDocs(usersRef);
-    return snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
+  const q = query(
+    collection(db, 'users'),
+    where('role', '==', 'seller')
+  )
+
+  const snapshot = await getDocs(q)
+
+  return snapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data()
+  }))
   } catch (error) {
     console.error("Error fetching sellers:", error);
     throw error;
