@@ -1,41 +1,53 @@
-import { db } from '../firebase/firebase'; 
-import { collection, getDocs, doc, updateDoc, where } from 'firebase/firestore';
+import { db } from '../firebase/firebase'
+import { 
+  collection, 
+  getDocs, 
+  doc, 
+  updateDoc, 
+  query, 
+  where 
+} from 'firebase/firestore'
 
 /**
- * Fetches all users from the 'users' collection
+ * Fetch only sellers from users collection
  */
 export const getAllSellers = async () => {
-  const q = query(
-    collection(db, 'users'),
-    where('role', '==', 'seller')
-  )
+  try {
 
-  const snapshot = await getDocs(q)
+    const q = query(
+      collection(db, 'users'),
+      where('role', '==', 'seller')
+    )
 
-  return snapshot.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data()
-  }))
+    const snapshot = await getDocs(q)
+
+    return snapshot.docs.map((docItem) => ({
+      id: docItem.id,
+      ...docItem.data()
+    }))
+
   } catch (error) {
-    console.error("Error fetching sellers:", error);
-    throw error;
+    console.error("Error fetching sellers:", error)
+    throw error
   }
-};
+}
+
 
 /**
- * Toggles the isVerified status of a seller
+ * Toggle seller verification
  */
 export const toggleSellerVerification = async (userId, currentStatus) => {
   try {
-    const userRef = doc(db, 'users', userId);
+
+    const userRef = doc(db, 'users', userId)
 
     await updateDoc(userRef, {
       isVerified: !currentStatus,
       updatedAt: new Date().toISOString()
-    });
+    })
 
   } catch (error) {
-    console.error("Error updating verification status:", error);
-    throw error;
+    console.error("Error updating verification status:", error)
+    throw error
   }
-};
+}
