@@ -133,10 +133,4 @@ function formatAuthError(code) {
  * Admin helper: Toggle seller verification
  * Usage: toggleSellerVerification(userId, currentStatus)
  */
-export async function toggleSellerVerification(userId, currentStatus) {
-  const ref = doc(db, 'users', userId)
-  await updateDoc(ref, {
-    isVerified: !currentStatus,
-    updatedAt: new Date().toISOString(),
-  })
- }
+
