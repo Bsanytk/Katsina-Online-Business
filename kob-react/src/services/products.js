@@ -55,6 +55,7 @@ export async function getProducts({ pageSize = DEFAULT_PAGE_SIZE, startAfter, ow
     if (startAfter) {
       q = query(
         collection(db, PRODUCTS_COL),
+        where('isDraft', '==', false),
         orderBy('createdAt', 'desc'),
         fbStartAfter(startAfter),
         fbLimit(pageSize)
@@ -62,6 +63,7 @@ export async function getProducts({ pageSize = DEFAULT_PAGE_SIZE, startAfter, ow
     } else {
       q = query(
         collection(db, PRODUCTS_COL),
+        where('isDraft', '==', false),
         orderBy('createdAt', 'desc'),
         fbLimit(pageSize)
       )
@@ -86,7 +88,7 @@ export async function getProductById(id) {
 }
 
 export async function addProduct(data) {
-  // expected fields: title, description, price, ownerUid, ownerUid, ...
+  // expected fields: title, description, price, ownerUid, images, etc
   if (!data.ownerUid) {
     throw new Error('Missing required field: ownerUid (user identifier)')
   }
