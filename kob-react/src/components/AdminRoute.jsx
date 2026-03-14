@@ -3,7 +3,7 @@ import { Navigate } from 'react-router-dom'
 import { useAuth } from '../firebase/auth'
 
 // Your actual Firebase UID from the console
-const ADMIN_UID = "EnnsSwTurxPO5VEfKtyIqeQAH7D2" 
+const ADMIN_UID = "faAlHUtsZ2MVQRN4Apc3itIoeGf2" 
 
 export default function AdminRoute({ children }) {
   const { user, loading } = useAuth()
