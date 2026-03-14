@@ -5,7 +5,7 @@ import {
   signOut,
   onAuthStateChanged,
 } from 'firebase/auth'
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore'
+import { doc, getDoc, setDoc } from 'firebase/firestore'
 import { auth, db } from './firebase'
 
 const AuthContext = createContext()
@@ -23,14 +23,15 @@ export function AuthProvider({ children }) {
           const snap = await getDoc(ref)
 
           if (snap.exists()) {
-            const userData = snap.data()
+            const userData = snap.data() || {}
+
             setUser({
               uid: firebaseUser.uid,
               email: firebaseUser.email,
-              role: userData.role || 'buyer',
-              displayName: userData.displayName || null,
-              createdAt: userData.createdAt || null,
-              isVerified: userData.isVerified || false, // ✅ Add this
+              role: userData.role ?? 'buyer',
+              displayName: userData.displayName ?? null,
+              createdAt: userData.createdAt ?? null,
+              isVerified: userData.isVerified ?? false,
             })
           } else {
             setUser({
@@ -45,6 +46,7 @@ export function AuthProvider({ children }) {
         } else {
           setUser(null)
         }
+
         setError(null)
       } catch (err) {
         console.error('Auth state error:', err)
@@ -68,7 +70,10 @@ export function useAuth() {
   return useContext(AuthContext)
 }
 
+// ============================
 // Auth API helpers
+// ============================
+
 export async function loginUser(email, password) {
   try {
     const result = await signInWithEmailAndPassword(auth, email, password)
@@ -80,20 +85,23 @@ export async function loginUser(email, password) {
 
 export async function registerUser(email, password, role = 'buyer') {
   try {
-    const validRoles = ['buyer', 'seller', 'admin']
+
+    // ❗ SECURITY FIX: users cannot self-register as admin
+    const validRoles = ['buyer', 'seller']
     const userRole = validRoles.includes(role) ? role : 'buyer'
 
     const result = await createUserWithEmailAndPassword(auth, email, password)
     const { user: firebaseUser } = result
 
     const ref = doc(db, 'users', firebaseUser.uid)
+
     await setDoc(ref, {
       email: firebaseUser.email,
       role: userRole,
       displayName: null,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      isVerified: false, // ✅ New field
+      isVerified: false,
     })
 
     return result
@@ -114,6 +122,10 @@ export function getCurrentUser() {
   return auth.currentUser
 }
 
+// ============================
+// Error formatter
+// ============================
+
 function formatAuthError(code) {
   const errorMessages = {
     'auth/email-already-in-use': 'This email is already registered. Try logging in.',
@@ -127,10 +139,4 @@ function formatAuthError(code) {
   }
 
   return errorMessages[code] || 'Authentication error. Please try again.'
-}
-
-/**
- * Admin helper: Toggle seller verification
- * Usage: toggleSellerVerification(userId, currentStatus)
- */
-
+  }
