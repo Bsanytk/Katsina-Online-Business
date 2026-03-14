@@ -28,9 +28,12 @@ export const getAllSellers = async () => {
 export const toggleSellerVerification = async (userId, currentStatus) => {
   try {
     const userRef = doc(db, 'users', userId);
+
     await updateDoc(userRef, {
-      isVerified: !currentStatus
+      isVerified: !currentStatus,
+      updatedAt: new Date().toISOString()
     });
+
   } catch (error) {
     console.error("Error updating verification status:", error);
     throw error;
