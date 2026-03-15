@@ -75,7 +75,7 @@ export default function ProductForm({
         setImages(
           initialData.images.map((img, idx) => ({
             id: img.id || `existing-${idx}`,
-            preview: typeof img === 'string' ? img : img.url,
+            preview: typeof img === 'string' ? img : img.url || img.secure_url,
             isExisting: true,
           }))
         )
@@ -123,8 +123,8 @@ export default function ProductForm({
     const submissionData = { 
       ...formData, 
       ownerUid: user?.uid,
-      whatsappNumber: cleanWhatsapp,
-      price: parselFloat(formData.price), 
+      cleanWhatsapp = formData.whatsappNumber.replace(/\D/g, '')
+      price: parseFloat(formData.price), 
       images,
       deliveryLink: formData.deliveryOption === 'KOB Express Delivery' ? GOOGLE_FORM_URL : null
     }
@@ -132,7 +132,7 @@ export default function ProductForm({
   }
 
   // --- Verification Lock Screen ---
-  if (checkingStatus) return <div className="p-10 text-center"><Loading size="md" /></div>
+   if (checkingStatus) return <div className="p-10 text-center"><Loading size="md" /></div>
   if (!isVerified && !isEditMode) {
     return (
       <Card variant="outlined" className="p-10 text-center border-2 border-amber-200 bg-amber-50 rounded-2xl shadow-sm">
