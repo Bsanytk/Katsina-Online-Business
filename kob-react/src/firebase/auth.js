@@ -139,4 +139,4 @@ function formatAuthError(code) {
   }
 
   return errorMessages[code] || 'Authentication error. Please try again.'
-  }
+}
