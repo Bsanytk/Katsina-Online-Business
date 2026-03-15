@@ -15,11 +15,11 @@ export default function ProductCard({ product, onEdit, onDelete, onBuyClick }) {
   
   const getDisplayImage = () => {
     if (imageError) return imagePlaceholder;
-    if (product.imageUrl && typeof product.imageUrl === 'string') return product.imageUrl;
+    if (product.imageUrl && typeof product.imageURL === 'string') return product.imageURL;
     if (product.mainImage && typeof product.mainImage === 'string') return product.mainImage;
     if (product.images && Array.isArray(product.images) && product.images.length > 0) {
       const firstImg = product.images[0];
-      return typeof firstImg === 'string' ? firstImg : firstImg.url || firstImg.preview;
+      return typeof firstImg === 'string' ? firstImg : firstImg.url || firstImg.secure_url || firstImg.preview;
     }
     return imagePlaceholder;
   };
@@ -51,7 +51,7 @@ export default function ProductCard({ product, onEdit, onDelete, onBuyClick }) {
       <div className="relative w-full h-52 bg-neutral-100 overflow-hidden">
         <img 
           src={displayImage} 
-          alt={product.title} 
+          alt={product.title || product.name} 
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
           onError={handleImageError}
         />
@@ -82,7 +82,7 @@ export default function ProductCard({ product, onEdit, onDelete, onBuyClick }) {
       {/* Content Section */}
       <div className="p-4 flex flex-col flex-grow">
         <h3 className="text-md font-bold text-neutral-800 line-clamp-1 mb-1 capitalize">
-          {product.title}
+          {product.title || product.name}
         </h3>
         
         {/* --- NEW: Location Display --- */}
@@ -97,7 +97,7 @@ export default function ProductCard({ product, onEdit, onDelete, onBuyClick }) {
         <div className="mb-4">
           <span className="text-xs text-neutral-400 block uppercase font-medium tracking-tighter">Price</span>
           <span className="text-xl font-black text-kob-primary">
-            ₦{product.price?.toLocaleString() || '—'}
+            ₦{Number(product.price)?.toLocaleString() || '—'}
           </span>
         </div>
         
