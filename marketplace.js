@@ -126,7 +126,7 @@ async function loadProducts() {
     }
 
     snapshot.forEach((docSnap) => {
-      const p = docSnap.data();
+      const p = docSnap.data() || {};
 
       const div = document.createElement("div");
       div.className = "product-card";
