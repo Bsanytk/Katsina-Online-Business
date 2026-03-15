@@ -123,7 +123,7 @@ export default function ProductForm({
     const submissionData = { 
       ...formData, 
       ownerUid: user?.uid,
-      cleanWhatsapp = formData.whatsappNumber.replace(/\D/g, '')
+      cleanWhatsapp: formData.whatsappNumber.replace(/\D/g, '')
       price: parseFloat(formData.price),
       images,
       deliveryLink: formData.deliveryOption === 'KOB Express Delivery' ? GOOGLE_FORM_URL : null
