@@ -153,7 +153,7 @@ async function loadProducts() {
     follows the KOB brand colors even if the original HTML didn't include them.
 */
 function updateUIForRole() {
-  const allowed = currentUserRole === "admin" || currentUserRole === "verified";
+  const allowed = currentUserRole === "admin" || userData.isVerified === true;
   if (addProductForm) addProductForm.style.display = allowed ? "" : "none";
   if (addProductBtn) {
     addProductBtn.style.display = allowed ? "inline-block" : "none";
