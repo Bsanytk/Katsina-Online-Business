@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react'
-import { Card, Button, Input, Textarea, Alert, Select } from '../ui'
+import { Card, Button, Input, Textarea, Alert } from '../ui'
 import Loading from '../Loading'
 import { useTranslation } from '../../hooks/useTranslation'
-import { useAuth } from '../../firebase/auth'
-import { getUserProfile } from '../../services/users'
+import { useAuth } from '../../firebase/auth' // Added for seller identity
 
+/**
+ * ProductForm Component
+ * Fully updated for KOB Marketplace production
+ */
 export default function ProductForm({
   onSubmit = () => {},
   onCancel = () => {},
@@ -14,94 +17,83 @@ export default function ProductForm({
   uploadingImage = false,
 }) {
   const t = useTranslation()
-  const { user } = useAuth()
-
-  const MAX_IMAGES = 5
-  const GOOGLE_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSc5Ml7GWZNeNzKhbiqwfULxtFiQUQ0Cgt9eAM2is4JKou3F1Q/viewform?usp=header"
-
+  const { user } = useAuth() // Access current logged-in user
+  
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     price: '',
     category: '',
     whatsappNumber: '',
-    location: '',
-    sellerIDNumber: '',
-    deliveryOption: 'KOB Express Delivery',
     isDraft: true,
   })
+  
   const [images, setImages] = useState([])
   const [validationErrors, setValidationErrors] = useState({})
-  const [isVerified, setIsVerified] = useState(false)
-  const [checkingStatus, setCheckingStatus] = useState(true)
 
-  const categories = ['Electronics', 'Fashion', 'Beauty', 'Food', 'Services', 'Others']
-  const deliveryOptions = ['KOB Express Delivery', 'Self Delivery']
+  const MAX_IMAGES = 5
+  const isEditMode = initialData !== null
 
-  // Load seller profile
+  // Sync form with initialData (for Edit Mode)
   useEffect(() => {
-    async function fetchSellerData() {
-      if (!user?.uid) return
-      try {
-        const profile = await getUserProfile(user.uid)
-        setIsVerified(profile?.isVerified === true)
-        setFormData(prev => ({
-          ...prev,
-          sellerIDNumber: prev.sellerIDNumber || profile?.kobNumber || '',
-          whatsappNumber: prev.whatsappNumber || profile?.whatsappNumber || '',
-        }))
-      } catch (err) {
-        console.error('Error fetching seller profile:', err)
+    if (initialData) {
+      const newFormData = {
+        title: initialData.title || '',
+        description: initialData.description || '',
+        price: initialData.price?.toString() || '',
+        category: initialData.category || '',
+        whatsappNumber: initialData.whatsappNumber || '',
+        isDraft: initialData.isDraft ?? true,
       }
-      setCheckingStatus(false)
-    }
-    fetchSellerData()
-  }, [user])
+      
+      setFormData(newFormData)
 
-  // Load edit data
-  useEffect(() => {
-    if (!initialData) return
-    setFormData(prev => ({
-      ...prev,
-      title: initialData.title || '',
-      description: initialData.description || '',
-      price: initialData.price?.toString() || '',
-      category: initialData.category || '',
-      whatsappNumber: initialData.whatsappNumber || prev.whatsappNumber || '',
-      location: initialData.location || '',
-      sellerIDNumber: initialData.sellerIDNumber || prev.sellerIDNumber || '',
-      deliveryOption: initialData.deliveryOption || 'KOB Express Delivery',
-      isDraft: initialData.isDraft ?? true,
-    }))
-    if (initialData.images) {
-      setImages(initialData.images.map((img, idx) => ({
-        id: `existing-${idx}`,
-        preview: img,
-        isExisting: true
-      })))
+      if (initialData.images && Array.isArray(initialData.images)) {
+        setImages(
+          initialData.images.map((img, idx) => ({
+            id: img.id || `existing-${idx}`,
+            preview: img.url || img,
+            isExisting: true,
+          }))
+        )
+      }
     }
   }, [initialData])
 
-  // Cleanup preview URLs
-  useEffect(() => {
-    return () => {
-      images.forEach(img => {
-        if (img.isNew && img.preview) URL.revokeObjectURL(img.preview)
-      })
-    }
-  }, [images])
+  const categories = [
+    'Electronics', 'Fashion', 'Home & Garden', 'Sports',
+    'Food & Beverages', 'Health & Beauty', 'Books',
+    'Toys & Games', 'Automotive', 'Other',
+  ]
 
-  // Validation
   function validateForm() {
     const errors = {}
-    if (!formData.title.trim()) errors.title = 'Required'
-    if (!formData.description.trim()) errors.description = 'Required'
-    if (!formData.price || Number(formData.price) <= 0) errors.price = 'Invalid price'
-    if (!formData.category) errors.category = 'Required'
-    if (!formData.whatsappNumber.trim()) errors.whatsappNumber = 'Required'
-    if (!/^(\+?234|0)\d{10}$/.test(formData.whatsappNumber)) errors.whatsappNumber = 'Invalid format'
-    if (!formData.location.trim()) errors.location = 'Required'
-    if (images.length === 0) errors.images = 'Add at least 1 image'
+
+    if (!formData.title.trim()) {
+      errors.title = t('productForm.errors.titleRequired') || 'Product title is required'
+    }
+
+    if (!formData.description.trim() || formData.description.length < 10) {
+      errors.description = t('productForm.errors.descriptionMinLength') || 'Description must be at least 10 characters'
+    }
+
+    const price = Number(formData.price)
+    if (!formData.price || isNaN(price) || price <= 0) {
+      errors.price = t('productForm.errors.priceInvalid') || 'Enter a valid price'
+    }
+
+    if (!formData.category) {
+      errors.category = t('productForm.errors.categoryRequired') || 'Category is required'
+    }
+
+    if (!formData.whatsappNumber.trim()) {
+      errors.whatsappNumber = t('productForm.errors.whatsappRequired') || 'WhatsApp number is required'
+    }
+
+    if (!formData.isDraft && images.length === 0) {
+      errors.images = t('productForm.errors.imageRequired') || 'At least one image is required to publish'
+    }
+
     setValidationErrors(errors)
     return Object.keys(errors).length === 0
   }
@@ -109,175 +101,174 @@ export default function ProductForm({
   function handleChange(e) {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
-    setValidationErrors(prev => ({ ...prev, [name]: undefined }))
+    if (validationErrors[name]) {
+      setValidationErrors(prev => ({ ...prev, [name]: null }))
+    }
+  }
+
+  function handleToggleDraft() {
+    setFormData(prev => ({ ...prev, isDraft: !prev.isDraft }))
   }
 
   function handleImageChange(e) {
-    const files = Array.from(e.target.files)
-    if (files.length === 0) return
+    const files = e.target.files
+    if (!files) return
 
-    const newImages = files.slice(0, MAX_IMAGES - images.length).map(file => ({
-      file,
-      preview: URL.createObjectURL(file),
-      isNew: true,
-      id: `img-${Date.now()}-${Math.random()}`
-    }))
-    setImages(prev => [...prev, ...newImages])
+    const filesToAdd = Array.from(files).slice(0, MAX_IMAGES - images.length)
+
+    filesToAdd.forEach((file, index) => {
+      if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) return
+      if (file.size > 5 * 1024 * 1024) return // 5MB limit
+
+      const reader = new FileReader()
+      reader.onload = (event) => {
+        setImages(prev => [...prev, {
+          id: `new-${Date.now()}-${index}`,
+          file,
+          preview: event.target?.result,
+          isNew: true,
+        }])
+      }
+      reader.readAsDataURL(file)
+    })
   }
 
   function handleRemoveImage(id) {
     setImages(prev => prev.filter(img => img.id !== id))
   }
 
-  async function handleSubmit(isDraft = false) {
-    if (!isVerified) {
-      alert('Seller account not verified. Cannot submit product.')
-      return
-    }
+  async function handleSubmit(e) {
+    e.preventDefault()
+
     if (!validateForm()) return
 
-    const submissionData = {
-      ...formData,
-      isDraft,
-      ownerUid: user.uid,
-      cleanWhatsapp: formData.whatsappNumber.replace(/\D/g, ''),
-      price: Number(formData.price),
-      images,
-      deliveryLink: formData.deliveryOption === 'KOB Express Delivery' ? GOOGLE_FORM_URL : null
+    // Critical Production Security Check
+    if (!user?.uid) {
+      alert("Error: You must be logged in to post products.")
+      return
     }
 
-    onSubmit(submissionData)
+    onSubmit({
+      ...formData,
+      ownerUid: user.uid, // Automatically link product to seller
+      price: Number(formData.price),
+      images, 
+    })
   }
 
-  if (checkingStatus) return <Loading />
-
   return (
-    <Card className="p-6 space-y-4">
-      {error && <Alert type="error" title="Error">{error}</Alert>}
-      {!isVerified && <Alert type="warning" title="Unverified Seller">Verify your account to publish products</Alert>}
-
-      <form className="space-y-5" onSubmit={e => { e.preventDefault(); handleSubmit(false) }}>
-
-        <Input
-          name="title"
-          value={formData.title}
-          onChange={handleChange}
-          placeholder="Title"
-          error={validationErrors.title}
-        />
-
-        <Textarea
-          name="description"
-          value={formData.description}
-          onChange={handleChange}
-          placeholder="Product Description"
-          error={validationErrors.description}
-        />
-
-        <Input
-          name="price"
-          type="number"
-          value={formData.price}
-          onChange={handleChange}
-          placeholder="Price in NGN"
-          error={validationErrors.price}
-        />
-
-        <Select
-          name="category"
-          value={formData.category}
-          onChange={handleChange}
-          options={categories}
-          placeholder="Select Category"
-          error={validationErrors.category}
-        />
-
-        <Input
-          name="location"
-          value={formData.location}
-          onChange={handleChange}
-          placeholder="Location"
-          error={validationErrors.location}
-        />
-
-        <Input
-          name="whatsappNumber"
-          value={formData.whatsappNumber}
-          onChange={handleChange}
-          placeholder="WhatsApp Number"
-          error={validationErrors.whatsappNumber}
-        />
-
-        <Input
-          name="sellerIDNumber"
-          value={formData.sellerIDNumber}
-          readOnly
-          placeholder="Seller KOB ID"
-        />
-
-        <Select
-          name="deliveryOption"
-          value={formData.deliveryOption}
-          onChange={handleChange}
-          options={deliveryOptions}
-          placeholder="Delivery Option"
-        />
-
-        {/* Images */}
+    <Card variant="elevated" className="p-6">
+      <div className="space-y-6">
+        {/* Header */}
         <div>
-          <label className="font-bold">Product Images (max 5)</label>
-          <input
-            type="file"
-            accept="image/*"
-            multiple
-            onChange={handleImageChange}
-            className="w-full border p-2 rounded mt-2"
-          />
-          {validationErrors.images && <p className="text-red-600 mt-1">{validationErrors.images}</p>}
+          <h2 className="text-2xl font-bold text-kob-dark mb-2">
+            {isEditMode ? '✏️ ' + (t('productForm.editProduct') || 'Edit Product') : '➕ ' + (t('productForm.addProduct') || 'Add New Product')}
+          </h2>
+        </div>
 
-          {images.length > 0 && (
-            <div className="grid grid-cols-3 gap-3 mt-3">
-              {images.map(img => (
-                <div key={img.id} className="relative">
-                  <img src={img.preview} className="h-24 w-full object-cover rounded" />
-                  {img.isExisting && <span className="absolute bottom-1 left-1 bg-black/50 text-white text-xs px-1 rounded">Existing</span>}
+        {/* Status Toggle */}
+        <div className={`p-4 rounded-lg border ${formData.isDraft ? 'bg-amber-50 border-amber-200' : 'bg-green-50 border-green-200'}`}>
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={formData.isDraft}
+              onChange={handleToggleDraft}
+              className="w-5 h-5 rounded accent-kob-primary"
+            />
+            <span className={`font-bold ${formData.isDraft ? 'text-amber-900' : 'text-green-900'}`}>
+              {formData.isDraft ? '📝 Save as Draft' : '🚀 Publish to Marketplace'}
+            </span>
+          </label>
+        </div>
+
+        {error && <Alert type="error">{error}</Alert>}
+
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <Input
+            label="Product Title"
+            name="title"
+            placeholder="e.g. Toyota Corolla 2022"
+            value={formData.title}
+            onChange={handleChange}
+            error={validationErrors.title}
+          />
+
+          <Textarea
+            label="Description"
+            name="description"
+            placeholder="Describe your product..."
+            value={formData.description}
+            onChange={handleChange}
+            rows={5}
+            error={validationErrors.description}
+          />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Input
+              label="Price (₦)"
+              name="price"
+              type="number"
+              value={formData.price}
+              onChange={handleChange}
+              error={validationErrors.price}
+            />
+
+            <div>
+              <label className="block text-sm font-semibold text-kob-dark mb-2">Category</label>
+              <select
+                name="category"
+                value={formData.category}
+                onChange={handleChange}
+                className={`w-full px-4 py-2 border-2 rounded-lg ${validationErrors.category ? 'border-red-500' : 'border-gray-300'}`}
+              >
+                <option value="">Select Category</option>
+                {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+              </select>
+              {validationErrors.category && <p className="text-xs text-red-500 mt-1">{validationErrors.category}</p>}
+            </div>
+          </div>
+
+          <Input
+            label="WhatsApp Contact"
+            name="whatsappNumber"
+            placeholder="23480..."
+            value={formData.whatsappNumber}
+            onChange={handleChange}
+            error={validationErrors.whatsappNumber}
+          />
+
+          {/* Image Section */}
+          <div>
+            <label className="block text-sm font-semibold text-kob-dark mb-2">Images ({images.length}/{MAX_IMAGES})</label>
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-4">
+              {images.map((img, index) => (
+                <div key={img.id} className="relative aspect-square rounded-lg overflow-hidden border bg-gray-50">
+                  <img src={img.preview} alt="preview" className="w-full h-full object-cover" />
                   <button
                     type="button"
                     onClick={() => handleRemoveImage(img.id)}
-                    className="absolute top-1 right-1 bg-red-600 text-white text-xs px-2 rounded"
-                  >
-                    ✕
-                  </button>
+                    className="absolute top-1 right-1 bg-red-600 text-white w-6 h-6 rounded-full"
+                  >✕</button>
                 </div>
               ))}
+              {images.length < MAX_IMAGES && (
+                <label className="aspect-square flex flex-col items-center justify-center border-2 border-dashed rounded-lg cursor-pointer hover:bg-gray-50">
+                  <span className="text-2xl">📷</span>
+                  <input type="file" accept="image/*" multiple className="hidden" onChange={handleImageChange} />
+                </label>
+              )}
             </div>
-          )}
-        </div>
+            {validationErrors.images && <p className="text-xs text-red-500">{validationErrors.images}</p>}
+          </div>
 
-        {/* Draft / Publish */}
-        <div className="flex gap-4">
-          <Button
-            type="button"
-            onClick={() => handleSubmit(true)}
-            variant="secondary"
-            disabled={loading || uploadingImage}
-          >
-            {loading || uploadingImage ? 'Saving...' : 'Save as Draft'}
-          </Button>
-
-          <Button type="submit" disabled={loading || uploadingImage || !isVerified}>
-            {loading || uploadingImage ? 'Processing...' : 'Publish Product'}
-          </Button>
-
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onCancel}
-          >
-            Cancel
-          </Button>
-        </div>
-      </form>
+          <div className="flex gap-4">
+            <Button type="submit" variant="primary" size="lg" className="flex-1" disabled={loading || uploadingImage}>
+              {loading ? 'Processing...' : (formData.isDraft ? 'Save Draft' : 'Submit Listing')}
+            </Button>
+            <Button type="button" variant="outline" size="lg" onClick={onCancel}>Cancel</Button>
+          </div>
+        </form>
+      </div>
     </Card>
   )
-}
+ }
