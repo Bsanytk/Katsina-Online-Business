@@ -23,7 +23,7 @@ export default function ProductForm({
     category: '',
     whatsappNumber: '',
     location: '',
-    sellerIDNumber: '',
+    sellerIDNumber: '',  // Auto-fill KOB ID
     deliveryOption: 'KOB Express Delivery',
     isDraft: true,
   })
@@ -37,36 +37,44 @@ export default function ProductForm({
   const isEditMode = initialData !== null
   const GOOGLE_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSc5Ml7GWZNeNzKhbiqwfULxtFiQUQ0Cgt9eAM2is4JKou3F1Q/viewform?usp=header";
 
-  // Verify seller
+  // ✅ Load seller profile to auto-fill KOB ID
   useEffect(() => {
-    async function checkSellerStatus() {
+    async function fetchSellerData() {
       if (user?.uid) {
         try {
           const profile = await getUserProfile(user.uid)
           setIsVerified(profile?.isVerified === true)
+
+          // Auto-fill sellerIDNumber only if blank (prevent override)
+          setFormData(prev => ({
+            ...prev,
+            sellerIDNumber: prev.sellerIDNumber || profile?.kobNumber || '',
+            whatsappNumber: prev.whatsappNumber || profile?.whatsappNumber || '',
+          }))
         } catch (err) {
-          console.error(err)
+          console.error('Error fetching seller profile:', err)
         }
       }
       setCheckingStatus(false)
     }
-    checkSellerStatus()
+    fetchSellerData()
   }, [user])
 
   // Load edit data
   useEffect(() => {
     if (initialData) {
-      setFormData({
+      setFormData(prev => ({
+        ...prev,
         title: initialData.title || '',
         description: initialData.description || '',
         price: initialData.price?.toString() || '',
         category: initialData.category || '',
-        whatsappNumber: initialData.whatsappNumber || '',
+        whatsappNumber: initialData.whatsappNumber || prev.whatsappNumber || '',
         location: initialData.location || '',
-        sellerIDNumber: initialData.sellerIDNumber || '',
+        sellerIDNumber: initialData.sellerIDNumber || prev.sellerIDNumber || '',
         deliveryOption: initialData.deliveryOption || 'KOB Express Delivery',
         isDraft: initialData.isDraft ?? true,
-      })
+      }))
 
       if (initialData.images) {
         setImages(
@@ -80,7 +88,7 @@ export default function ProductForm({
     }
   }, [initialData])
 
-  // Cleanup preview URLs (safe)
+  // Cleanup preview URLs
   useEffect(() => {
     return () => {
       images.forEach(img => {
@@ -148,6 +156,14 @@ export default function ProductForm({
         <Input name="price" type="number" value={formData.price} onChange={handleChange} />
         <Input name="location" value={formData.location} onChange={handleChange} />
         <Input name="whatsappNumber" value={formData.whatsappNumber} onChange={handleChange} />
+
+        {/* ✅ Seller KOB ID - read-only */}
+        <Input 
+          name="sellerIDNumber" 
+          value={formData.sellerIDNumber} 
+          readOnly
+          placeholder="Seller KOB ID"
+        />
 
         {/* IMAGE INPUT */}
         <div>
