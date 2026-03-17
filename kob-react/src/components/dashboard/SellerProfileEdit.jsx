@@ -26,15 +26,18 @@ export default function SellerProfileEdit() {
   const [success, setSuccess] = useState(false)
 
   const [profileData, setProfileData] = useState({
-    displayName: '', // Profile Name
-    businessName: '', // B-SANI BIO-CARE MED
+    displayName: '',
+    businessName: '',
     phoneNumber: '',
     countryCode: '+234',
     whatsappNumber: '',
-    kobNumber: 'KOB - ', // Specific KOB ID
+    kobNumber: 'KOB - ',
     location: '',
     photoURL: 'https://res.cloudinary.com/dn5crslee/image/upload/v1773415750/20260313_161322_oo9ocx.png'
   })
+
+  // --- Auto-generate KOB Number helper ---
+  const generateKOBNumber = () => `KOB-${Math.floor(1000 + Math.random() * 9000)}`
 
   const loadProfile = useCallback(async () => {
     if (!user?.uid) return
@@ -52,6 +55,11 @@ export default function SellerProfileEdit() {
         }
       })
 
+      // --- Auto-generate KOB number if empty or default ---
+      const kobNumber = profile.kobNumber && profile.kobNumber !== 'KOB - '
+        ? profile.kobNumber
+        : generateKOBNumber()
+
       setProfileData(prev => ({
         ...prev,
         displayName: profile.displayName || '',
@@ -59,7 +67,7 @@ export default function SellerProfileEdit() {
         phoneNumber: detectedNumber.replace(/\s+/g, ''),
         countryCode: detectedCode,
         whatsappNumber: profile.whatsappNumber || '',
-        kobNumber: profile.kobNumber || 'KOB - ',
+        kobNumber,
         location: profile.location || '',
       }))
     } catch (err) {
@@ -85,7 +93,7 @@ export default function SellerProfileEdit() {
         whatsappNumber: profileData.whatsappNumber.trim(),
         kobNumber: profileData.kobNumber.trim(),
         location: profileData.location,
-        photoURL: profileData.photoURL, // Cloudinary URL
+        photoURL: profileData.photoURL,
         role: 'seller'
       })
       setSuccess(true)
@@ -115,8 +123,8 @@ export default function SellerProfileEdit() {
 
       <Card className="p-8 md:p-12 rounded-[3rem] shadow-2xl bg-white border-b-[12px] border-[#4B3621]">
         <form onSubmit={handleSave} className="space-y-8">
-          
-          {/* Constant Cloudinary Profile Image */}
+
+          {/* Profile Image */}
           <div className="flex flex-col items-center gap-4">
             <div className="w-28 h-28 rounded-full border-4 border-[#D4AF37] p-1 shadow-xl overflow-hidden">
               <img src={profileData.photoURL} alt="Merchant" className="w-full h-full object-cover rounded-full" />
@@ -124,6 +132,7 @@ export default function SellerProfileEdit() {
             <span className="text-[10px] font-black text-[#4B3621] uppercase tracking-widest bg-gray-100 px-4 py-1 rounded-full">Official KOB Avatar</span>
           </div>
 
+          {/* Name Fields */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Input
               label="Profile Name"
@@ -141,17 +150,30 @@ export default function SellerProfileEdit() {
             />
           </div>
 
-          {/* KOB ID & Location Grid */}
+          {/* KOB Number & Location */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Input
-              label="KOB Number"
-              value={profileData.kobNumber}
-              onChange={(e) => setProfileData(p => ({ ...p, kobNumber: e.target.value }))}
-              placeholder="KOB - XXX"
-              className="font-black text-[#4B3621]"
-              required
-            />
-            
+            <div className="space-y-2 relative">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">KOB Number</label>
+              <div className="flex gap-2 items-center">
+                <input
+                  type="text"
+                  value={profileData.kobNumber}
+                  onChange={(e) => setProfileData(p => ({ ...p, kobNumber: e.target.value }))}
+                  className="flex-1 p-4 bg-gray-50 border-2 border-gray-100 rounded-2xl focus:border-[#4B3621] font-black text-[#4B3621]"
+                  placeholder="KOB - XXX"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setProfileData(p => ({ ...p, kobNumber: generateKOBNumber() }))}
+                  className="px-3 py-2 bg-[#D4AF37] text-white rounded-xl font-bold text-[10px] hover:opacity-90 transition"
+                  title="Regenerate KOB Number"
+                >
+                  Regenerate
+                </button>
+              </div>
+            </div>
+
             <div className="space-y-2">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">Marketplace Location</label>
               <select
@@ -166,6 +188,7 @@ export default function SellerProfileEdit() {
             </div>
           </div>
 
+          {/* Phone & WhatsApp */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
              <div className="space-y-2">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">Phone Number</label>
