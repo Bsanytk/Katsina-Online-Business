@@ -15,7 +15,8 @@ export default function ProductCard({ product, onEdit, onDelete, onBuyClick }) {
   
   const getDisplayImage = () => {
     if (imageError) return imagePlaceholder;
-    if (product.imageUrl && typeof product.imageURL === 'string') return product.imageURL;
+    if (product.imageURL && typeof product.imageURL === 'string') return product.imageURL;
+    if (product.imageUrl && typeof product.imageUrl === 'string') return product.imageUrl;
     if (product.mainImage && typeof product.mainImage === 'string') return product.mainImage;
     if (product.images && Array.isArray(product.images) && product.images.length > 0) {
       const firstImg = product.images[0];
