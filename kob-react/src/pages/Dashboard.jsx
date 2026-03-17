@@ -8,28 +8,49 @@ import OrdersTab from '../components/dashboard/OrdersTab'
 import MessagesTab from '../components/dashboard/MessagesTab'
 import SellerProfileEdit from '../components/dashboard/SellerProfileEdit'
 
-// Buyer Dashboard View
+// ---------------------- Buyer Dashboard ----------------------
 function BuyerDashboard({ user }) {
-  const [savedProducts] = useState([])
+  const [savedProducts, setSavedProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('overview')
 
   useEffect(() => {
-    // TODO: Fetch user's saved products from Firestore
     const loadData = async () => {
-      setLoading(false)
+      try {
+        // TODO: Replace with real Firestore fetch for user's saved products
+        const items = await getProducts({ savedBy: user.uid })
+        setSavedProducts(items)
+      } catch (err) {
+        console.error('Error loading saved products:', err)
+      } finally {
+        setLoading(false)
+      }
     }
     loadData()
-  }, [])
+  }, [user.uid])
+
+  // Handle contacting seller: only buyers allowed
+  const handleContactSeller = (sellerId) => {
+    if (!user) {
+      alert('Please login or register as a buyer to contact sellers.')
+      window.location.href = '/login'
+      return
+    }
+    if (user.role !== 'buyer') {
+      alert('Only buyers can send messages. Register as a buyer first.')
+      return
+    }
+    window.location.href = `/chat?seller=${sellerId}`
+  }
 
   return (
     <div className="space-y-8">
       {/* Tab Navigation */}
       <div className="flex gap-4 border-b-2 border-gray-200 overflow-x-auto">
         {[
-          { id: 'overview', label: '📊 Overview', icon: '📊' },
-          { id: 'orders', label: '📦 Orders', icon: '📦' },
-          { id: 'messages', label: '💬 Messages', icon: '💬' },
+          { id: 'overview', label: '📊 Overview' },
+          { id: 'orders', label: '📦 Orders' },
+          { id: 'messages', label: '💬 Messages' },
         ].map((tab) => (
           <button
             key={tab.id}
@@ -90,7 +111,16 @@ function BuyerDashboard({ user }) {
               <Loading message="Loading saved products..." />
             ) : savedProducts.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Products will be displayed here */}
+                {savedProducts.map((product) => (
+                  <Card key={product.id} className="p-4 rounded-xl shadow hover:shadow-lg transition-all">
+                    <h3 className="text-lg font-bold mb-2">{product.title}</h3>
+                    <p className="text-sm text-gray-600 mb-2">{product.description}</p>
+                    <p className="font-bold text-kob-primary mb-4">₦{product.price}</p>
+                    <Button onClick={() => handleContactSeller(product.sellerId)} variant="primary">
+                      💬 Contact Seller
+                    </Button>
+                  </Card>
+                ))}
               </div>
             ) : (
               <div className="text-center py-16">
@@ -107,31 +137,6 @@ function BuyerDashboard({ user }) {
               </div>
             )}
           </Card>
-
-          {/* Resources */}
-          <Card variant="outlined" className="p-8 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-200">
-            <h3 className="text-2xl font-bold text-blue-900 mb-6 flex items-center gap-3">
-              <span className="text-4xl">💡</span> Quick Tips for Smart Shopping
-            </h3>
-            <ul className="space-y-3 text-base text-blue-900">
-              <li className="flex items-start gap-3">
-                <span className="text-xl">✓</span>
-                <span>Save products to your favorites for easy access later</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="text-xl">✓</span>
-                <span>Check seller ratings before making a purchase</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="text-xl">✓</span>
-                <span>Use WhatsApp to contact sellers directly for inquiries</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="text-xl">✓</span>
-                <span>Read buyer reviews to make informed purchasing decisions</span>
-              </li>
-            </ul>
-          </Card>
         </div>
       )}
 
@@ -141,7 +146,7 @@ function BuyerDashboard({ user }) {
   )
 }
 
-// Seller Dashboard View
+// ---------------------- Seller Dashboard ----------------------
 function SellerDashboard({ user }) {
   const [products, setProducts] = useState([])
   const [loadingProducts, setLoadingProducts] = useState(true)
@@ -154,21 +159,19 @@ function SellerDashboard({ user }) {
   }, [])
 
   async function fetchProducts() {
-  setLoadingProducts(true)
-  try {
-    // Pass sellerId to only get their own products
-    const items = await getProducts({ pageSize: 10, sellerId: user.uid })
-    setProducts(items)
-  } catch (err) {
-    console.error('Error fetching products:', err)
-  } finally {
-    setLoadingProducts(false)
+    setLoadingProducts(true)
+    try {
+      const items = await getProducts({ pageSize: 10, sellerId: user.uid })
+      setProducts(items)
+    } catch (err) {
+      console.error('Error fetching products:', err)
+    } finally {
+      setLoadingProducts(false)
+    }
   }
-}
 
   async function handleDelete(productId, productTitle) {
     if (!window.confirm(`Delete "${productTitle}"? This action cannot be undone.`)) return
-
     setDeleteLoading(productId)
     try {
       await deleteProduct(productId)
@@ -176,7 +179,7 @@ function SellerDashboard({ user }) {
       await fetchProducts()
       setTimeout(() => setShowDeleteSuccess(false), 5000)
     } catch (err) {
-      if (import.meta.env.DEV) console.error('Error deleting product:', err)
+      console.error('Error deleting product:', err)
       alert('Failed to delete product. Please try again.')
     } finally {
       setDeleteLoading(null)
@@ -188,10 +191,10 @@ function SellerDashboard({ user }) {
       {/* Tab Navigation */}
       <div className="flex gap-2 border-b-2 border-gray-100 overflow-x-auto">
         {[
-          { id: 'products', label: '📦 Products', icon: '📦' },
-          { id: 'sales', label: '💰 Sales', icon: '💰' },
-          { id: 'messages', label: '💬 Messages', icon: '💬' },
-          { id: 'profile', label: '👤 Profile', icon: '👤' },
+          { id: 'products', label: '📦 Products' },
+          { id: 'sales', label: '💰 Sales' },
+          { id: 'messages', label: '💬 Messages' },
+          { id: 'profile', label: '👤 Profile' },
         ].map((tab) => (
           <button
             key={tab.id}
@@ -259,7 +262,6 @@ function SellerDashboard({ user }) {
                 onClick={() => window.location.href = '/marketplace'}
                 variant="primary"
                 size="lg"
-                className="shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300"
               >
                 + Add Product
               </Button>
@@ -299,7 +301,7 @@ function SellerDashboard({ user }) {
                             size="sm"
                             disabled={deleteLoading === product.id}
                           >
-                            {deleteLoading === product.id ? '⌛': 'Delete'}
+                            {deleteLoading === product.id ? '⌛' : 'Delete'}
                           </Button>
                         </td>
                       </tr>
@@ -321,18 +323,6 @@ function SellerDashboard({ user }) {
               </div>
             )}
           </Card>
-
-          {/* Resources */}
-          <Card variant="outlined" className="p-6 bg-green-50">
-            <h3 className="text-lg font-bold text-kob-dark mb-4">🚀 Seller Resources</h3>
-            <ul className="space-y-2 text-sm text-gray-700">
-              <li>✓ <strong>Product Tips:</strong> Use clear titles and detailed descriptions</li>
-              <li>✓ <strong>Pricing:</strong> Competitive pricing helps products sell faster</li>
-              <li>✓ <strong>Images:</strong> High-quality images increase buyer confidence</li>
-              <li>✓ <strong>Communication:</strong> Respond to buyer inquiries quickly</li>
-              <li>✓ <a href="/help" className="text-kob-primary hover:underline font-bold">View Seller Guide →</a></li>
-            </ul>
-          </Card>
         </div>
       )}
 
@@ -343,12 +333,12 @@ function SellerDashboard({ user }) {
   )
 }
 
+// ---------------------- Main Dashboard ----------------------
 export default function Dashboard() {
   const { user, loading } = useAuth()
 
   if (loading) return <Loading fullScreen message="Loading dashboard..." />
 
-  // Redirect if not logged in
   if (!user) {
     return (
       <div className="min-h-screen bg-kob-light flex items-center justify-center p-4">
@@ -370,17 +360,14 @@ export default function Dashboard() {
         <BackButton />
       </div>
       <div className="container py-8">
-        {/* Render appropriate dashboard based on user role */}
         {user.role === 'seller' ? (
           <SellerDashboard user={user} />
         ) : user.role === 'buyer' ? (
           <BuyerDashboard user={user} />
         ) : (
-          // Admin view or default
           <SellerDashboard user={user} />
         )}
       </div>
     </main>
   )
 }
-          
