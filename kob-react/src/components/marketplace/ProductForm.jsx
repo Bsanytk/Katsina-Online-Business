@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Card, Button, Input, Textarea, Alert } from '../ui'
+import { Card, Button, Input, Textarea, Alert, Select } from '../ui'
 import Loading from '../Loading'
 import { useTranslation } from '../../hooks/useTranslation'
 import { useAuth } from '../../firebase/auth'
@@ -15,6 +15,9 @@ export default function ProductForm({
 }) {
   const t = useTranslation()
   const { user } = useAuth()
+
+  const MAX_IMAGES = 5
+  const GOOGLE_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSc5Ml7GWZNeNzKhbiqwfULxtFiQUQ0Cgt9eAM2is4JKou3F1Q/viewform?usp=header"
 
   const [formData, setFormData] = useState({
     title: '',
@@ -32,9 +35,8 @@ export default function ProductForm({
   const [isVerified, setIsVerified] = useState(false)
   const [checkingStatus, setCheckingStatus] = useState(true)
 
-  const MAX_IMAGES = 5
-  const isEditMode = initialData !== null
-  const GOOGLE_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSc5Ml7GWZNeNzKhbiqwfULxtFiQUQ0Cgt9eAM2is4JKou3F1Q/viewform?usp=header";
+  const categories = ['Electronics', 'Fashion', 'Beauty', 'Food', 'Services', 'Others']
+  const deliveryOptions = ['KOB Express Delivery', 'Self Delivery']
 
   // Load seller profile
   useEffect(() => {
@@ -89,7 +91,7 @@ export default function ProductForm({
     }
   }, [images])
 
-  // Validate form
+  // Validation
   function validateForm() {
     const errors = {}
     if (!formData.title.trim()) errors.title = 'Required'
@@ -127,8 +129,7 @@ export default function ProductForm({
     setImages(prev => prev.filter(img => img.id !== id))
   }
 
-  async function handleSubmit(e) {
-    e.preventDefault()
+  async function handleSubmit(isDraft = false) {
     if (!isVerified) {
       alert('Seller account not verified. Cannot submit product.')
       return
@@ -137,6 +138,7 @@ export default function ProductForm({
 
     const submissionData = {
       ...formData,
+      isDraft,
       ownerUid: user.uid,
       cleanWhatsapp: formData.whatsappNumber.replace(/\D/g, ''),
       price: Number(formData.price),
@@ -154,7 +156,7 @@ export default function ProductForm({
       {error && <Alert type="error" title="Error">{error}</Alert>}
       {!isVerified && <Alert type="warning" title="Unverified Seller">Verify your account to publish products</Alert>}
 
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form className="space-y-5" onSubmit={e => { e.preventDefault(); handleSubmit(false) }}>
 
         <Input
           name="title"
@@ -181,11 +183,12 @@ export default function ProductForm({
           error={validationErrors.price}
         />
 
-        <Input
+        <Select
           name="category"
           value={formData.category}
           onChange={handleChange}
-          placeholder="Category"
+          options={categories}
+          placeholder="Select Category"
           error={validationErrors.category}
         />
 
@@ -212,6 +215,14 @@ export default function ProductForm({
           placeholder="Seller KOB ID"
         />
 
+        <Select
+          name="deliveryOption"
+          value={formData.deliveryOption}
+          onChange={handleChange}
+          options={deliveryOptions}
+          placeholder="Delivery Option"
+        />
+
         {/* Images */}
         <div>
           <label className="font-bold">Product Images (max 5)</label>
@@ -229,6 +240,7 @@ export default function ProductForm({
               {images.map(img => (
                 <div key={img.id} className="relative">
                   <img src={img.preview} className="h-24 w-full object-cover rounded" />
+                  {img.isExisting && <span className="absolute bottom-1 left-1 bg-black/50 text-white text-xs px-1 rounded">Existing</span>}
                   <button
                     type="button"
                     onClick={() => handleRemoveImage(img.id)}
@@ -246,20 +258,25 @@ export default function ProductForm({
         <div className="flex gap-4">
           <Button
             type="button"
-            onClick={() => {
-              setFormData(prev => ({ ...prev, isDraft: true }))
-              handleSubmit({ preventDefault: () => {} })
-            }}
+            onClick={() => handleSubmit(true)}
             variant="secondary"
             disabled={loading || uploadingImage}
           >
-            Save as Draft
+            {loading || uploadingImage ? 'Saving...' : 'Save as Draft'}
           </Button>
+
           <Button type="submit" disabled={loading || uploadingImage || !isVerified}>
-            {loading ? 'Processing...' : 'Publish Product'}
+            {loading || uploadingImage ? 'Processing...' : 'Publish Product'}
+          </Button>
+
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onCancel}
+          >
+            Cancel
           </Button>
         </div>
-
       </form>
     </Card>
   )
