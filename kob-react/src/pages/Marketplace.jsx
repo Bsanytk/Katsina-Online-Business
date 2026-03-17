@@ -73,7 +73,7 @@ export default function Marketplace() {
 
       // Loop through images to either upload new ones or keep existing ones
       for (const img of formData.images) {
-        if (img.isNew && img.file) {
+        if (img.isExisting && img.file) {
           // Upload to Cloudinary
           const uploadedUrl = await uploadImage(img.file)
           finalImages.push({ url: uploadedUrl, id: `img-${Date.now()}-${Math.random()}` })
@@ -91,16 +91,26 @@ export default function Marketplace() {
         description: formData.description,
         price: Number(formData.price),
         category: formData.category,
+
         whatsappNumber: formData.whatsappNumber,
-        isDraft: formData.isDraft, 
+        cleanWhatsapp: formData.cleanWhatsapp,
+
+        location: formData.location,
+        sellerIDNumber: formData.sellerIDNumber,
+
+        deliveryOption: formData.deliveryOption,
+        deliveryLink: formData.deliveryLink,
+
+        isDraft: formData.isDraft,
         ownerUid: user.uid,
-        // CORRECTION: Save direct string URL to prevent broken images
-        imageUrl: firstImageUrl, 
-        mainImage: firstImageUrl, 
-        // Save simple string array for secondary images
-        images: finalImages.map(img => img.url), 
+
+        imageUrl: firstImageUrl,
+        mainImage: firstImageUrl,
+        images: finalImages.map(img => img.url),
+
         updatedAt: new Date()
       }
+        
 
       if (editingProduct) {
         await updateProduct(editingProduct.id, payload)
