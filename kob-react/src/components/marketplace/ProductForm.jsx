@@ -212,7 +212,30 @@ export default function ProductForm({
               </label>
             </div>
           </div>
+          <div>
+  <label className="block text-sm font-semibold text-kob-dark mb-2">
+    Product Images (max 5)
+  </label>
 
+  <input
+    type="file"
+    accept="image/*"
+    multiple
+    onChange={(e) => {
+      const files = Array.from(e.target.files)
+
+      const newImages = files.slice(0, 5 - images.length).map(file => ({
+        file,
+        preview: URL.createObjectURL(file),
+        isNew: true,
+        id: `img-${Date.now()}-${Math.random()}`
+      }))
+
+      setImages(prev => [...prev, ...newImages])
+    }}
+    className="w-full border p-2 rounded"
+  />
+</div>
           <div className="flex gap-4 pt-4">
             <Button type="submit" variant="primary" size="lg" className="flex-1" disabled={loading || uploadingImage}>
               {loading ? 'Processing...' : (formData.isDraft ? 'Save Draft' : 'Submit Listing')}
