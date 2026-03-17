@@ -2,14 +2,14 @@ import React, { useEffect, useState, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { getProducts, addProduct, updateProduct, deleteProduct } from '../services/products'
 import Loading from '../components/Loading'
-import ProductCard from '../components/ProductCard'
-import { useAuth } from '../firebase/auth'
-import { uploadImage } from '../services/cloudinary'
 import ProductList from '../components/marketplace/ProductList'
 import ProductFilter from '../components/marketplace/ProductFilter'
 import ProductForm from '../components/marketplace/ProductForm'
 import { Card, Alert } from '../components/ui'
 import BackButton from '../components/BackButton'
+import { useAuth } from '../firebase/auth'
+import { uploadImage } from '../services/cloudinary'
+import { getUserProfile, updateUserProfile } from '../services/users'
 
 export default function Marketplace() {
   const [products, setProducts] = useState([])
@@ -21,30 +21,13 @@ export default function Marketplace() {
   const [showForm, setShowForm] = useState(false)
   const [editingProduct, setEditingProduct] = useState(null)
   const [formError, setFormError] = useState(null)
-
   const { user } = useAuth()
   const [searchParams, setSearchParams] = useSearchParams()
 
-  // --- Logic: Load Product for Editing ---
-  const loadProductForEdit = useCallback((productId) => {
-    const product = products.find(p => p.id === productId)
-    if (product && product.ownerUid === user?.uid) {
-      setEditingProduct(product)
-      setShowForm(true)
-      setSearchParams({}) // Clear URL params after loading
-    }
-  }, [products, user?.uid, setSearchParams])
-
+  // --- Load all products
   useEffect(() => {
     fetchProducts()
   }, [])
-
-  useEffect(() => {
-    const editId = searchParams.get('edit')
-    if (editId && user?.uid && products.length > 0) {
-      loadProductForEdit(editId)
-    }
-  }, [searchParams, user?.uid, products, loadProductForEdit])
 
   async function fetchProducts() {
     setLoading(true)
@@ -60,57 +43,62 @@ export default function Marketplace() {
     }
   }
 
-  // --- Logic: Handle Product Submission (UPDATED FOR CLOUDINARY) ---
+  // --- Load Product for Editing via URL param
+  const loadProductForEdit = useCallback((productId) => {
+    const product = products.find(p => p.id === productId)
+    if (product && product.ownerUid === user?.uid) {
+      setEditingProduct(product)
+      setShowForm(true)
+      setSearchParams({})
+    }
+  }, [products, user?.uid, setSearchParams])
+
+  useEffect(() => {
+    const editId = searchParams.get('edit')
+    if (editId && user?.uid && products.length > 0) {
+      loadProductForEdit(editId)
+    }
+  }, [searchParams, user?.uid, products, loadProductForEdit])
+
+  // --- Product Submission (Add / Update) ---
   async function handleProductSubmit(formData) {
     if (!user) return setFormError("You must be logged in to perform this action.")
-    
     setSubmitting(true)
     setFormError(null)
 
     try {
-      let finalImages = []
-      setUploadingImage(true)
+      // --- Ensure KOB Number exists
+      const profile = await getUserProfile(user.uid)
+      let sellerID = profile?.kobNumber
+      if (!sellerID) {
+        sellerID = `KOB-${Math.floor(100000 + Math.random() * 900000)}`
+        await updateUserProfile(user.uid, { kobNumber: sellerID })
+      }
 
-      // Loop through images to either upload new ones or keep existing ones
+      // --- Upload images if new
+      setUploadingImage(true)
+      const finalImages = []
       for (const img of formData.images) {
-        if (img.isExisting && img.file) {
-          // Upload to Cloudinary
+        if (img.isNew) {
           const uploadedUrl = await uploadImage(img.file)
           finalImages.push({ url: uploadedUrl, id: `img-${Date.now()}-${Math.random()}` })
         } else if (img.isExisting) {
-          // Keep existing URL
           finalImages.push({ url: img.preview, id: img.id })
         }
       }
       setUploadingImage(false)
 
       const firstImageUrl = finalImages[0]?.url || ''
-
       const payload = {
-        title: formData.title,
-        description: formData.description,
-        price: formData.price,
-        category: formData.category,
-
-        whatsappNumber: formData.whatsappNumber,
-        cleanWhatsapp: formData.cleanWhatsapp,
-
-        location: formData.location,
-        sellerIDNumber: formData.sellerIDNumber,
-
-        deliveryOption: formData.deliveryOption,
-        deliveryLink: formData.deliveryLink,
-
-        isDraft: formData.isDraft,
+        ...formData,
         ownerUid: user.uid,
-
+        sellerIDNumber: sellerID,
         imageUrl: firstImageUrl,
         mainImage: firstImageUrl,
-        images: finalImages.map(img => img.url),
-
-        updatedAt: new Date()
+        images: finalImages.map(i => i.url),
+        updatedAt: new Date(),
+        deliveryLink: formData.deliveryOption === 'KOB Express Delivery' ? formData.deliveryLink : null
       }
-        
 
       if (editingProduct) {
         await updateProduct(editingProduct.id, payload)
@@ -120,7 +108,7 @@ export default function Marketplace() {
 
       setShowForm(false)
       setEditingProduct(null)
-      fetchProducts() // Refresh the list
+      fetchProducts()
     } catch (err) {
       setFormError(err.message)
     } finally {
@@ -129,7 +117,7 @@ export default function Marketplace() {
     }
   }
 
-  // --- Logic: Edit & Delete ---
+  // --- Edit & Delete ---
   function handleEdit(product) {
     setEditingProduct(product)
     setShowForm(true)
@@ -150,7 +138,6 @@ export default function Marketplace() {
     <main className="min-h-screen bg-kob-light">
       <div className="container py-4"><BackButton /></div>
 
-      {/* Hero Header */}
       <header className="bg-gradient-to-r from-kob-primary to-kob-gold text-white py-12 shadow-inner">
         <div className="container">
           <h1 className="text-4xl md:text-6xl font-black mb-2 tracking-tight">KOB Marketplace</h1>
@@ -161,7 +148,6 @@ export default function Marketplace() {
       <div className="container pb-20 pt-10">
         {error && <Alert type="error" className="mb-6">{error}</Alert>}
 
-        {/* Seller Section */}
         {user && (
           <section className="mb-12">
             {!showForm ? (
@@ -188,7 +174,6 @@ export default function Marketplace() {
           </section>
         )}
 
-        {/* Filters & Products Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-10">
           <aside className="lg:col-span-1">
             <div className="sticky top-24">
@@ -217,4 +202,3 @@ export default function Marketplace() {
     </main>
   )
 }
-
