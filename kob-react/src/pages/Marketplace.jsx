@@ -89,7 +89,7 @@ export default function Marketplace() {
       const payload = {
         title: formData.title,
         description: formData.description,
-        price: Number(formData.price),
+        price: formData.price,
         category: formData.category,
 
         whatsappNumber: formData.whatsappNumber,
