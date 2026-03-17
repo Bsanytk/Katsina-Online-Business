@@ -66,7 +66,7 @@ export async function uploadImage(file, timeoutMs = 15000) { // Increased timeou
     }
     
     if (import.meta.env.DEV) {
-      console.error('Cloudinary Exception:', err)
+      console.error(err)
     }
     throw err
   }
