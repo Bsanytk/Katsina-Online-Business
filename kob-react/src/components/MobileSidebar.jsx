@@ -7,10 +7,10 @@ export default function MobileSidebar({ isOpen, onClose }) {
   const { user } = useAuth()
   const navigate = useNavigate()
 
-  // KOB BRAND COLORS
+  // KOB Brand Colors
   const KOB_BROWN = "#4B3621";
   const KOB_GOLD = "#D4AF37";
-  
+
   // Constant Cloudinary Merchant Avatar
   const MERCHANT_AVATAR = "https://res.cloudinary.com/dn5crslee/image/upload/v1773415750/20260313_161322_oo9ocx.png";
 
@@ -26,7 +26,7 @@ export default function MobileSidebar({ isOpen, onClose }) {
 
   return (
     <>
-      {/* Overlay with high-end blur */}
+      {/* Overlay */}
       {isOpen && (
         <div
           className="fixed inset-0 bg-black/40 z-40 transition-opacity duration-500 backdrop-blur-md"
@@ -42,7 +42,7 @@ export default function MobileSidebar({ isOpen, onClose }) {
       >
         <div className="flex flex-col h-full overflow-hidden">
           
-          {/* Header Section - Modern Classic Aesthetic */}
+          {/* Header */}
           <div className="p-8 border-b border-gray-100 bg-[#FDFDFD]">
             <div className="flex items-center justify-between mb-8">
                <button 
@@ -63,23 +63,32 @@ export default function MobileSidebar({ isOpen, onClose }) {
 
             {/* Profile Section */}
             {user ? (
-              <div className="flex items-center gap-4 animate-fade-in group">
-                <div className="relative">
-                  <div className="w-16 h-16 rounded-full border-2 border-[#D4AF37] p-1 overflow-hidden shadow-lg bg-white">
-                    <img 
-                      src={user.role === 'seller' ? MERCHANT_AVATAR : (user.photoURL || MERCHANT_AVATAR)} 
-                      alt="Merchant Profile" 
-                      className="w-full h-full object-cover rounded-full" 
-                    />
+              <div className="flex flex-col items-start gap-4 animate-fade-in group">
+                <div className="flex items-center gap-4">
+                  <div className="relative">
+                    <div className="w-16 h-16 rounded-full border-2 border-[#D4AF37] p-1 overflow-hidden shadow-lg bg-white">
+                      <img 
+                        src={user.role === 'seller' ? MERCHANT_AVATAR : (user.photoURL || MERCHANT_AVATAR)} 
+                        alt="Profile" 
+                        className="w-full h-full object-cover rounded-full" 
+                      />
+                    </div>
+                    <div className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
                   </div>
-                  <div className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
+                  <div className="overflow-hidden">
+                    <p className="text-[10px] text-gray-400 font-black uppercase tracking-[0.2em] mb-1">Welcome,</p>
+                    <h4 className="font-black text-[#4B3621] text-sm leading-tight uppercase truncate">
+                      {user.displayName || user.email.split('@')[0]}
+                    </h4>
+                  </div>
                 </div>
-                <div className="overflow-hidden">
-                  <p className="text-[10px] text-gray-400 font-black uppercase tracking-[0.2em] mb-1">Welcome,</p>
-                  <h4 className="font-black text-[#4B3621] text-sm leading-tight uppercase truncate">
-                    {user.displayName || user.email.split('@')[0]}
-                  </h4>
-                </div>
+
+                {/* KOB Number */}
+                {user.role === 'seller' && (
+                  <span className="text-[10px] font-black text-[#4B3621] uppercase tracking-widest bg-gray-100 px-3 py-1 rounded-full">
+                    {user.kobNumber || 'KOB - XXX'}
+                  </span>
+                )}
               </div>
             ) : (
               <div className="py-2">
@@ -89,10 +98,10 @@ export default function MobileSidebar({ isOpen, onClose }) {
             )}
           </div>
 
-          {/* Navigation - Strategic Sections */}
+          {/* Navigation */}
           <div className="flex-1 overflow-y-auto p-6 space-y-10 custom-scrollbar">
             
-            {/* Main Access */}
+            {/* Account Access */}
             <div className="space-y-4">
               <h3 className="text-[10px] font-black text-gray-300 uppercase tracking-[0.3em] px-2">Account Access</h3>
               <div className="space-y-2">
@@ -133,7 +142,7 @@ export default function MobileSidebar({ isOpen, onClose }) {
               </div>
             </div>
 
-            {/* Legal Links */}
+            {/* Legal */}
             <div className="pt-6 border-t border-gray-50 space-y-2">
               <Link to="/terms" onClick={onClose} className="flex items-center gap-4 px-4 py-2 text-gray-400 font-bold text-[10px] uppercase tracking-widest hover:text-[#4B3621] transition-all">
                 <FileText className="w-4 h-4" /> Terms of Service
@@ -144,7 +153,7 @@ export default function MobileSidebar({ isOpen, onClose }) {
             </div>
           </div>
 
-          {/* Footer Section */}
+          {/* Footer */}
           <div className="p-8 border-t border-gray-100 bg-white">
             <div className="flex justify-between items-center mb-8 px-4">
               <a href="https://facebook.com/B-SANI-BIO-CARE-MED" target="_blank" rel="noreferrer" className="text-gray-300 hover:text-[#4B3621] transition-all"><Facebook className="w-5 h-5"/></a>
