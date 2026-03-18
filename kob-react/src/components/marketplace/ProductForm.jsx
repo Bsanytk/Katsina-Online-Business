@@ -4,6 +4,8 @@ import Loading from '../Loading'
 import { useTranslation } from '../../hooks/useTranslation'
 import { useAuth } from '../../firebase/auth'
 import { getUserProfile } from '../../services/users'
+import { uploadImage } from '../../services/cloudinary'
+
 
 /**
 
@@ -116,24 +118,54 @@ if (validationErrors[name]) setValidationErrors(prev => ({ ...prev, [name]: null
 }
 
 async function handleSubmit(e) {
-e.preventDefault()
-if (!user?.uid) {
-alert("You must be Logged in")
-return
-}
-if (!validateForm()) return
+  e.preventDefault()
+  if (!user?.uid) {
+    alert("You must be Logged in")
+    return
+  }
+  if (!validateForm()) return
 
-// Auto-attach Google Form link if KOB Express is chosen  
-const submissionData = {   
-  ...formData,   
-  ownerUid: user?.uid,  
-  cleanWhatsapp: formData.whatsappNumber.replace(/\D/g, ''),  
-  price: parseFloat(formData.price),  
-  images,  
-  deliveryLink: formData.deliveryOption === 'KOB Express Delivery' ? GOOGLE_FORM_URL : null  
-}  
-onSubmit(submissionData)
+  // Trigger the loading state while uploading to Cloudinary
+  // This uses the 'loading' prop you already have in the component
+  try {
+    const uploadedUrls = []
 
+    // LOOP: Process each image in your state
+    for (const imgObj of images) {
+      if (imgObj.file) {
+        // Send the raw file to Cloudinary using your helper
+        const url = await uploadImage(imgObj.file)
+        uploadedUrls.push(url)
+      } else if (imgObj.isExisting) {
+        // If it's an existing image (edit mode), keep the URL
+        uploadedUrls.push(imgObj.preview)
+      }
+    }
+
+    // Safeguard: Check if images exist for live listings
+    if (uploadedUrls.length === 0 && !formData.isDraft) {
+      alert("Please upload at least one image for a live listing")
+      return
+    }
+
+    // Now build the submission data with the ACTUAL URLs
+    const submissionData = {   
+      ...formData,   
+      ownerUid: user?.uid,  
+      cleanWhatsapp: formData.whatsappNumber.replace(/\D/g, ''),  
+      price: parseFloat(formData.price),  
+      images: uploadedUrls,           // This is now an array of HTTPS links
+      imageUrl: uploadedUrls[0] || "", // Sets the main thumbnail link
+      mainImage: uploadedUrls[0] || "", 
+      deliveryLink: formData.deliveryOption === 'KOB Express Delivery' ? GOOGLE_FORM_URL : null  
+    }  
+
+    // Pass the finalized data to your Firebase onSubmit function
+    await onSubmit(submissionData)
+
+  } catch (err) {
+    alert(`Upload failed: ${err.message}. Please check your internet connection.`)
+  }
 }
 
 // --- Verification Lock Screen ---
