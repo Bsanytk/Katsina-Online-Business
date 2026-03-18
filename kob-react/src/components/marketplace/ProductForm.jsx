@@ -217,7 +217,7 @@ return (
           </label>  
         </div>  
       </div>  
-                  {/* --- START OF IMAGES SECTION --- */}
+                            {/* --- START OF IMAGES SECTION --- */}
           <div className="space-y-4">
             <label className="block text-xs font-black text-[#4B3621] uppercase tracking-widest px-2">
               Product Images (Max 5)
@@ -269,7 +269,6 @@ return (
           </div>
           {/* --- END OF IMAGES SECTION --- */}
 
-          {/* Action Buttons */}
           <div className="flex gap-4 pt-4">  
             <Button type="submit" variant="primary" size="lg" className="flex-1" disabled={loading || uploadingImage}>  
               {loading ? 'Processing...' : (formData.isDraft ? 'Save Draft' : 'Submit Listing')}  
@@ -279,4 +278,5 @@ return (
         </form>  
       </div>  
     </Card>
-    
+  )
+}
