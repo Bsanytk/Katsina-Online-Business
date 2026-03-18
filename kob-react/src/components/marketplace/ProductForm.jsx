@@ -217,62 +217,59 @@ return (
           </label>  
         </div>  
       </div>  
-      <div>
-        {/* --- START OF IMAGES SECTION --- */}
-<div className="space-y-4">
-  <label className="block text-xs font-black text-[#4B3621] uppercase tracking-widest px-2">
-    Product Images (Max 5)
-  </label>
-  
-  <div className="p-6 border-2 border-dashed border-gray-100 rounded-[2rem] bg-gray-50/50 transition-all focus-within:border-[#4B3621]">
-    {/* Corrected Self-Closing Input */}
-    <input
-      type="file"
-      accept="image/*"
-      multiple
-      onChange={(e) => {
-        const files = Array.from(e.target.files);
-        const availableSlots = 5 - images.length;
-        
-        const newImages = files.slice(0, availableSlots).map(file => ({  
-          file,  
-          preview: URL.createObjectURL(file),  
-          isNew: true,  
-          id: `img-${Date.now()}-${Math.random()}`  
-        }));  
+                  {/* --- START OF IMAGES SECTION --- */}
+          <div className="space-y-4">
+            <label className="block text-xs font-black text-[#4B3621] uppercase tracking-widest px-2">
+              Product Images (Max 5)
+            </label>
+            
+            <div className="p-6 border-2 border-dashed border-gray-100 rounded-[2rem] bg-gray-50/50 transition-all focus-within:border-[#4B3621]">
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={(e) => {
+                  const files = Array.from(e.target.files);
+                  const availableSlots = 5 - images.length;
+                  const newImages = files.slice(0, availableSlots).map(file => ({  
+                    file,  
+                    preview: URL.createObjectURL(file),  
+                    isNew: true,  
+                    id: `img-${Date.now()}-${Math.random()}`  
+                  }));  
+                  setImages(prev => [...prev, ...newImages]);
+                }}  
+                className="w-full text-xs font-black text-[#4B3621] file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-[10px] file:font-black file:bg-[#4B3621] file:text-white hover:file:opacity-90 cursor-pointer"
+              />
 
-        setImages(prev => [...prev, ...newImages]);
-      }}  
-      className="w-full text-xs font-black text-[#4B3621] file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-[10px] file:font-black file:bg-[#4B3621] file:text-white hover:file:opacity-90 cursor-pointer"
-    />
-
-    {/* Preview Gallery - Moved Outside the Input Tag */}
-    {images.length > 0 && (
-      <div className="grid grid-cols-3 md:grid-cols-5 gap-4 mt-6">
-        {images.map((img) => (
-          <div key={img.id} className="relative group aspect-square">
-            <img
-              src={img.preview}
-              alt="KOB Product Preview"
-              className="w-full h-full object-cover rounded-2xl border-2 border-white shadow-sm group-hover:opacity-80 transition-all"
-            />
-            <button
-              type="button"
-              onClick={() => {
-                if (img.isNew) URL.revokeObjectURL(img.preview);
-                setImages(prev => prev.filter(i => i.id !== img.id));
-              }}
-              className="absolute -top-2 -right-2 bg-red-600 text-white w-6 h-6 rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-all scale-75 group-hover:scale-100"
-            >
-              ✕
-            </button>
+              {images.length > 0 && (
+                <div className="grid grid-cols-3 md:grid-cols-5 gap-4 mt-6">
+                  {images.map((img) => (
+                    <div key={img.id} className="relative group aspect-square">
+                      <img
+                        src={img.preview}
+                        alt="KOB Product"
+                        className="w-full h-full object-cover rounded-2xl border-2 border-white shadow-sm"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (img.isNew) URL.revokeObjectURL(img.preview);
+                          setImages(prev => prev.filter(i => i.id !== img.id));
+                        }}
+                        className="absolute -top-2 -right-2 bg-red-600 text-white w-6 h-6 rounded-full flex items-center justify-center shadow-lg"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
-        ))}
-      </div>
-    )}
-  </div>
-</div>
-{/* --- END OF IMAGES SECTION --- */}     
+          {/* --- END OF IMAGES SECTION --- */}
+
+          {/* Action Buttons */}
           <div className="flex gap-4 pt-4">  
             <Button type="submit" variant="primary" size="lg" className="flex-1" disabled={loading || uploadingImage}>  
               {loading ? 'Processing...' : (formData.isDraft ? 'Save Draft' : 'Submit Listing')}  
@@ -281,6 +278,5 @@ return (
           </div>  
         </form>  
       </div>  
-    </Card>  
-  )  
-}
+    </Card>
+    
