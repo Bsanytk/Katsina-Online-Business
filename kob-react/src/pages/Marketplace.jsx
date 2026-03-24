@@ -60,7 +60,7 @@ export default function Marketplace() {
     }
   }
 
-  // --- Logic: Handle Product Submission (UPDATED FOR CLOUDINARY) ---
+ // --- Logic: Handle Product Submission (FIXED LOGIC) ---
   async function handleProductSubmit(formData) {
     if (!user) return setFormError("You must be logged in to perform this action.")
     
@@ -71,46 +71,40 @@ export default function Marketplace() {
       let finalImages = []
       setUploadingImage(true)
 
-      // Loop through images to either upload new ones or keep existing ones
+      // FIX: Corrected the logic to distinguish between NEW files and EXISTING urls
       for (const img of formData.images) {
-        if (img.isExisting && img.file) {
-          // Upload to Cloudinary
+        if (img.file) { 
+          // 1. It's a NEW image (it has a raw file) -> Upload to Cloudinary
           const uploadedUrl = await uploadImage(img.file)
-          finalImages.push({ url: uploadedUrl, id: `img-${Date.now()}-${Math.random()}` })
-        } else if (img.isExisting) {
-          // Keep existing URL
-          finalImages.push({ url: img.preview, id: img.id })
+          finalImages.push(uploadedUrl) 
+        } else if (img.isExisting || typeof img === 'string') {
+          // 2. It's an EXISTING image -> Keep the current URL
+          const existingUrl = typeof img === 'string' ? img : img.preview;
+          finalImages.push(existingUrl)
         }
       }
       setUploadingImage(false)
 
-      const firstImageUrl = finalImages[0]?.url || ''
+      const firstImageUrl = finalImages[0] || ''
 
       const payload = {
         title: formData.title,
         description: formData.description,
-        price: formData.price,
+        price: Number(formData.price), // Ensure this is a number
         category: formData.category,
-
         whatsappNumber: formData.whatsappNumber,
-        cleanWhatsapp: formData.cleanWhatsapp,
-
+        cleanWhatsapp: formData.whatsappNumber.replace(/\D/g, ''),
         location: formData.location,
         sellerIDNumber: formData.sellerIDNumber,
-
         deliveryOption: formData.deliveryOption,
         deliveryLink: formData.deliveryLink,
-
         isDraft: formData.isDraft,
         ownerUid: user.uid,
-
         imageUrl: firstImageUrl,
         mainImage: firstImageUrl,
-        images: finalImages.map(img => img.url),
-
+        images: finalImages, // Save as an array of strings (URLs)
         updatedAt: new Date()
       }
-        
 
       if (editingProduct) {
         await updateProduct(editingProduct.id, payload)
@@ -120,7 +114,7 @@ export default function Marketplace() {
 
       setShowForm(false)
       setEditingProduct(null)
-      fetchProducts() // Refresh the list
+      fetchProducts() 
     } catch (err) {
       setFormError(err.message)
     } finally {
@@ -128,7 +122,6 @@ export default function Marketplace() {
       setUploadingImage(false)
     }
   }
-
   // --- Logic: Edit & Delete ---
   function handleEdit(product) {
     setEditingProduct(product)
