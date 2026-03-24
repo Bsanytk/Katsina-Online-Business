@@ -70,7 +70,7 @@ price: initialData.price?.toString() || '',
 category: initialData.category || '',
 whatsappNumber: initialData.whatsappNumber || '',
 location: initialData.location || '',
-sellerIDNumber: initialData.sellerIDNumber || '',
+sellerIDNumber: initialData.sellerIDNumber || user?.kobNumber || '',
 deliveryOption: initialData.deliveryOption || 'KOB Express Delivery',
 isDraft: initialData.isDraft ?? true,
 })
@@ -104,7 +104,7 @@ if (!formData.price || isNaN(price) || price <= 0) errors.price = 'Enter a valid
 if (!formData.category) errors.category = 'Category is required'
 if (!formData.whatsappNumber.trim()) errors.whatsappNumber = 'WhatsApp number is required'
 if (!formData.location.trim()) errors.location = 'Location is required'
-if (!formData.sellerIDNumber.trim()) errors.sellerIDNumber = 'KOB ID is required'
+
 
 setValidationErrors(errors)  
 return Object.keys(errors).length === 0
@@ -158,8 +158,15 @@ async function handleSubmit(e) {
       images: uploadedUrls,           // This is now an array of HTTPS links
       imageUrl: uploadedUrls[0] || "", // Sets the main thumbnail link
       mainImage: uploadedUrls[0] || "", 
-      deliveryLink: formData.deliveryOption === 'KOB Express Delivery' ? GOOGLE_FORM_URL : null  
-    }  
+      deliveryLink: formData.deliveryOption === 'KOB Express Delivery' ? GOOGLE_FORM_URL : null
+       
+       // --- ADD THESE 4 LINES TO START YOUR DASHBOARD STATS ---
+      views: 0,           // Starts the "Total Views" at 0
+      salesCount: 0,      // Starts the "Sales" at 0
+      rating: 0,          // Starts the "Rating" at 0
+      reviewCount: 0,     // Starts the review count at 0
+      createdAt: new Date() 
+   }
 
     // Pass the finalized data to your Firebase onSubmit function
     await onSubmit(submissionData)
@@ -214,7 +221,7 @@ return (
     <form onSubmit={handleSubmit} className="space-y-5">  
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">  
         <Input label="Product Title" name="title" value={formData.title} onChange={handleChange} error={validationErrors.title} placeholder="e.g. Quality Roba Shoes" />  
-        <Input label="KOB (🆔)" name="sellerIDNumber" value={formData.sellerIDNumber} onChange={handleChange} error={validationErrors.sellerIDNumber} placeholder="e.g. KOB-001" />  
+        <Input label="Verified KOB (🆔)" name="sellerIDNumber" value={formData.sellerIDNumber} onChange={handleChange} error={validationErrors.sellerIDNumber} readOnly={true} className="bg-gray-100 cursor-not-allowed opacity-75 font-bold text-kob-primary" />  
       </div>  
 
       <Textarea label="Description" name="description" value={formData.description} onChange={handleChange} rows={4} error={validationErrors.description} placeholder="Size, Color, Quality..." />  
