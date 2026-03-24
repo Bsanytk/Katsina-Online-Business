@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+ import React, { useState, useEffect } from 'react'
 import { Card, Button, Input, Textarea, Alert } from '../ui'
 import Loading from '../Loading'
 import { useTranslation } from '../../hooks/useTranslation'
@@ -117,6 +117,7 @@ setFormData(prev => ({ ...prev, [name]: value }))
 if (validationErrors[name]) setValidationErrors(prev => ({ ...prev, [name]: null }))
 }
 
+// 2. Locate your handleSubmit function and replace it with this:
 async function handleSubmit(e) {
   e.preventDefault()
   if (!user?.uid) {
@@ -167,7 +168,6 @@ async function handleSubmit(e) {
     alert(`Upload failed: ${err.message}. Please check your internet connection.`)
   }
 }
-
 // --- Verification Lock Screen ---
 if (checkingStatus) return <div className="p-10 text-center"><Loading size="md" /></div>
 if (!isVerified && !isEditMode) {
