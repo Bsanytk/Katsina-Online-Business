@@ -29,9 +29,9 @@ export default function ProductCard({ product, onEdit, onDelete, onBuyClick }) {
   function handleImageError() { setImageError(true) }
 
   // --- NEW LOGIC: KOB ID & Delivery Message ---
-  const kobID = product.sellerIDNumber || 'N/A';
+  const kobNumber = product.sellerIDNumber || 'N/A';
   const whatsappMessage = encodeURIComponent(
-    `Hi, I saw your listing on KOB Marketplace:\n\n*Product:* ${product.title}\n*ID:* ${kobID}\n*Price:* ₦${product.price?.toLocaleString() || 'N/A'}\n\nIs this still available?`
+    `Hi, I saw your listing on KOB Marketplace:\n\n*Product:* ${product.title}\n*ID:* ${kobNumber}\n*Price:* ₦${product.price?.toLocaleString() || 'N/A'}\n\nIs this still available?`
   )
   
   const whatsappLink = product.whatsappNumber 
@@ -56,6 +56,7 @@ export default function ProductCard({ product, onEdit, onDelete, onBuyClick }) {
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
           onError={handleImageError}
         />
+        
         
         {/* Status Overlays */}
         <div className="absolute top-3 right-3 flex flex-col gap-2 items-end">
@@ -95,12 +96,22 @@ export default function ProductCard({ product, onEdit, onDelete, onBuyClick }) {
           {product.description}
         </p>
         
-        <div className="mb-4">
-          <span className="text-xs text-neutral-400 block uppercase font-medium tracking-tighter">Price</span>
-          <span className="text-xl font-black text-kob-primary">
-            ₦{Number(product.price)?.toLocaleString() || '—'}
-          </span>
-        </div>
+        {/* --- NEW: Star Rating Display --- */}
+<div className="flex items-center gap-1 mb-1">
+  <div className="flex text-yellow-400 text-xs">
+    {Array.from({ length: 5 }).map((_, i) => (
+      <span key={i}>{i < Math.floor(product.rating || 0) ? '★' : '☆'}</span>
+    ))}
+  </div>
+  <span className="text-[10px] text-gray-400">({product.reviewCount || 0})</span>
+</div>
+
+<div className="mb-4">
+  <span className="text-xs text-neutral-400 block uppercase font-medium tracking-tighter">Price</span>
+  <span className="text-xl font-black text-kob-primary">
+    ₦{Number(product.price)?.toLocaleString() || '—'}
+  </span>
+</div>
         
         {/* Context-Aware Actions */}
         <div className="flex gap-2">
@@ -122,11 +133,16 @@ export default function ProductCard({ product, onEdit, onDelete, onBuyClick }) {
           ) : (
             <div className="flex gap-2 w-full">
               <button
-                onClick={() => onBuyClick?.(product)}
-                className="flex-1 px-3 py-2 bg-kob-primary hover:bg-kob-primary-dark text-white rounded-lg font-bold transition-all text-xs"
-              >
-                Details
-              </button>
+  onClick={() => {
+    // 1. If a special function was passed, run it
+    if (onBuyClick) onBuyClick(product);
+    // 2. Otherwise, go straight to the product's detail page
+    else window.location.href = `/product/${product.id}`;
+  }}
+  className="flex-1 px-3 py-2 bg-kob-primary hover:bg-kob-primary-dark text-white rounded-lg font-bold transition-all text-xs"
+>
+  Details
+</button>
               <a 
                 href={whatsappLink}
                 target="_blank"
