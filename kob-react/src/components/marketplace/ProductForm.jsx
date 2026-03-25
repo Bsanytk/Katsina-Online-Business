@@ -104,7 +104,7 @@ if (!formData.price || isNaN(price) || price <= 0) errors.price = 'Enter a valid
 if (!formData.category) errors.category = 'Category is required'
 if (!formData.whatsappNumber.trim()) errors.whatsappNumber = 'WhatsApp number is required'
 if (!formData.location.trim()) errors.location = 'Location is required'
-
+if (!formData.sellerIDNumber.trim()) errors.sellerIDNumber = 'KOB ID is required'
 
 setValidationErrors(errors)  
 return Object.keys(errors).length === 0
