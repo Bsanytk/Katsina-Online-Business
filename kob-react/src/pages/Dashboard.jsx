@@ -55,7 +55,7 @@ function BuyerDashboard({ user }) {
               <div>
                 <h1 className="text-4xl font-extrabold mb-3">Welcome, {user.email.split('@')[0]}!</h1>
                 <p className="text-lg opacity-95 font-light">
-                  Browse, save, and purchase products from verified sellers across Katsina with confidence.
+                  Browse, save, and purchase products from verified sellers across Katsina & Northern Nigeria with confidence.
                 </p>
               </div>
             </div>
@@ -148,6 +148,14 @@ function SellerDashboard({ user }) {
   const [deleteLoading, setDeleteLoading] = useState(null)
   const [showDeleteSuccess, setShowDeleteSuccess] = useState(false)
   const [activeTab, setActiveTab] = useState('products')
+  // This calculates the numbers from the products you already loaded
+  const totalViews = products.reduce((sum, p) => sum + (Number(p.views) || 0), 0);
+
+  const ratedProducts = products.filter(p => p.rating > 0);
+  const avgRating = ratedProducts.length > 0 
+  ? (ratedProducts.reduce((sum, p) => sum + p.rating, 0) / ratedProducts.length).toFixed(1)
+  : "—";
+  
 
   useEffect(() => {
     fetchProducts()
@@ -217,7 +225,7 @@ function SellerDashboard({ user }) {
               <div>
                 <h1 className="text-3xl font-extrabold mb-3">Welcome, {user.email.split('@')[0]}!</h1>
                 <p className="text-lg opacity-90 font-light">
-                  ✓ You can manage your products and reach thousands of customers across Katsina.
+                  ✓ You can manage your products and reach thousands of customers across Katsina & Northern part of Nigeria entirely.
                 </p>
               </div>
             </div>
@@ -233,12 +241,12 @@ function SellerDashboard({ user }) {
             <Card variant="elevated" className="p-7 rounded-xl text-center card-hover">
               <div className="text-5xl mb-3 inline-block">👥</div>
               <p className="text-sm text-gray-600 font-semibold uppercase tracking-wider mb-2">Total Views</p>
-              <p className="text-4xl font-bold text-kob-primary">0</p>
+              <p className="text-4xl font-bold text-kob-primary">{totalViews}</p>
             </Card>
             <Card variant="elevated" className="p-7 rounded-xl text-center card-hover">
               <div className="text-5xl mb-3 inline-block">⭐</div>
               <p className="text-sm text-gray-600 font-semibold uppercase tracking-wider mb-2">Average Rating</p>
-              <p className="text-4xl font-bold text-kob-primary">—</p>
+              <p className="text-4xl font-bold text-kob-primary">{avgRating}</p>
             </Card>
           </div>
 
@@ -270,42 +278,58 @@ function SellerDashboard({ user }) {
             ) : products.length > 0 ? (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                  <thead className="border-b-2 border-kob-primary">
-                    <tr>
-                      <th className="text-left py-3 px-2 font-semibold text-kob-dark">Title</th>
-                      <th className="text-left py-3 px-2 font-semibold text-kob-dark">Price</th>
-                      <th className="text-left py-3 px-2 font-semibold text-kob-dark">Description</th>
-                      <th className="text-center py-3 px-2 font-semibold text-kob-dark">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {products.map((product) => (
-                      <tr key={product.id} className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
-                        <td className="py-3 px-2 font-medium text-kob-dark truncate">{product.title}</td>
-                        <td className="py-3 px-2 text-kob-primary font-bold">₦{product.price || '—'}</td>
-                        <td className="py-3 px-2 text-gray-600 text-xs truncate">{product.description}</td>
-                        <td className="py-3 px-2 text-center space-x-2">
-                          <Button
-                            onClick={() => window.location.href = `/marketplace?edit=${product.id}`}
-                            variant="secondary"
-                            size="sm"
-                            disabled={deleteLoading === product.id}
-                          >
-                            ✏️ Edit
-                          </Button>
-                          <Button
-                            onClick={() => handleDelete(product.id, product.title)}
-                            variant="danger"
-                            size="sm"
-                            disabled={deleteLoading === product.id}
-                          >
-                            {deleteLoading === product.id ? '⌛': 'Delete'}
-                          </Button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+  <thead className="border-b-2 border-kob-primary">
+    <tr>
+      <th className="text-left py-3 px-2 font-semibold text-kob-dark">Image</th>
+      <th className="text-left py-3 px-2 font-semibold text-kob-dark">Title</th>
+      <th className="text-left py-3 px-2 font-semibold text-kob-dark">Price</th>
+      <th className="text-center py-3 px-2 font-semibold text-kob-dark">Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {products.map((product) => (
+      <tr key={product.id} className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+        <td className="py-3 px-2">
+          {/* This shows your Cloudinary image in a small preview circle */}
+          <img 
+            src={product.imageUrl || product.images?.[0] || '/placeholder.png'} 
+            className="w-10 h-10 object-cover rounded-full border border-gray-200 shadow-sm"
+            alt=""
+          />
+        </td>
+        <td className="py-3 px-2 font-medium text-kob-dark truncate">{product.title}</td>
+        <td className="py-3 px-2 text-kob-primary font-bold">₦{Number(product.price).toLocaleString()}</td>
+        <td className="py-3 px-2 text-center flex items-center justify-center gap-2">
+          
+          {/* --- THE NEW DETAILS BUTTON --- */}
+          <Button
+            onClick={() => window.location.href = `/product/${product.id}`}
+            variant="outline"
+            size="sm"
+          >
+            👁️ Details
+          </Button>
+
+          <Button
+            onClick={() => window.location.href = `/marketplace?edit=${product.id}`}
+            variant="secondary"
+            size="sm"
+          >
+            ✏️ Edit
+          </Button>
+          
+          <Button
+            onClick={() => handleDelete(product.id, product.title)}
+            variant="danger"
+            size="sm"
+          >
+            {deleteLoading === product.id ? '⌛': 'Delete'}
+          </Button>
+        </td>
+      </tr>
+    ))}
+  </tbody>
+</table>
               </div>
             ) : (
               <div className="text-center py-12">
