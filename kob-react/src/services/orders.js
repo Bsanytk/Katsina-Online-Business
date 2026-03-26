@@ -9,6 +9,7 @@ import {
   where,
   orderBy,
   getDoc,
+  increment,
   limit as fbLimit,
 } from 'firebase/firestore'
 import { db } from '../firebase/firebase'
@@ -73,21 +74,38 @@ export async function getOrder(orderId) {
 
 // Update order status (seller-only should be enforced in security rules)
 export async function updateOrderStatus(orderId, newStatus) {
-
-  const allowedStatuses = ['requested', 'confirmed', 'closed', 'cancelled']
-
+  const allowedStatuses = ['requested', 'confirmed', 'closed', 'cancelled'];
   if (!allowedStatuses.includes(newStatus)) {
-    throw new Error('Invalid order status')
+    throw new Error('Invalid order status');
   }
 
-  const ref = doc(db, ORDERS_COL, orderId)
+  const ref = doc(db, ORDERS_COL, orderId);
+
+  // --- NEW: LOGIC TO UPDATE PRODUCT SALES COUNT ---
+  if (newStatus === 'confirmed') {
+    const orderSnap = await getDoc(ref);
+    if (orderSnap.exists()) {
+      const orderData = orderSnap.data();
+      const productRef = doc(db, 'products', orderData.productId);
+      
+      // We import 'increment' from firestore just like we did for views
+      await updateDoc(productRef, {
+        salesCount: increment(1), 
+        updatedAt: new Date()
+      }).catch(e => console.error("Sales count update failed", e));
+    }
+  }
+  // -----------------------------------------------
 
   await updateDoc(ref, {
     status: newStatus,
     updatedAt: new Date(),
-  })
+    // Keep track of when it was confirmed for the Order History tab
+    ...(newStatus === 'confirmed' && { confirmedAt: new Date() }),
+    ...(newStatus === 'closed' && { closedAt: new Date() })
+  });
 
-  return true
+  return true;
 }
 
 // Get basic order history (reflects simplified status model)
