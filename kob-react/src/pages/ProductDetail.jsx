@@ -10,6 +10,7 @@ import SellerRatingDisplay from "../components/SellerRatingDisplay";
 import WhatsAppContactButton from "../components/marketplace/WhatsAppContactButton";
 import { getProductById } from "../services/products";
 import { calculateAverageRating } from "../services/reviews";
+import { getProductReviews } from "../services/reviews";
 import { useAuth } from "../firebase/auth";
 import { createOrder } from "../services/orders";
 
@@ -42,11 +43,17 @@ export default function ProductDetail() {
         setProduct(productData);
 
         // --- NEW: INCREMENT VIEW COUNT ---
-        const productRef = doc(db, "products", productId);
-        await updateDoc(productRef, {
-          views: increment(1),
-        }).catch((e) => console.error("View count failed", e)); // Silent fail so UI doesn't break
-        // ---------------------------------
+        if (user) {
+  try {
+    await updateDoc(productRef, {
+      views: increment(1),
+    });
+  } catch (e) {
+    if (e.code !== "permission-denied") {
+      console.error("View count error:", e);
+    }
+  }
+}
 
         const reviewsData = await getProductReviews(productId, {
           pageSize: 20,
