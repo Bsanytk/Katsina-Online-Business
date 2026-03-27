@@ -9,7 +9,7 @@ import ReviewsList from "../components/ReviewsList";
 import SellerRatingDisplay from "../components/SellerRatingDisplay";
 import WhatsAppContactButton from "../components/marketplace/WhatsAppContactButton";
 import { getProductById } from "../services/products";
-import { getProductReviews, calculateAverageRating } from "../services/reviews";
+import { calculateAverageRating } from "../services/reviews";
 import { useAuth } from "../firebase/auth";
 import { createOrder } from "../services/orders";
 
