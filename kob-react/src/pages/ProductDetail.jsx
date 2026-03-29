@@ -9,7 +9,8 @@ import ReviewsList from "../components/ReviewsList";
 import SellerRatingDisplay from "../components/SellerRatingDisplay";
 import WhatsAppContactButton from "../components/marketplace/WhatsAppContactButton";
 import { getProductById } from "../services/products";
-import { getProductReviews, calculateAverageRating } from "../services/reviews";
+import { calculateAverageRating } from "../services/reviews";
+import { getProductReviews } from "../services/reviews";
 import { useAuth } from "../firebase/auth";
 
 export default function ProductDetail() {
@@ -25,6 +26,7 @@ export default function ProductDetail() {
 
   useEffect(() => {
     const loadData = async () => {
+      // 1. Tabbatar da akwai ID
       if (!productId) {
         setError("Product ID not found");
         setLoading(false);
@@ -32,6 +34,9 @@ export default function ProductDetail() {
       }
 
       try {
+        setLoading(true); // Fara loading
+
+        // 2. Dauko Bayanan Kaya
         const productData = await getProductById(productId);
         if (!productData) {
           setError("Product not found");
@@ -40,16 +45,21 @@ export default function ProductDetail() {
         }
         setProduct(productData);
 
-        // --- NEW: INCREMENT VIEW COUNT ---
-        // --- SAFE VIEW COUNT ---
-        if (!user || user.uid !== productData.ownerUid) {
-          const productRef = doc(db, "products", productId);
-          await updateDoc(productRef, {
-            views: increment(1),
-          }).catch((e) => console.error("View count failed", e));
+        // 3. Kirga View (Idan ba Seller ba ne)
+        if (user && user.uid !== productData.ownerUid) {
+          try {
+            const productRef = doc(db, "products", productId);
+            await updateDoc(productRef, {
+              views: increment(1),
+            });
+          } catch (e) {
+            if (e.code !== "permission-denied") {
+              console.error("View count error:", e);
+            }
+          }
         }
-        // ---------------------------------
 
+        // 4. Dauko Sharhi (Reviews)
         const reviewsData = await getProductReviews(productId, {
           pageSize: 20,
         });
@@ -59,16 +69,24 @@ export default function ProductDetail() {
         setAverageRating(avg);
         // ... rest of your code
         setError(null);
+
+        // Lissafin maki
+        if (reviewsData.length > 0) {
+          const avg = calculateAverageRating(reviewsData);
+          setAverageRating(avg);
+        }
+
+        setError(null); // Share duk wani error na baya
       } catch (err) {
-        if (import.meta.env.DEV) console.error("Error loading product:", err);
-        setError(err.message);
+        console.error("General error:", err);
+        setError(err.message || "Failed to load data");
       } finally {
-        setLoading(false);
+        setLoading(false); // Tsayar da loading
       }
     };
 
     loadData();
-  }, [productId]);
+  }, [productId, user?.uid]); // Wannan shi ne rufe useEffect daya tilo
 
   if (loading)
     return (
