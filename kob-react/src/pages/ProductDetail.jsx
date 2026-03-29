@@ -12,7 +12,6 @@ import { getProductById } from "../services/products";
 import { calculateAverageRating } from "../services/reviews";
 import { getProductReviews } from "../services/reviews";
 import { useAuth } from "../firebase/auth";
-import { createOrder } from "../services/orders";
 
 export default function ProductDetail() {
   const { productId } = useParams();
@@ -27,6 +26,7 @@ export default function ProductDetail() {
 
   useEffect(() => {
     const loadData = async () => {
+      // 1. Tabbatar da akwai ID
       if (!productId) {
         setError("Product ID not found");
         setLoading(false);
@@ -34,6 +34,9 @@ export default function ProductDetail() {
       }
 
       try {
+        setLoading(true); // Fara loading
+
+        // 2. Dauko Bayanan Kaya
         const productData = await getProductById(productId);
         if (!productData) {
           setError("Product not found");
@@ -42,35 +45,43 @@ export default function ProductDetail() {
         }
         setProduct(productData);
 
-        // --- NEW: INCREMENT VIEW COUNT ---
-        if (user) {
-  try {
-    await updateDoc(productRef, {
-      views: increment(1),
-    });
-  } catch (e) {
-    if (e.code !== "permission-denied") {
-      console.error("View count error:", e);
-    }
-  }
-}
+        // 3. Kirga View (Idan ba Seller ba ne)
+        if (user && user.uid !== productData.ownerUid) {
+          try {
+            const productRef = doc(db, "products", productId);
+            await updateDoc(productRef, {
+              views: increment(1),
+            });
+          } catch (e) {
+            if (e.code !== "permission-denied") {
+              console.error("View count error:", e);
+            }
+          }
+        }
 
+        // 4. Dauko Sharhi (Reviews)
         const reviewsData = await getProductReviews(productId, {
           pageSize: 20,
         });
         setReviews(reviewsData);
-        // ... rest of your code
-        setError(null);
+
+        // Lissafin maki
+        if (reviewsData.length > 0) {
+          const avg = calculateAverageRating(reviewsData);
+          setAverageRating(avg);
+        }
+
+        setError(null); // Share duk wani error na baya
       } catch (err) {
-        if (import.meta.env.DEV) console.error("Error loading product:", err);
-        setError(err.message);
+        console.error("General error:", err);
+        setError(err.message || "Failed to load data");
       } finally {
-        setLoading(false);
+        setLoading(false); // Tsayar da loading
       }
     };
 
     loadData();
-  }, [productId]);
+  }, [productId, user?.uid]); // Wannan shi ne rufe useEffect daya tilo
 
   if (loading)
     return (
@@ -111,9 +122,9 @@ export default function ProductDetail() {
               className="p-6 rounded-lg relative overflow-hidden"
             >
               {/* KOB ID Badge */}
-              {product.sellerIDNumber && (
+              {(product?.isVerified || product?.sellerVerified) && (
                 <div className="absolute top-4 right-4 bg-kob-dark text-white px-4 py-1 rounded-full text-xs font-bold shadow-md z-10">
-                  🆔 {product.sellerIDNumber}
+                  🆔 {product.sellerIDNumber}✔ Verified
                 </div>
               )}
 
@@ -245,9 +256,11 @@ export default function ProductDetail() {
                   <div className="flex justify-between border-b pb-2 sm:border-none">
                     <dt className="text-gray-500">Posted Date</dt>
                     <dd className="font-bold text-kob-dark">
-                      {new Date(
-                        product.createdAt?.toDate?.() || product.createdAt
-                      ).toLocaleDateString()}
+                      {product.createdAt
+                        ? new Date(
+                            product.createdAt?.toDate?.() || product.createdAt
+                          ).toLocaleDateString()
+                        : "N/A"}
                     </dd>
                   </div>
                 </dl>
@@ -262,6 +275,7 @@ export default function ProductDetail() {
                   averageRating={averageRating}
                   productTitle={product.title}
                 />
+                {user && <ReviewForm productId={productId} user={user} />}
               </div>
             )}
           </div>
@@ -272,29 +286,26 @@ export default function ProductDetail() {
               <h3 className="font-bold text-lg text-kob-dark mb-4">
                 👤 Seller Info
               </h3>
-              <p className="font-bold text-kob-primary text-xl mb-4">
+              <p className="font-bold text-kob-primary text-xl mb-1">
                 {product.sellerName || "KOB Merchant"}
               </p>
 
-              <SellerRatingDisplay sellerId={product.sellerId} compact={true} />
+              {(product?.isVerified || product?.sellerVerified) && (
+                <p className="text-green-600 text-sm font-semibold flex items-center gap-1">
+                  ✔ Verified Seller
+                </p>
+              )}
+
+              <SellerRatingDisplay rating={averageRating} compact={true} />
 
               <div className="mt-6 space-y-3">
                 {/* Dynamic WhatsApp Link using the product's WhatsApp number */}
-                <Button
-                  className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-4 flex items-center justify-center gap-2"
-                  onClick={() => {
-                    const phone = product.whatsappNumber || "2348000000000";
-                    const message = encodeURIComponent(
-                      `Hello, I saw your product "${product.title}" (ID: ${product.sellerIDNumber}) on KOB App. Is it available?`
-                    );
-                    window.open(
-                      `https://wa.me/${phone}?text=${message}`,
-                      "_blank"
-                    );
-                  }}
-                >
-                  💬 Chat on WhatsApp
-                </Button>
+
+                <WhatsAppContactButton
+                  product={product}
+                  sellerUid={product.ownerUid}
+                  user={user}
+                />
 
                 <Button
                   variant="secondary"

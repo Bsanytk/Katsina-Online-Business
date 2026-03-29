@@ -198,23 +198,33 @@ function SellerDashboard({ user }) {
     ratedProducts.length > 0 ? calculateAverageRating(ratedProducts) : "—";
 
   useEffect(() => {
+    if (!user || user.role !== "seller") return;
     fetchProducts();
-  }, []);
+  }, [user]);
 
   async function fetchProducts() {
+    if (!user) return;
+
     setLoadingProducts(true);
     try {
       // Pass sellerId to only get their own products
-      const items = await getProducts({ pageSize: 10, sellerId: user.uid });
-      setProducts(items);
+      const items = await getProducts({ pageSize: 10, ownerUid: user.uid });
+      setProducts(items || []);
     } catch (err) {
       console.error("Error fetching products:", err);
+      setProducts([]);
     } finally {
       setLoadingProducts(false);
     }
   }
 
   async function handleDelete(productId, productTitle) {
+    const product = products.find((p) => p.id === productId);
+    if (!product || product.ownerUid !== user.uid) {
+      alert("You cannot delete this product.");
+      return;
+    }
+
     if (
       !window.confirm(`Delete "${productTitle}"? This action cannot be undone.`)
     )
@@ -224,7 +234,9 @@ function SellerDashboard({ user }) {
     try {
       await deleteProduct(productId);
       setShowDeleteSuccess(true);
-      await fetchProducts();
+
+      setProducts((prev) => prev.filter((p) => p.id !== productId));
+
       setTimeout(() => setShowDeleteSuccess(false), 5000);
     } catch (err) {
       if (import.meta.env.DEV) console.error("Error deleting product:", err);
