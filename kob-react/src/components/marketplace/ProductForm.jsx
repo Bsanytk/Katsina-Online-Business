@@ -14,6 +14,7 @@ export default function ProductForm({
   onSubmit = () => {},
   onCancel = () => {},
   initialData = null,
+  userData = null,
   loading = false,
   error = null,
   uploadingImage = false,
@@ -59,9 +60,9 @@ export default function ProductForm({
     checkSellerStatus();
   }, [user]);
 
-  // --- Logic: Sync form with initialData ---
   useEffect(() => {
     if (initialData) {
+      // 1. Lokacin Edit (Gyara) - Yi amfani da data da take kan product din tun farko
       setFormData({
         title: initialData.title || "",
         description: initialData.description || "",
@@ -69,7 +70,7 @@ export default function ProductForm({
         category: initialData.category || "",
         whatsappNumber: initialData.whatsappNumber || "",
         location: initialData.location || "",
-        sellerIDNumber: initialData.sellerIDNumber || user?.kobNumber || "",
+        sellerIDNumber: initialData.sellerIDNumber || "",
         deliveryOption: initialData.deliveryOption || "KOB Express Delivery",
         isDraft: initialData.isDraft ?? true,
       });
@@ -83,9 +84,16 @@ export default function ProductForm({
           }))
         );
       }
+    } else if (userData) {
+      // 2. Lokacin Sabon Product - Dauko komai daga Profile ta atomatik
+      setFormData((prev) => ({
+        ...prev,
+        sellerIDNumber: userData.kobNumber || "", // Tabbatar 'kobNumber' ne ba 'sellerID' ba
+        location: userData.location || "",
+        whatsappNumber: userData.whatsappNumber || userData.phoneNumber || "",
+      }));
     }
-  }, [initialData]);
-
+  }, [initialData, userData]); // Wannan shi ne rufe useEffect guda daya
   const categories = [
     "Electronics",
     "Fashion",
@@ -161,31 +169,24 @@ export default function ProductForm({
       // Now build the submission data with the ACTUAL URLs
       const submissionData = {
         ...formData,
-        ownerUid: user?.uid,
-        cleanWhatsapp: formData.whatsappNumber.replace(/\D/g, ""),
+        ownerUid: user.uid,
         price: parseFloat(formData.price),
-        images: uploadedUrls, // This is now an array of HTTPS links
-        imageUrl: uploadedUrls[0] || "", // Sets the main thumbnail link
+        images: uploadedUrls,
+        imageUrl: uploadedUrls[0] || "",
         mainImage: uploadedUrls[0] || "",
         deliveryLink:
           formData.deliveryOption === "KOB Express Delivery"
             ? GOOGLE_FORM_URL
             : null,
-
-        // --- ADD THESE 4 LINES TO START YOUR DASHBOARD STATS ---
-        views: 0, // Starts the "Total Views" at 0
-        salesCount: 0, // Starts the "Sales" at 0
-        rating: 0, // Starts the "Rating" at 0
-        reviewCount: 0, // Starts the review count at 0
-        createdAt: new Date(),
+        views: initialData?.views || 0,
+        salesCount: initialData?.salesCount || 0,
+        createdAt: initialData?.createdAt || new Date(),
+        updatedAt: new Date(),
       };
 
-      // Pass the finalized data to your Firebase onSubmit function
       await onSubmit(submissionData);
     } catch (err) {
-      alert(
-        `Upload failed: ${err.message}. Please check your internet connection.`
-      );
+      alert(`Error: ${err.message}`);
     }
   }
   // --- Verification Lock Screen ---
@@ -298,10 +299,14 @@ export default function ProductForm({
             <Input
               label="Verified KOB (🆔)"
               name="sellerIDNumber"
-              value={formData.sellerIDNumber}
+              // Wannan zai tabbatar ko ana Loading ne ko data ta iso
+              value={
+                formData.sellerIDNumber || userData?.kobNumber || "Loading..."
+              }
               onChange={handleChange}
               error={validationErrors.sellerIDNumber}
-              readOnly={true}
+              readOnly={true} // Ba za a iya rubutu ba
+              disabled={true} // Zai yi dishi-dishi don nuna an kulle shi
               className="bg-gray-100 cursor-not-allowed opacity-75 font-bold text-kob-primary"
             />
           </div>
@@ -331,7 +336,9 @@ export default function ProductForm({
               value={formData.location}
               onChange={handleChange}
               error={validationErrors.location}
-              placeholder="e.g. Metropolis, Katsina"
+              readOnly={true} // Kulle shi
+              disabled={true} // Yi masa dishi-dishi
+              className="bg-gray-100 cursor-not-allowed opacity-75 font-medium"
             />
           </div>
 
@@ -364,7 +371,9 @@ export default function ProductForm({
               value={formData.whatsappNumber}
               onChange={handleChange}
               error={validationErrors.whatsappNumber}
-              placeholder="e.g. 234806..."
+              readOnly={true} // Kulle shi
+              disabled={true} // Yi masa dishi-dishi
+              className="bg-gray-100 cursor-not-allowed opacity-75 font-medium"
             />
           </div>
 
