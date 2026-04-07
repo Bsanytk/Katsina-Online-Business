@@ -3,11 +3,12 @@ import { useAuth } from "../firebase/auth";
 import Loading from "../components/Loading";
 import { Card, Button, Alert } from "../components/ui";
 import { getProducts, deleteProduct } from "../services/products";
-import { calculateAverageRating } from "../services/reviews"; // Add this line
+import { calculateAverageRating } from "../services/reviews";
 import BackButton from "../components/BackButton";
 import OrdersTab from "../components/dashboard/OrdersTab";
 import MessagesTab from "../components/dashboard/MessagesTab";
 import SellerProfileEdit from "../components/dashboard/SellerProfileEdit";
+import MobileSidebar from "../components/MobileSidebar";
 
 // Buyer Dashboard View
 function BuyerDashboard({ user }) {
@@ -16,7 +17,6 @@ function BuyerDashboard({ user }) {
   const [activeTab, setActiveTab] = useState("overview");
 
   useEffect(() => {
-    // TODO: Fetch user's saved products from Firestore
     const loadData = async () => {
       setLoading(false);
     };
@@ -25,20 +25,19 @@ function BuyerDashboard({ user }) {
 
   return (
     <div className="space-y-8">
-      {/* Tab Navigation */}
       <div className="flex gap-4 border-b-2 border-gray-200 overflow-x-auto">
         {[
-          { id: "overview", label: "📊 Overview", icon: "📊" },
-          { id: "orders", label: "📦 Orders", icon: "📦" },
-          { id: "messages", label: "💬 Messages", icon: "💬" },
+          { id: "overview", label: "📊 Overview" },
+          { id: "orders", label: "📦 Orders" },
+          { id: "messages", label: "💬 Messages" },
         ].map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={`px-6 py-4 font-semibold transition-all whitespace-nowrap ${
               activeTab === tab.id
-                ? "text-kob-primary border-b-4 border-kob-primary"
-                : "text-gray-600 hover:text-kob-primary"
+                ? "text-[#4B3621] border-b-4 border-[#4B3621]"
+                : "text-gray-600 hover:text-[#4B3621]"
             }`}
           >
             {tab.label}
@@ -46,130 +45,28 @@ function BuyerDashboard({ user }) {
         ))}
       </div>
 
-      {/* Tab Content */}
       {activeTab === "overview" && (
         <div className="space-y-8">
-          {/* Welcome Card */}
-          <Card
-            variant="elevated"
-            className="bg-gradient-to-br from-kob-primary via-kob-primary-light to-kob-gold text-white p-8 md:p-10 rounded-2xl"
-          >
-            <div className="flex items-start gap-4">
-              <div className="text-6xl">👋</div>
-              <div>
-                <h1 className="text-4xl font-extrabold mb-3">
-                  Welcome, {user.email.split("@")[0]}!
-                </h1>
-                <p className="text-lg opacity-95 font-light">
-                  Browse, save, and purchase products from verified sellers
-                  across Katsina & Northern Nigeria with confidence.
-                </p>
-              </div>
-            </div>
+          <Card variant="elevated" className="bg-gradient-to-br from-[#4B3621] to-[#D4AF37] text-white p-8 rounded-2xl">
+            <h1 className="text-3xl font-bold italic">Welcome, {user.email.split("@")[0]}!</h1>
+            <p className="opacity-95 font-light">Manage your activities on Katsina Online Business Marketplace.</p>
           </Card>
-
-          {/* Quick Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card
-              variant="elevated"
-              className="p-7 rounded-xl text-center card-hover"
-            >
-              <div className="text-5xl mb-3 inline-block">❤️</div>
-              <p className="text-sm text-gray-600 font-semibold uppercase tracking-wider mb-2">
-                Saved Products
-              </p>
-              <p className="text-4xl font-bold text-kob-primary">
-                {savedProducts.length}
-              </p>
+            <Card className="p-7 text-center rounded-xl shadow-sm border border-gray-100">
+              <p className="text-xs font-black uppercase tracking-widest text-gray-400 mb-2">Saved Products</p>
+              <p className="text-4xl font-bold text-[#4B3621]">{savedProducts.length}</p>
             </Card>
-            <Card
-              variant="elevated"
-              className="p-7 rounded-xl text-center card-hover"
-            >
-              <div className="text-5xl mb-3 inline-block">📦</div>
-              <p className="text-sm text-gray-600 font-semibold uppercase tracking-wider mb-2">
-                Active Orders
-              </p>
-              <p className="text-4xl font-bold text-kob-primary">0</p>
+            <Card className="p-7 text-center rounded-xl shadow-sm border border-gray-100">
+              <p className="text-xs font-black uppercase tracking-widest text-gray-400 mb-2">Active Orders</p>
+              <p className="text-4xl font-bold text-[#4B3621]">0</p>
             </Card>
-            <Card
-              variant="elevated"
-              className="p-7 rounded-xl text-center card-hover"
-            >
-              <div className="text-5xl mb-3 inline-block">⭐</div>
-              <p className="text-sm text-gray-600 font-semibold uppercase tracking-wider mb-2">
-                My Reviews
-              </p>
-              <p className="text-4xl font-bold text-kob-primary">0</p>
+            <Card className="p-7 text-center rounded-xl shadow-sm border border-gray-100">
+              <p className="text-xs font-black uppercase tracking-widest text-gray-400 mb-2">My Reviews</p>
+              <p className="text-4xl font-bold text-[#4B3621]">0</p>
             </Card>
           </div>
-
-          {/* Saved Products Section */}
-          <Card variant="elevated" className="p-8 rounded-xl">
-            <h2 className="text-3xl font-bold text-kob-dark mb-8 flex items-center gap-3">
-              <span className="text-5xl">❤️</span> Saved Products
-            </h2>
-
-            {loading ? (
-              <Loading message="Loading saved products..." />
-            ) : savedProducts.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Products will be displayed here */}
-              </div>
-            ) : (
-              <div className="text-center py-16">
-                <div className="text-7xl mb-6">📭</div>
-                <p className="text-gray-600 text-lg mb-8 font-medium">
-                  No saved products yet.
-                </p>
-                <Button
-                  onClick={() => (window.location.href = "/marketplace")}
-                  variant="primary"
-                  size="lg"
-                  className="shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
-                >
-                  Start Browsing Marketplace
-                </Button>
-              </div>
-            )}
-          </Card>
-
-          {/* Resources */}
-          <Card
-            variant="outlined"
-            className="p-8 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-200"
-          >
-            <h3 className="text-2xl font-bold text-blue-900 mb-6 flex items-center gap-3">
-              <span className="text-4xl">💡</span> Quick Tips for Smart Shopping
-            </h3>
-            <ul className="space-y-3 text-base text-blue-900">
-              <li className="flex items-start gap-3">
-                <span className="text-xl">✓</span>
-                <span>
-                  Save products to your favorites for easy access later
-                </span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="text-xl">✓</span>
-                <span>Check seller ratings before making a purchase</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="text-xl">✓</span>
-                <span>
-                  Use WhatsApp to contact sellers directly for inquiries
-                </span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="text-xl">✓</span>
-                <span>
-                  Read buyer reviews to make informed purchasing decisions
-                </span>
-              </li>
-            </ul>
-          </Card>
         </div>
       )}
-
       {activeTab === "orders" && <OrdersTab />}
       {activeTab === "messages" && <MessagesTab />}
     </div>
@@ -183,64 +80,37 @@ function SellerDashboard({ user }) {
   const [deleteLoading, setDeleteLoading] = useState(null);
   const [showDeleteSuccess, setShowDeleteSuccess] = useState(false);
   const [activeTab, setActiveTab] = useState("products");
-  // This calculates the numbers from the products you already loaded
-  const totalViews = products.reduce(
-    (sum, p) => sum + (Number(p.views) || 0),
-    0
-  );
 
-  // 1. Filter the products that actually have a rating
+  const totalViews = products.reduce((sum, p) => sum + (Number(p.views) || 0), 0);
   const ratedProducts = products.filter((p) => p.rating > 0);
-
-  // 2. Use the imported function to calculate the average
-  // This replaces the long reduce() math and ensures your import is USED
-  const avgRating =
-    ratedProducts.length > 0 ? calculateAverageRating(ratedProducts) : "—";
+  const avgRating = ratedProducts.length > 0 ? calculateAverageRating(ratedProducts) : "—";
 
   useEffect(() => {
-    if (!user || user.role !== "seller") return;
-    fetchProducts();
+    if (user?.role === "seller") fetchProducts();
   }, [user]);
 
   async function fetchProducts() {
-    if (!user) return;
-
     setLoadingProducts(true);
     try {
-      // Pass sellerId to only get their own products
       const items = await getProducts({ pageSize: 10, ownerUid: user.uid });
       setProducts(items || []);
     } catch (err) {
-      console.error("Error fetching products:", err);
-      setProducts([]);
+      console.error("Fetch Error:", err);
     } finally {
       setLoadingProducts(false);
     }
   }
 
-  async function handleDelete(productId, productTitle) {
-    const product = products.find((p) => p.id === productId);
-    if (!product || product.ownerUid !== user.uid) {
-      alert("You cannot delete this product.");
-      return;
-    }
-
-    if (
-      !window.confirm(`Delete "${productTitle}"? This action cannot be undone.`)
-    )
-      return;
-
+  async function handleDelete(productId, title) {
+    if (!window.confirm(`Delete "${title}"? This action cannot be undone.`)) return;
     setDeleteLoading(productId);
     try {
       await deleteProduct(productId);
+      setProducts(prev => prev.filter(p => p.id !== productId));
       setShowDeleteSuccess(true);
-
-      setProducts((prev) => prev.filter((p) => p.id !== productId));
-
-      setTimeout(() => setShowDeleteSuccess(false), 5000);
+      setTimeout(() => setShowDeleteSuccess(false), 4000);
     } catch (err) {
-      if (import.meta.env.DEV) console.error("Error deleting product:", err);
-      alert("Failed to delete product. Please try again.");
+      alert("Failed to delete product.");
     } finally {
       setDeleteLoading(null);
     }
@@ -248,270 +118,90 @@ function SellerDashboard({ user }) {
 
   return (
     <div className="space-y-8">
-      {/* Tab Navigation */}
       <div className="flex gap-2 border-b-2 border-gray-100 overflow-x-auto">
-        {[
-          { id: "products", label: "📦 Products", icon: "📦" },
-          { id: "sales", label: "💰 Sales", icon: "💰" },
-          { id: "messages", label: "💬 Messages", icon: "💬" },
-          { id: "profile", label: "👤 Profile", icon: "👤" },
-        ].map((tab) => (
+        {["products", "sales", "messages", "profile"].map((id) => (
           <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`px-6 py-4 font-semibold transition-all whitespace-nowrap ${
-              activeTab === tab.id
-                ? "text-kob-primary border-b-2 border-kob-primary"
-                : "text-gray-400 hover:text-kob-primary"
+            key={id}
+            onClick={() => setActiveTab(id)}
+            className={`px-6 py-4 font-black uppercase text-[10px] tracking-[0.2em] transition-all ${
+              activeTab === id ? "text-[#4B3621] border-b-2 border-[#4B3621]" : "text-gray-400 hover:text-[#4B3621]"
             }`}
           >
-            {tab.label}
+            {id}
           </button>
         ))}
       </div>
 
-      {/* Tab Content */}
       {activeTab === "products" && (
         <div className="space-y-8">
-          {/* Welcome Card */}
-          <Card
-            variant="elevated"
-            className="bg-gradient-to-br from-kob-primary via-kob-primary-light to-kob-gold text-white p-8 md:p-10 rounded-2xl"
-          >
-            <div className="flex items-start gap-3">
-              <div className="text-6xl">👋</div>
-              <div>
-                <h1 className="text-3xl font-extrabold mb-3">
-                  Welcome, {user.email.split("@")[0]}!
-                </h1>
-                <p className="text-lg opacity-90 font-light">
-                  ✓ You can manage your products and reach thousands of
-                  customers across Katsina & Northern part of Nigeria entirely.
-                </p>
-              </div>
-            </div>
-          </Card>
-
-          {/* Quick Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card
-              variant="elevated"
-              className="p-7 rounded-xl text-center card-hover"
-            >
-              <div className="text-5xl mb-3 inline-block">📦</div>
-              <p className="text-sm text-gray-600 font-semibold uppercase tracking-wider mb-2">
-                Active Products
-              </p>
-              <p className="text-4xl font-bold text-kob-primary">
-                {products.length}
-              </p>
+            <Card className="p-7 text-center shadow-sm">
+              <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Active Listings</p>
+              <p className="text-4xl font-bold text-[#4B3621]">{products.length}</p>
             </Card>
-            <Card
-              variant="elevated"
-              className="p-7 rounded-xl text-center card-hover"
-            >
-              <div className="text-5xl mb-3 inline-block">👥</div>
-              <p className="text-sm text-gray-600 font-semibold uppercase tracking-wider mb-2">
-                Total Views
-              </p>
-              <p className="text-4xl font-bold text-kob-primary">
-                {totalViews}
-              </p>
+            <Card className="p-7 text-center shadow-sm">
+              <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Total Impressions</p>
+              <p className="text-4xl font-bold text-[#4B3621]">{totalViews}</p>
             </Card>
-            <Card
-              variant="elevated"
-              className="p-7 rounded-xl text-center card-hover"
-            >
-              <div className="text-5xl mb-3 inline-block">⭐</div>
-              <p className="text-sm text-gray-600 font-semibold uppercase tracking-wider mb-2">
-                Average Rating
-              </p>
-              <p className="text-4xl font-bold text-kob-primary">{avgRating}</p>
-              <Card
-                variant="elevated"
-                className="p-7 rounded-xl text-center card-hover"
-              >
-                <div className="text-5xl mb-3 inline-block">⭐</div>
-                <p className="text-sm text-gray-600 font-semibold uppercase tracking-wider mb-2">
-                  Average Rating
-                </p>
-                <p className="text-4xl font-bold text-kob-primary">
-                  {avgRating}
-                </p>
-
-                {/* Add this to show yellow stars below the number */}
-                <div className="flex justify-center mt-2 text-yellow-400">
-                  {avgRating !== "—" &&
-                    Array.from({ length: 5 }).map((_, i) => (
-                      <span key={i}>
-                        {i < Math.floor(avgRating) ? "★" : "☆"}
-                      </span>
-                    ))}
-                </div>
-              </Card>
+            <Card className="p-7 text-center shadow-sm">
+              <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Avg Rating</p>
+              <p className="text-4xl font-bold text-[#4B3621]">{avgRating}</p>
             </Card>
           </div>
 
-          {/* Delete Success Alert */}
           {showDeleteSuccess && (
-            <Alert
-              type="success"
-              title="Product Deleted"
-              onDismiss={() => setShowDeleteSuccess(false)}
-            >
-              Your product has been successfully deleted.
+            <Alert type="success" onDismiss={() => setShowDeleteSuccess(false)}>
+              Product successfully removed from marketplace.
             </Alert>
           )}
 
-          {/* Products Management Section */}
-          <Card variant="elevated" className="p-8 rounded-xl">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
-              <h2 className="text-3xl font-bold text-kob-dark flex items-center gap-3">
-                <span className="text-5xl">📦</span> My Products
-              </h2>
-              <Button
-                onClick={() => (window.location.href = "/marketplace")}
-                variant="primary"
-                size="lg"
-                className="shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300"
+          <Card className="p-8 rounded-2xl border border-gray-100 shadow-sm bg-white">
+            <div className="flex justify-between items-center mb-8">
+              <h2 className="text-2xl font-black text-[#4B3621] italic tracking-tight">Inventory</h2>
+              <Button 
+                variant="primary" 
+                className="bg-[#4B3621] hover:bg-[#362818]"
+                onClick={() => window.location.href = "/marketplace"}
               >
-                + Add Product
+                + New Product
               </Button>
             </div>
-
-            {loadingProducts ? (
-              <Loading message="Loading your products..." />
-            ) : products.length > 0 ? (
+            {loadingProducts ? <Loading /> : (
               <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="border-b-2 border-kob-primary">
-                    <tr>
-                      <th className="text-left py-3 px-2 font-semibold text-kob-dark">
-                        Image
-                      </th>
-                      <th className="text-left py-3 px-2 font-semibold text-kob-dark">
-                        Title
-                      </th>
-                      <th className="text-left py-3 px-2 font-semibold text-kob-dark">
-                        Price
-                      </th>
-                      <th className="text-center py-3 px-2 font-semibold text-kob-dark">
-                        Actions
-                      </th>
+                <table className="w-full text-left">
+                  <thead className="border-b-2 border-[#4B3621]">
+                    <tr className="text-[11px] font-black uppercase tracking-widest text-gray-500">
+                      <th className="py-4 px-2">Preview</th>
+                      <th>Product Title</th>
+                      <th>Price</th>
+                      <th className="text-center">Actions</th>
                     </tr>
                   </thead>
-                  <tbody>
-                    {products.map((product) => (
-                      <tr
-                        key={product.id}
-                        className="border-b border-gray-200 hover:bg-gray-50 transition-colors"
-                      >
-                        <td className="py-3 px-2">
-                          {/* This shows your Cloudinary image in a small preview circle */}
-                          <img
-                            src={
-                              product.imageUrl ||
-                              product.images?.[0] ||
-                              "/placeholder.png"
-                            }
-                            className="w-10 h-10 object-cover rounded-full border border-gray-200 shadow-sm"
-                            alt=""
-                          />
+                  <tbody className="divide-y divide-gray-50">
+                    {products.map(p => (
+                      <tr key={p.id} className="hover:bg-gray-50/50 transition-colors">
+                        <td className="py-4 px-2">
+                          <img src={p.imageUrl || p.images?.[0] || "/placeholder.png"} className="w-12 h-12 rounded-xl object-cover border shadow-sm" alt=""/>
                         </td>
-                        <td className="py-3 px-2 font-medium text-kob-dark truncate">
-                          {product.title}
-                        </td>
-                        <td className="py-3 px-2 text-kob-primary font-bold">
-                          ₦{Number(product.price).toLocaleString()}
-                        </td>
-                        <td className="py-3 px-2 text-center flex items-center justify-center gap-2">
-                          {/* --- THE NEW DETAILS BUTTON --- */}
-                          <Button
-                            onClick={() =>
-                              (window.location.href = `/product/${product.id}`)
-                            }
-                            variant="outline"
-                            size="sm"
-                          >
-                            👁️ Details
-                          </Button>
-
-                          <Button
-                            onClick={() =>
-                              (window.location.href = `/marketplace?edit=${product.id}`)
-                            }
-                            variant="secondary"
-                            size="sm"
-                          >
-                            ✏️ Edit
-                          </Button>
-
-                          <Button
-                            onClick={() =>
-                              handleDelete(product.id, product.title)
-                            }
-                            variant="danger"
-                            size="sm"
-                          >
-                            {deleteLoading === product.id ? "⌛" : "Delete"}
-                          </Button>
+                        <td className="font-bold text-[#4B3621]">{p.title}</td>
+                        <td className="font-black text-[#D4AF37]">₦{Number(p.price).toLocaleString()}</td>
+                        <td className="text-center">
+                          <div className="flex justify-center gap-2">
+                            <Button size="sm" variant="outline" onClick={() => window.location.href=`/product/${p.id}`}>Details</Button>
+                            <Button size="sm" variant="danger" onClick={() => handleDelete(p.id, p.title)}>
+                              {deleteLoading === p.id ? "..." : "Delete"}
+                            </Button>
+                          </div>
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
-            ) : (
-              <div className="text-center py-12">
-                <div className="text-5xl mb-4">📭</div>
-                <p className="text-gray-600 mb-4">No products yet.</p>
-                <Button
-                  onClick={() => (window.location.href = "/marketplace")}
-                  variant="primary"
-                  size="lg"
-                >
-                  Create Your First Product
-                </Button>
-              </div>
             )}
-          </Card>
-
-          {/* Resources */}
-          <Card variant="outlined" className="p-6 bg-green-50">
-            <h3 className="text-lg font-bold text-kob-dark mb-4">
-              🚀 Seller Resources
-            </h3>
-            <ul className="space-y-2 text-sm text-gray-700">
-              <li>
-                ✓ <strong>Product Tips:</strong> Use clear titles and detailed
-                descriptions
-              </li>
-              <li>
-                ✓ <strong>Pricing:</strong> Competitive pricing helps products
-                sell faster
-              </li>
-              <li>
-                ✓ <strong>Images:</strong> High-quality images increase buyer
-                confidence
-              </li>
-              <li>
-                ✓ <strong>Communication:</strong> Respond to buyer inquiries
-                quickly
-              </li>
-              <li>
-                ✓{" "}
-                <a
-                  href="/help"
-                  className="text-kob-primary hover:underline font-bold"
-                >
-                  View Seller Guide →
-                </a>
-              </li>
-            </ul>
           </Card>
         </div>
       )}
-
       {activeTab === "sales" && <OrdersTab />}
       {activeTab === "messages" && <MessagesTab />}
       {activeTab === "profile" && <SellerProfileEdit />}
@@ -519,52 +209,34 @@ function SellerDashboard({ user }) {
   );
 }
 
+// MAIN DASHBOARD EXPORT
 export default function Dashboard() {
   const { user, loading } = useAuth();
+  const [isSidebarOpen, setSidebarOpen] = useState(false);
 
-  if (loading) return <Loading fullScreen message="Loading dashboard..." />;
-
-  // Redirect if not logged in
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-kob-light flex items-center justify-center p-4">
-        <Card variant="elevated" className="text-center p-8 max-w-md">
-          <div className="text-5xl mb-4">🔒</div>
-          <h1 className="text-2xl font-bold text-kob-dark mb-2">
-            Sign In Required
-          </h1>
-          <p className="text-gray-600 mb-6">
-            Please sign in to access your dashboard.
-          </p>
-          <Button
-            onClick={() => (window.location.href = "/login")}
-            variant="primary"
-            size="lg"
-            className="w-full"
-          >
-            Go to Login
-          </Button>
-        </Card>
-      </div>
-    );
-  }
+  if (loading) return <Loading fullScreen message="Authenticating..." />;
+  if (!user) return (window.location.href = "/login");
 
   return (
-    <main className="min-h-screen bg-kob-light">
-      <div className="container py-4">
-        <BackButton />
-      </div>
-      <div className="container py-8">
-        {/* Render appropriate dashboard based on user role */}
-        {user.role === "seller" ? (
-          <SellerDashboard user={user} />
-        ) : user.role === "buyer" ? (
-          <BuyerDashboard user={user} />
-        ) : (
-          // Admin view or default
-          <SellerDashboard user={user} />
-        )}
-      </div>
-    </main>
+    <div className="flex min-h-screen bg-[#FAFAFA]">
+      <MobileSidebar isOpen={isSidebarOpen} onClose={() => setSidebarOpen(false)} />
+
+      <main className="flex-1 flex flex-col min-w-0">
+        <header className="lg:hidden flex items-center justify-between p-4 bg-white border-b sticky top-0 z-20">
+          <button onClick={() => setSidebarOpen(true)} className="p-2 text-[#4B3621] text-2xl">☰</button>
+          <div className="flex items-center gap-2">
+            <span className="font-black italic text-xl text-[#4B3621]">KOBMarketplace</span>
+          </div>
+          <div className="w-8"></div>
+        </header>
+
+        <div className="p-6 lg:p-10 max-w-7xl mx-auto w-full">
+          <div className="mb-8"><BackButton /></div>
+          <div className="animate-fade-in">
+            {user.role === "seller" ? <SellerDashboard user={user} /> : <BuyerDashboard user={user} />}
+          </div>
+        </div>
+      </main>
+    </div>
   );
 }

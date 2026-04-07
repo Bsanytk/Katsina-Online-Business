@@ -41,6 +41,7 @@ export default function SellerProfileEdit() {
     whatsappNumber: "",
     kobNumber: "",
     location: "",
+    fullAddress: "",
     photoURL:
       "https://res.cloudinary.com/dn5crslee/image/upload/v1773415750/20260313_161322_oo9ocx.png",
   });
@@ -88,9 +89,20 @@ export default function SellerProfileEdit() {
     setSaving(true);
     setError(null);
     try {
-      const cleanCountryCode = profileData.countryCode.replace("+", "");
       const cleanPhone = profileData.phoneNumber.replace(/\D/g, "");
-      const fullNumber = cleanCountryCode + cleanPhone;
+
+      // Idan lambar ta fara da 0, mu cire shi (misali 080... ya koma 80...)
+      const finalPhone = cleanPhone.startsWith("0")
+        ? cleanPhone.substring(1)
+        : cleanPhone;
+
+      const fullNumber = profileData.countryCode.replace("+", "") + finalPhone;
+
+      if (finalPhone.length < 10) {
+        setError("invalidNumber");
+        setSaving(false);
+        return;
+      }
 
       await updateUserProfile(user.uid, {
         displayName: profileData.displayName.trim(),
@@ -98,6 +110,7 @@ export default function SellerProfileEdit() {
         phoneNumber: fullNumber,
         whatsappNumber: fullNumber, // Kamar yadda kace su zama daya
         location: profileData.location,
+        fullAddress: profileData.fullAddress, // Cikakken adireshi
         photoURL: profileData.photoURL,
         kobNumber: profileData.kobNumber, // Tabbatar an sake adana shi
         role: "seller",
@@ -169,7 +182,7 @@ export default function SellerProfileEdit() {
                 onChange={(e) =>
                   setProfileData((p) => ({ ...p, displayName: e.target.value }))
                 }
-                placeholder="e.g. Suleiman Baba"
+                placeholder="e.g. JAMILU HARUNA"
                 className="rounded-2xl border-2 border-gray-100 focus:border-[#4B3621] font-semibold"
                 required
               />
@@ -186,7 +199,7 @@ export default function SellerProfileEdit() {
                     businessName: e.target.value,
                   }))
                 }
-                placeholder="e.g. B-SANI BIO-CARE MED"
+                placeholder="e.g. B-SANI BRIGHT VENTURES"
                 className="rounded-2xl border-2 border-gray-100 focus:border-[#4B3621] font-semibold"
                 required
               />
@@ -206,7 +219,22 @@ export default function SellerProfileEdit() {
                 * This ID is locked and verified by Admin.
               </p>
             </div>
-
+            <div className="space-y-1 md:col-span-2">
+              {" "}
+              {/* Mu ba shi fili ya mike */}
+              <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider ml-2">
+                Full Shop Address
+              </label>
+              <Input
+                value={profileData.fullAddress}
+                onChange={(e) =>
+                  setProfileData((p) => ({ ...p, fullAddress: e.target.value }))
+                }
+                placeholder="Misali: No. 12 Kofar Kwaya, kusa da Masallacin Juma'a, Katsina."
+                className="rounded-2xl border-2 border-gray-100 focus:border-[#4B3621] font-semibold"
+                required
+              />
+            </div>
             <div className="space-y-1">
               <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider ml-2">
                 Marketplace Location
