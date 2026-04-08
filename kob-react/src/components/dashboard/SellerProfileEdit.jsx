@@ -144,25 +144,27 @@ export default function SellerProfileEdit() {
             <label className="text-[10px] font-bold uppercase text-[#4B3621] ml-2">
               WhatsApp Number (No leading "0")
             </label>
-            <div className="flex border-2 border-gray-100 rounded-2xl overflow-hidden focus-within:border-[#4B3621] transition-all bg-white">
+            <div className="flex border-2 border-gray-100 rounded-2xl overflow-hidden focus-within:border-[#4B3621] transition-all bg-white h-[58px]">
               <select
-                className="bg-gray-50 px-4 font-bold text-[#4B3621] outline-none border-r border-gray-100 cursor-pointer"
-                value={profileData.countryCode}
-                onChange={(e) => setProfileData({ ...profileData, countryCode: e.target.value })}
-              >
-                {COUNTRIES.map((c) => (
-                  <option key={c.code} value={c.code}>{c.label} {c.code}</option>
-                ))}
-              </select>
+              className="bg-gray-100 px-3 font-bold text-[#4B3621] outline-none border-r border-gray-100 cursor-pointer min-w-[100px]"
+              value={profileData.countryCode}
+              onChange={(e) => setProfileData({ ...profileData, countryCode: e.target.value })}
+               >
+                 {COUNTRIES.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {c.label} {c.code}
+              </option>
+           ))}
+             </select>
               <input
-                type="tel"
-                placeholder={COUNTRIES.find(c => c.code === profileData.countryCode)?.placeholder}
-                className="flex-1 p-4 outline-none font-black text-[#4B3621] text-lg"
-                value={profileData.phoneNumber}
+               type="tel"
+               placeholder="803 000 0000"
+               className="flex-1 p-4 outline-none font-black text-[#4B3621] text-lg w-full"
+               value={profileData.phoneNumber}
                 onChange={(e) => setProfileData({ ...profileData, phoneNumber: e.target.value })}
                 required
-              />
-            </div>
+               />
+         </div>
             <p className="text-[9px] text-amber-600 mt-2 ml-2 font-medium italic">
               * Don't start with 0. Example: If your number is 0803, write 803 only.
             </p>
