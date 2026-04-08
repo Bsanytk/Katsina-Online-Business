@@ -64,13 +64,23 @@ export default function ProductForm({
     if (initialData) {
       // 1. Lokacin Edit (Gyara) - Yi amfani da data da take kan product din tun farko
       setFormData({
+        ...initialData,
         title: initialData.title || "",
         description: initialData.description || "",
         price: initialData.price?.toString() || "",
         category: initialData.category || "",
-        location: userData.fullAddress || userData.location || "",
-        whatsappNumber: userData.whatsappNumber || userData.phoneNumber || "",
-        sellerIDNumber: initialData.sellerIDNumber || "",
+        // GYARA: Dauko Full Address a lokacin edit
+        location:
+          userData?.fullAddress ||
+          userData?.location ||
+          initialData.location ||
+          "",
+        whatsappNumber:
+          userData?.whatsappNumber ||
+          userData?.phoneNumber ||
+          initialData.whatsappNumber ||
+          "",
+        sellerIDNumber: userData?.kobNumber || initialData.sellerIDNumber || "",
         deliveryOption: initialData.deliveryOption || "KOB Express Delivery",
         isDraft: initialData.isDraft ?? true,
       });
@@ -85,11 +95,11 @@ export default function ProductForm({
         );
       }
     } else if (userData) {
-      // 2. Lokacin Sabon Product - Dauko komai daga Profile ta atomatik
+      // GYARA: Dauko Full Address lokacin sabon product
       setFormData((prev) => ({
         ...prev,
-        sellerIDNumber: userData.kobNumber || "", // Tabbatar 'kobNumber' ne ba 'sellerID' ba
-        location: userData.location || "",
+        sellerIDNumber: userData.kobNumber || "",
+        location: userData.fullAddress || userData.location || "", // Wannan zai dauko address
         whatsappNumber: userData.whatsappNumber || userData.phoneNumber || "",
       }));
     }
@@ -143,6 +153,17 @@ export default function ProductForm({
     }
     if (!validateForm()) return;
 
+    const finalData = {
+      ...formData,
+      location:
+        userData?.fullAddress || userData?.location || formData.location,
+      sellerIDNumber: userData?.kobNumber || formData.sellerIDNumber,
+      whatsappNumber:
+        userData?.whatsappNumber ||
+        userData?.phoneNumber ||
+        formData.whatsappNumber,
+    };
+
     // Trigger the loading state while uploading to Cloudinary
     // This uses the 'loading' prop you already have in the component
     try {
@@ -168,7 +189,7 @@ export default function ProductForm({
 
       // Now build the submission data with the ACTUAL URLs
       const submissionData = {
-        ...formData,
+        ...finalData,
         ownerUid: user.uid,
         price: parseFloat(formData.price),
         images: uploadedUrls,
@@ -285,7 +306,6 @@ export default function ProductForm({
         </div>
 
         {error && <Alert type="error">{error}</Alert>}
-
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
@@ -299,14 +319,13 @@ export default function ProductForm({
             <Input
               label="Verified KOB (🆔)"
               name="sellerIDNumber"
-              // Wannan zai tabbatar ko ana Loading ne ko data ta iso
               value={
                 formData.sellerIDNumber || userData?.kobNumber || "Loading..."
               }
               onChange={handleChange}
               error={validationErrors.sellerIDNumber}
-              readOnly={true} // Ba za a iya rubutu ba
-              disabled={true} // Zai yi dishi-dishi don nuna an kulle shi
+              readOnly={true}
+              disabled={true}
               className="bg-gray-100 cursor-not-allowed opacity-75 font-bold text-kob-primary"
             />
           </div>
@@ -330,19 +349,37 @@ export default function ProductForm({
               onChange={handleChange}
               error={validationErrors.price}
             />
+            {/* GYARA: Na cire nested grid din da yake sa jan layi */}
             <Input
-              label="Location (📍)"
+              label="Business Address (📍)"
               name="location"
-              value={formData.location}
-              onChange={handleChange}
+              value={
+                userData?.fullAddress ||
+                formData.location ||
+                "Loading Address..."
+              }
               error={validationErrors.location}
-              readOnly={true} // Kulle shi
-              disabled={true} // Yi masa dishi-dishi
+              readOnly={true}
+              disabled={true}
               className="bg-gray-100 cursor-not-allowed opacity-75 font-medium"
+              placeholder="e.g Kofar fada Yan-tumaki"
             />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Input
+              label="WhatsApp Number (Verified)"
+              name="whatsappNumber"
+              value={
+                userData?.whatsappNumber ||
+                userData?.phoneNumber ||
+                formData.whatsappNumber ||
+                "Loading..."
+              }
+              readOnly={true}
+              disabled={true}
+              className="bg-gray-100 cursor-not-allowed opacity-75 font-medium"
+            />
             <div>
               <label className="block text-sm font-semibold text-kob-dark mb-2">
                 Category
@@ -365,16 +402,6 @@ export default function ProductForm({
                 ))}
               </select>
             </div>
-            <Input
-              label="WhatsApp (Contact)"
-              name="whatsappNumber"
-              value={formData.whatsappNumber}
-              onChange={handleChange}
-              error={validationErrors.whatsappNumber}
-              readOnly={true} // Kulle shi
-              disabled={true} // Yi masa dishi-dishi
-              className="bg-gray-100 cursor-not-allowed opacity-75 font-medium"
-            />
           </div>
 
           {/* Delivery Method Radio Selection */}

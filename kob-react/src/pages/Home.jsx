@@ -127,7 +127,7 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="bg-gradient-to-r from-kob-dark to-kob-primary text-white py-16 md:py-20">
+      <section className="bg-gradient-to-r from-kob-light to-kob-primary text-white py-16 md:py-20">
         <div className="container text-center">
           <h2 className="text-4xl md:text-5xl font-bold mb-4">Want to Sell Your Products?</h2>
           <p className="text-lg md:text-xl opacity-90 mb-8 max-w-3xl mx-auto leading-relaxed font-light">

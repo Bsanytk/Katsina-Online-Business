@@ -140,7 +140,7 @@ function SellerDashboard({ user }) {
               <p className="text-4xl font-bold text-[#4B3621]">{products.length}</p>
             </Card>
             <Card className="p-7 text-center shadow-sm">
-              <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Total Impressions</p>
+              <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">views</p>
               <p className="text-4xl font-bold text-[#4B3621]">{totalViews}</p>
             </Card>
             <Card className="p-7 text-center shadow-sm">

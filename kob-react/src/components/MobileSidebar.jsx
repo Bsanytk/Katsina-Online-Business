@@ -38,10 +38,10 @@ export default function MobileSidebar({ isOpen, onClose }) {
 
   return (
     <>
-      {/* Overlay - Mobile Only */}
+      {/* Overlay - Mobile & Desktop */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/40 z-40 transition-opacity duration-500 backdrop-blur-md lg:hidden"
+          className="fixed inset-0 bg-black/40 z-40 transition-opacity duration-500 backdrop-blur-md"
           onClick={onClose}
         />
       )}
@@ -50,13 +50,15 @@ export default function MobileSidebar({ isOpen, onClose }) {
       <div
         style={{ fontFamily: "'Montserrat', sans-serif" }}
         className={`
-          /* Mobile Styles */
+           /* Common Styles */
           fixed top-0 right-0 h-full bg-white z-50 transform transition-transform duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] 
-          w-[85%] max-w-[320px] border-l-[6px] border-[#4B3621] shadow-[0_0_50px_rgba(0,0,0,0.1)]
-          ${isOpen ? "translate-x-0" : "translate-x-full"}
+           w-[85%] max-w-[320px] border-l-[6px] border-[#4B3621] shadow-[0_0_50px_rgba(0,0,0,0.1)]
+    
+           /* Logic for showing/hiding */
+           ${isOpen ? "translate-x-0" : "translate-x-full"}
 
-          /* Desktop (PC) Styles */
-          lg:static lg:translate-x-0 lg:z-30 lg:w-72 lg:h-screen lg:sticky lg:top-0 lg:border-l-0 lg:border-r lg:border-gray-100 lg:shadow-none
+           /* Desktop Adjustments - We keep it fixed and floating */
+           lg:z-50 lg:border-l-[6px]
         `}
       >
         <div className="flex flex-col h-full overflow-hidden">
@@ -65,7 +67,7 @@ export default function MobileSidebar({ isOpen, onClose }) {
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-2">
                 <span className="font-black text-2xl text-[#4B3621] tracking-tighter italic">
-                  KOB
+                  KOBMarketplace
                 </span>
                 <img
                   src="https://res.cloudinary.com/dn5crslee/image/upload/v1768211566/20260108_135034_qj155b.png"
