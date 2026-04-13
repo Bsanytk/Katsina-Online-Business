@@ -7,16 +7,8 @@ const LOCATIONS = [
   "Katsina Central",
   "Daura",
   "Funtua",
-  "Malumfashi",
   "Dutsin-Ma",
-  "Dan-musa",
-  "Kankara",
-  "Batsari",
   "Kankia",
-  "Mani",
-  "Jibia",
-  "Bakori",
-  "Dandume",
   "Other",
 ];
 
