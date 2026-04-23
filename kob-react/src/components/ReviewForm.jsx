@@ -17,6 +17,11 @@ export default function ReviewForm({ productId, sellerId, onSubmit, loading }) {
     e.preventDefault();
     setError(null);
 
+    if (rating === 0) {
+      setError("Please select a rating");
+      return;
+    }
+
     if (!text.trim()) {
       setError("Please write your review");
       return;
@@ -27,22 +32,23 @@ export default function ReviewForm({ productId, sellerId, onSubmit, loading }) {
       return;
     }
 
+    const reviewData = {
+      productId,
+      sellerId,
+      buyerId: user?.uid || "anonymous",
+      userEmail: user?.email || "No Email",
+      userName: user?.displayName || "Anonymous User",
+      rating,
+      text: comment,
+      // orderId: orderId // MUN DAKATAR DA WANNAN
+    };
+
     try {
-      await onSubmit({
-        productId,
-        sellerId,
-        buyerId: user?.uid,
-        userEmail: user?.email,
-        userRole: user?.role,
-        rating,
-        text,
-      });
-      setSubmitted(true);
-      setText("");
-      setRating(5);
-      setTimeout(() => setSubmitted(false), 5000);
+      await onSubmit(reviewData); // Wannan zai kira handleAddReview na ProductDetail
+      setComment("");
+      setRating(0);
     } catch (err) {
-      setError(err.message || "Failed to submit review");
+      alert("Failed to submit review: " + err.message);
     }
   }
 

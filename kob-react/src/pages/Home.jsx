@@ -66,15 +66,15 @@ export default function Home() {
                       Discover authentic local products from verified sellers in
                       Katsina & Kano
                     </span>
-                    <span className="text-kob-gold">★</span>
+                    <span className="text-kob-success">★</span>
                     <span>
                       Support your community while shopping quality goods
                     </span>
-                    <span className="text-kob-gold">★</span>
+                    <span className="text-kob-success">★</span>
                     <span>
                       KOB Express Delivery is now Available at cheap-rates
                     </span>
-                    <span className="text-kob-gold">★</span>
+                    <span className="text-kob-success">★</span>
                   </span>
                 ))}
               </motion.div>

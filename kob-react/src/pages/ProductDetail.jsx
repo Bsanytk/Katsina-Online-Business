@@ -22,72 +22,67 @@ export default function ProductDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState("details");
-  const [showReviewForm, setShowReviewForm] = useState(false);
 
+  // 1. Function din Review (Yana wajen useEffect - DAI-DAI)
+  const handleAddReview = async (reviewData) => {
+    try {
+      const { addReview } = await import("../services/reviews");
+      await addReview(reviewData);
+
+      const updatedReviews = await getProductReviews(productId);
+      setReviews(updatedReviews);
+      setAverageRating(calculateAverageRating(updatedReviews));
+    } catch (err) {
+      console.error("Review error:", err);
+      throw new Error(err.message);
+    }
+  };
+
+  // 2. useEffect don dauko bayanan kaya
   useEffect(() => {
     const loadData = async () => {
-      // 1. Tabbatar da akwai ID
-      if (!productId) {
-        setError("Product ID not found");
-        setLoading(false);
-        return;
-      }
+      if (!productId) return;
 
       try {
-        setLoading(true); // Fara loading
+        setLoading(true);
+        setError(null);
 
-        // 2. Dauko Bayanan Kaya
+        // Dauko Product
         const productData = await getProductById(productId);
         if (!productData) {
           setError("Product not found");
-          setLoading(false);
           return;
         }
         setProduct(productData);
 
-        // 3. Kirga View (Idan ba Seller ba ne)
+        // Record View (idan ba mai shago ba ne)
         if (user && user.uid !== productData.ownerUid) {
           try {
             const productRef = doc(db, "products", productId);
-            await updateDoc(productRef, {
-              views: increment(1),
-            });
+            await updateDoc(productRef, { views: increment(1) });
           } catch (e) {
-            if (e.code !== "permission-denied") {
-              console.error("View count error:", e);
-            }
+            console.error("View count error:", e);
           }
         }
 
-        // 4. Dauko Sharhi (Reviews)
-        const reviewsData = await getProductReviews(productId, {
-          pageSize: 20,
-        });
+        // Dauko Reviews
+        const reviewsData = await getProductReviews(productId);
         setReviews(reviewsData);
-        const avg =
-          reviewsData.length > 0 ? calculateAverageRating(reviewsData) : 0;
-        setAverageRating(avg);
-        // ... rest of your code
-        setError(null);
-
-        // Lissafin maki
-        if (reviewsData.length > 0) {
-          const avg = calculateAverageRating(reviewsData);
-          setAverageRating(avg);
-        }
-
-        setError(null); // Share duk wani error na baya
+        setAverageRating(
+          reviewsData.length > 0 ? calculateAverageRating(reviewsData) : 0
+        );
       } catch (err) {
         console.error("General error:", err);
         setError(err.message || "Failed to load data");
       } finally {
-        setLoading(false); // Tsayar da loading
+        setLoading(false);
       }
     };
 
     loadData();
-  }, [productId, user?.uid]); // Wannan shi ne rufe useEffect daya tilo
+  }, [productId, user?.uid]);
 
+  // ANAN KUMA RETURN JSX DINKA ZAI FARA...
   if (loading)
     return (
       <div className="container py-12 text-center text-gray-600">
@@ -280,7 +275,17 @@ export default function ProductDetail() {
                   averageRating={averageRating}
                   productTitle={product.title}
                 />
-                {user && <ReviewForm productId={productId} user={user} />}
+                {user && user.uid !== product.ownerUid ? (
+                  <ReviewForm
+                    productId={productId}
+                    sellerId={product.ownerUid}
+                    onSubmit={handleAddReview}
+                  />
+                ) : (
+                  <div className="p-4 bg-kob-light text-kob-primary-dark rounded-lg text-center text-sm italic">
+                    You cannot add review to your product!
+                  </div>
+                )}
               </div>
             )}
           </div>
