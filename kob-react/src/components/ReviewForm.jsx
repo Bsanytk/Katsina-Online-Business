@@ -1,51 +1,56 @@
-import React, { useState } from 'react'
-import { Button, Alert, Card } from './ui'
+import React, { useState } from "react";
+import { Button, Alert, Card } from "./ui";
+import { useAuth } from "../firebase/auth";
 
 /**
  * ReviewForm Component
  * Allow buyers to leave reviews for products they've purchased
  */
-export default function ReviewForm({ productId, sellerId, buyerId, buyerName, onSubmit, loading }) {
-  const [rating, setRating] = useState(5)
-  const [text, setText] = useState('')
-  const [submitted, setSubmitted] = useState(false)
-  const [error, setError] = useState(null)
+export default function ReviewForm({ productId, sellerId, onSubmit, loading }) {
+  const { user } = useAuth();
+  const [rating, setRating] = useState(5);
+  const [text, setText] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState(null);
 
   async function handleSubmit(e) {
-    e.preventDefault()
-    setError(null)
+    e.preventDefault();
+    setError(null);
 
     if (!text.trim()) {
-      setError('Please write your review')
-      return
+      setError("Please write your review");
+      return;
     }
 
     if (text.length < 10) {
-      setError('Review must be at least 10 characters')
-      return
+      setError("Review must be at least 10 characters");
+      return;
     }
 
     try {
       await onSubmit({
         productId,
         sellerId,
-        buyerId,
+        buyerId: user?.uid,
+        userEmail: user?.email,
+        userRole: user?.role,
         rating,
         text,
-        buyerName,
-      })
-      setSubmitted(true)
-      setText('')
-      setRating(5)
-      setTimeout(() => setSubmitted(false), 5000)
+      });
+      setSubmitted(true);
+      setText("");
+      setRating(5);
+      setTimeout(() => setSubmitted(false), 5000);
     } catch (err) {
-      setError(err.message || 'Failed to submit review')
+      setError(err.message || "Failed to submit review");
     }
   }
 
   return (
     <Card variant="elevated" className="p-6 rounded-lg">
-      <h3 className="text-lg font-bold text-kob-dark mb-4">Share Your Experience</h3>
+      <h3 className="text-lg font-bold text-kob-dark mb-4">
+        Share Your Experience
+      </h3>
 
       {submitted && (
         <Alert type="success" className="mb-4">
@@ -72,7 +77,7 @@ export default function ReviewForm({ productId, sellerId, buyerId, buyerName, on
                 type="button"
                 onClick={() => setRating(star)}
                 className={`text-3xl transition-opacity ${
-                  star <= rating ? 'opacity-100' : 'opacity-30'
+                  star <= rating ? "opacity-100" : "opacity-30"
                 }`}
               >
                 ⭐
@@ -103,9 +108,9 @@ export default function ReviewForm({ productId, sellerId, buyerId, buyerName, on
           className="w-full"
           disabled={loading}
         >
-          {loading ? '⏳ Submitting...' : '✓ Post Review'}
+          {loading ? "⏳ Submitting..." : "✓ Post Review"}
         </Button>
       </form>
     </Card>
-  )
+  );
 }
