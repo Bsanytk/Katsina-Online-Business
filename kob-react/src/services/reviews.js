@@ -69,7 +69,7 @@ export async function addReview(data) {
 export function calculateAverageRating(reviews) {
   if (!reviews || reviews.length === 0) return 0;
   const total = reviews.reduce((sum, r) => sum + (Number(r.rating) || 0), 0);
-  return parseFloat((total / reviews.length).toFixed(1));
+  return total / reviews.length; // Dawo da lamba kawai
 }
 
 // ... sauran functions din update da delete suna da kyau yadda suke
@@ -79,4 +79,20 @@ export function calculateSellerRating(reviews) {
   if (!reviews || reviews.length === 0) return { average: 0, count: 0 };
   const average = calculateAverageRating(reviews);
   return { average, count: reviews.length };
+}
+
+// 4. Dauko dukkan Reviews na Seller (don lissafin darajarsa gaba daya)
+export async function getSellerReviews(sellerId) {
+  try {
+    const q = query(
+      collection(db, REVIEWS_COL),
+      where("sellerId", "==", sellerId),
+      orderBy("createdAt", "desc")
+    );
+    const snap = await getDocs(q);
+    return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  } catch (error) {
+    console.error("Error fetching seller reviews:", error);
+    return [];
+  }
 }

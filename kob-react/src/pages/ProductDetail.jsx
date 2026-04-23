@@ -12,6 +12,7 @@ import { getProductById } from "../services/products";
 import { calculateAverageRating } from "../services/reviews";
 import { getProductReviews } from "../services/reviews";
 import { useAuth } from "../firebase/auth";
+import SellerRating from "../components/SellerRating";
 
 export default function ProductDetail() {
   const { productId } = useParams();
@@ -306,7 +307,7 @@ export default function ProductDetail() {
                 </p>
               )}
 
-              <SellerRatingDisplay rating={averageRating} compact={true} />
+              <SellerRating sellerUid={product.ownerUid} showDetails={true} />
 
               <div className="mt-6 space-y-3">
                 {/* Dynamic WhatsApp Link using the product's WhatsApp number */}

@@ -1,119 +1,66 @@
-import React, { useState, useEffect, useCallback } from 'react'
-import { Card } from '../ui'
-import {
-  collection,
-  query,
-  where,
-  getDocs,
-} from 'firebase/firestore'
-import { db } from '../firebase/firebase'
+import React, { useState, useEffect, useCallback } from "react";
+import { Card } from "../ui";
+// Import wannan function din da muka samar a reviews.js
+import { getSellerReviews } from "../services/reviews";
 
-/**
- * SellerRating Component
- * Display seller rating and statistics based on product reviews
- * 
- * Props:
- *   - sellerUid: UID of the seller
- *   - showDetails: Show detailed stats or just summary (default: false)
- */
-export default function SellerRating({
-  sellerUid,
-  showDetails = false,
-}) {
+export default function SellerRating({ sellerUid, showDetails = false }) {
   const [stats, setStats] = useState({
     averageRating: 0,
     totalReviews: 0,
-    ratingDistribution: {
-      5: 0,
-      4: 0,
-      3: 0,
-      2: 0,
-      1: 0,
-    },
-  })
-  const [loading, setLoading] = useState(true)
+    ratingDistribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 },
+  });
+  const [loading, setLoading] = useState(true);
 
-  const calculateSellerRating = useCallback(async () => {
+  const calculateStats = useCallback(async () => {
     try {
-      // Get all products by this seller
-      const productsRef = collection(db, 'products')
-      const productsQuery = query(
-        productsRef,
-        where('ownerUid', '==', sellerUid)
-      )
-      const productSnap = await getDocs(productsQuery)
-      const productIds = productSnap.docs.map((d) => d.id)
+      setLoading(true);
+      // Kira function daya kacal maimakon looping!
+      const allReviews = await getSellerReviews(sellerUid);
 
-      if (productIds.length === 0) {
-        setLoading(false)
-        return
-      }
-
-      // Get all reviews for these products
-      // Note: Firestore doesn't support "in" with more than 10 items efficiently
-      // For production, use a denormalized sellerUid field in reviews
-      let allReviews = []
-
-      for (const productId of productIds) {
-        const reviewsQuery = query(
-          collection(db, 'reviews'),
-          where('productId', '==', productId)
-        )
-        const reviewSnap = await getDocs(reviewsQuery)
-        allReviews = allReviews.concat(
-          reviewSnap.docs.map((d) => ({ ...d.data() }))
-        )
-      }
-
-      // Calculate stats
       if (allReviews.length > 0) {
-        const avgRating =
-          allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length
+        const total = allReviews.reduce((sum, r) => sum + Number(r.rating), 0);
+        const avgRating = (total / allReviews.length).toFixed(1);
 
-        const distribution = {
-          5: 0,
-          4: 0,
-          3: 0,
-          2: 0,
-          1: 0,
-        }
-
+        const distribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
         allReviews.forEach((r) => {
-          distribution[r.rating]++
-        })
+          if (distribution[r.rating] !== undefined) {
+            distribution[r.rating]++;
+          }
+        });
 
         setStats({
-          averageRating: avgRating.toFixed(1),
+          averageRating: avgRating,
           totalReviews: allReviews.length,
           ratingDistribution: distribution,
-        })
+        });
       }
-
-      setLoading(false)
     } catch (err) {
-      console.error('Error calculating seller rating:', err)
-      setLoading(false)
+      console.error("Error:", err);
+    } finally {
+      setLoading(false);
     }
-  }, [sellerUid])
+  }, [sellerUid]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    calculateSellerRating()
-  }, [calculateSellerRating])
+    calculateStats();
+  }, [calculateStats]);
 
+  // renderStars da sauran JSX dinka su tsaya yadda suke...
   function renderStars(count) {
     return (
       <div className="flex gap-0.5">
         {[1, 2, 3, 4, 5].map((i) => (
           <span
             key={i}
-            className={i <= Math.round(count) ? 'text-yellow-400' : 'text-gray-300'}
+            className={
+              i <= Math.round(count) ? "text-yellow-400" : "text-gray-300"
+            }
           >
             ★
           </span>
         ))}
       </div>
-    )
+    );
   }
 
   if (loading) {
@@ -121,7 +68,7 @@ export default function SellerRating({
       <div className="text-center py-4 text-gray-500">
         Loading seller rating...
       </div>
-    )
+    );
   }
 
   if (stats.totalReviews === 0) {
@@ -129,10 +76,12 @@ export default function SellerRating({
       <Card variant="outlined" className="p-4">
         <div className="text-center">
           <p className="text-gray-600">No ratings yet</p>
-          <p className="text-xs text-gray-500">Be the first to review this seller!</p>
+          <p className="text-xs text-gray-500">
+            Be the first to review this seller!
+          </p>
         </div>
       </Card>
-    )
+    );
   }
 
   return (
@@ -141,7 +90,9 @@ export default function SellerRating({
         {/* Summary */}
         <div className="flex items-center gap-4">
           <div>
-            <p className="text-4xl font-bold text-kob-primary">{stats.averageRating}</p>
+            <p className="text-4xl font-bold text-kob-primary">
+              {stats.averageRating}
+            </p>
             <div className="mt-1">{renderStars(stats.averageRating)}</div>
           </div>
           <div>
@@ -155,17 +106,19 @@ export default function SellerRating({
           <div className="space-y-2 border-t pt-4">
             {[5, 4, 3, 2, 1].map((rating) => (
               <div key={rating} className="flex items-center gap-3">
-                <div className="flex gap-0.5 w-12">
-                  {renderStars(rating)}
-                </div>
+                <div className="flex gap-0.5 w-12">{renderStars(rating)}</div>
                 <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-yellow-400 transition-all"
                     style={{
                       width:
                         stats.totalReviews > 0
-                          ? `${(stats.ratingDistribution[rating] / stats.totalReviews) * 100}%`
-                          : '0%',
+                          ? `${
+                              (stats.ratingDistribution[rating] /
+                                stats.totalReviews) *
+                              100
+                            }%`
+                          : "0%",
                     }}
                   />
                 </div>
@@ -187,5 +140,5 @@ export default function SellerRating({
         )}
       </div>
     </Card>
-  )
+  );
 }
