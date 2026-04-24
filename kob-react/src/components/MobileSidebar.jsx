@@ -1,6 +1,7 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth, logoutUser } from "../firebase/auth";
+import { Button, Card } from "../components/ui";
 import {
   X,
   Home,
@@ -22,6 +23,8 @@ import {
 export default function MobileSidebar({ isOpen, onClose }) {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const navLinkStyle =
+    "flex items-center gap-4 px-4 py-3.5 rounded-xl hover:bg-gray-50 text-[#4B3621] font-bold text-[11px] uppercase tracking-widest transition-all";
 
   const MERCHANT_AVATAR =
     "https://res.cloudinary.com/dn5crslee/image/upload/v1773415750/20260313_161322_oo9ocx.png";
@@ -66,8 +69,8 @@ export default function MobileSidebar({ isOpen, onClose }) {
           <div className="p-8 border-b border-gray-100 bg-[#FDFDFD]">
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-2">
-                <span className="font-black text-2xl text-[#4B3621] tracking-tighter italic">
-                  KOBMarketplace
+                <span className="font-black text-2xl text-[#4B3621] tracking-tighter bold">
+                  KOB
                 </span>
                 <img
                   src="https://res.cloudinary.com/dn5crslee/image/upload/v1768211566/20260108_135034_qj155b.png"
@@ -113,11 +116,15 @@ export default function MobileSidebar({ isOpen, onClose }) {
               </div>
             ) : (
               <div className="py-2">
-                <p className="text-[10px] font-black text-[#D4AF37] uppercase tracking-[0.4em]">
-                  KOB Marketplace
-                </p>
-                <h4 className="font-black text-[#4B3621] text-lg tracking-tighter uppercase italic">
-                  Katsina Online Business
+                <Button
+                  onClick={() => navigate("/marketplace")}
+                  variant="ghost"
+                  className="text-kob-primary font-semibold hover:bg-kob-primary hover:text-white transition-all duration-300"
+                >
+                                KOB Marketplace →            {" "}
+                </Button>
+                <h4 className="font-black text-[#4B3621] text-lg tracking-tighter  semibold">
+                  Katsina Online Business(KOB)
                 </h4>
               </div>
             )}

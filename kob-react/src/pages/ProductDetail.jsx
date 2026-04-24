@@ -6,7 +6,6 @@ import { Card, Button, Alert } from "../components/ui";
 import BackButton from "../components/BackButton";
 import ReviewForm from "../components/ReviewForm";
 import ReviewsList from "../components/ReviewsList";
-import SellerRatingDisplay from "../components/SellerRatingDisplay";
 import WhatsAppContactButton from "../components/marketplace/WhatsAppContactButton";
 import { getProductById } from "../services/products";
 import { calculateAverageRating } from "../services/reviews";
@@ -307,7 +306,7 @@ export default function ProductDetail() {
                 </p>
               )}
 
-              <SellerRating sellerUid={product.ownerUid} showDetails={true} />
+              <SellerRating sellerId={product.ownerUid} compact={false} />
 
               <div className="mt-6 space-y-3">
                 {/* Dynamic WhatsApp Link using the product's WhatsApp number */}

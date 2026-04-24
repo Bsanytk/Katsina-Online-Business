@@ -1,143 +1,99 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { Card } from "../ui";
-// Import wannan function din da muka samar a reviews.js
-import { getSellerReviews } from "../services/reviews";
+import React, { useState, useEffect } from "react";
+import { Card } from "./ui"; // Tabbatar wannan path din daidai ne a gidanka
+import { getSellerReviews, calculateSellerRating } from "../services/reviews";
 
-export default function SellerRating({ sellerUid, showDetails = false }) {
-  const [stats, setStats] = useState({
-    averageRating: 0,
-    totalReviews: 0,
-    ratingDistribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 },
-  });
+export default function SellerRating({ sellerId, compact = false }) {
+  const [rating, setRating] = useState(0);
+  const [reviewCount, setReviewCount] = useState(0);
   const [loading, setLoading] = useState(true);
-
-  const calculateStats = useCallback(async () => {
-    try {
-      setLoading(true);
-      // Kira function daya kacal maimakon looping!
-      const allReviews = await getSellerReviews(sellerUid);
-
-      if (allReviews.length > 0) {
-        const total = allReviews.reduce((sum, r) => sum + Number(r.rating), 0);
-        const avgRating = (total / allReviews.length).toFixed(1);
-
-        const distribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
-        allReviews.forEach((r) => {
-          if (distribution[r.rating] !== undefined) {
-            distribution[r.rating]++;
-          }
-        });
-
-        setStats({
-          averageRating: avgRating,
-          totalReviews: allReviews.length,
-          ratingDistribution: distribution,
-        });
-      }
-    } catch (err) {
-      console.error("Error:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, [sellerUid]);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    calculateStats();
-  }, [calculateStats]);
+    if (!sellerId) return;
 
-  // renderStars da sauran JSX dinka su tsaya yadda suke...
-  function renderStars(count) {
+    async function loadRating() {
+      setLoading(true);
+      try {
+        const reviews = await getSellerReviews(sellerId);
+        const avgRating = calculateSellerRating(reviews);
+        setRating(avgRating);
+        setReviewCount(reviews.length);
+        setError(null);
+      } catch (err) {
+        console.error("Error fetching seller reviews:", err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadRating();
+  }, [sellerId]);
+
+  if (loading)
+    return <div className="text-sm text-gray-500 p-2">Loading...</div>;
+  if (error)
+    return <div className="text-xs text-red-600">Error loading rating</div>;
+  if (reviewCount === 0)
     return (
-      <div className="flex gap-0.5">
-        {[1, 2, 3, 4, 5].map((i) => (
-          <span
-            key={i}
-            className={
-              i <= Math.round(count) ? "text-yellow-400" : "text-gray-300"
-            }
-          >
-            ★
-          </span>
-        ))}
+      <div className="text-xs text-gray-400 italic p-2">No reviews yet</div>
+    );
+
+  const displayRating = Number(rating).toFixed(1);
+
+  // 1. Yanayin nuni na takaitacce (Compact) - Don Product Cards
+  if (compact) {
+    return (
+      <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-yellow-50 rounded border border-yellow-200">
+        <span className="text-yellow-500 text-xs">⭐</span>
+        <span className="font-bold text-yellow-800 text-xs">
+          {displayRating}
+        </span>
+        <span className="text-[10px] text-yellow-700">({reviewCount})</span>
       </div>
     );
   }
 
-  if (loading) {
-    return (
-      <div className="text-center py-4 text-gray-500">
-        Loading seller rating...
-      </div>
-    );
-  }
-
-  if (stats.totalReviews === 0) {
-    return (
-      <Card variant="outlined" className="p-4">
-        <div className="text-center">
-          <p className="text-gray-600">No ratings yet</p>
-          <p className="text-xs text-gray-500">
-            Be the first to review this seller!
-          </p>
-        </div>
-      </Card>
-    );
-  }
-
+  // 2. Yanayin nuni na gaba-daya (Full) - Don Product Details
   return (
-    <Card variant="elevated" className="p-6">
-      <div className="space-y-4">
-        {/* Summary */}
-        <div className="flex items-center gap-4">
-          <div>
-            <p className="text-4xl font-bold text-kob-primary">
-              {stats.averageRating}
-            </p>
-            <div className="mt-1">{renderStars(stats.averageRating)}</div>
-          </div>
-          <div>
-            <p className="font-semibold text-gray-800">{stats.totalReviews}</p>
-            <p className="text-sm text-gray-600">reviews</p>
+    <Card
+      variant="elevated"
+      className="p-6 rounded-lg bg-gradient-to-br from-yellow-50 to-white border-yellow-100"
+    >
+      <div className="flex items-center gap-6">
+        <div className="w-20 h-20 rounded-full bg-yellow-100 flex items-center justify-center flex-shrink-0 border-2 border-white shadow-inner">
+          <div className="text-center">
+            <div className="text-3xl font-bold text-yellow-800">
+              {displayRating}
+            </div>
+            <div className="text-[10px] text-yellow-600 font-bold uppercase tracking-tighter">
+              Rating
+            </div>
           </div>
         </div>
 
-        {/* Detailed Stats */}
-        {showDetails && (
-          <div className="space-y-2 border-t pt-4">
-            {[5, 4, 3, 2, 1].map((rating) => (
-              <div key={rating} className="flex items-center gap-3">
-                <div className="flex gap-0.5 w-12">{renderStars(rating)}</div>
-                <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-yellow-400 transition-all"
-                    style={{
-                      width:
-                        stats.totalReviews > 0
-                          ? `${
-                              (stats.ratingDistribution[rating] /
-                                stats.totalReviews) *
-                              100
-                            }%`
-                          : "0%",
-                    }}
-                  />
-                </div>
-                <p className="text-sm text-gray-600 w-8">
-                  {stats.ratingDistribution[rating]}
-                </p>
-              </div>
+        <div>
+          <h3 className="text-lg font-bold text-gray-800">
+            Seller Trust Score
+          </h3>
+          <div className="flex gap-0.5 my-1">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <span
+                key={i}
+                className={
+                  i <= Math.round(rating) ? "text-yellow-400" : "text-gray-300"
+                }
+              >
+                ★
+              </span>
             ))}
           </div>
-        )}
-
-        {/* Trust Badge */}
-        {stats.averageRating >= 4 && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-center">
-            <p className="text-sm font-semibold text-green-700">
-              ✓ Trusted Seller
-            </p>
-          </div>
-        )}
+          <p className="text-sm text-gray-600">
+            Based on{" "}
+            <span className="font-bold text-gray-800">{reviewCount}</span>{" "}
+            verified reviews
+          </p>
+        </div>
       </div>
     </Card>
   );

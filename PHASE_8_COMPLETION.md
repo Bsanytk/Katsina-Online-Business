@@ -69,7 +69,7 @@ All features are production-ready, tested, and integrated into the Dashboard wit
 - `calculateSellerRating(reviews)` - Returns average rating (0-5 scale)
 - Aggregates all seller reviews into single rating metric
 
-#### Frontend Component: `SellerRatingDisplay.jsx`
+#### Frontend Component: `SellerRating.jsx`
 - **Display Modes:**
   - **Compact:** Badge-style display (3x3 stars, rating, count) - 30px height
   - **Standard:** Full seller rating card with trust information and badge
@@ -248,7 +248,7 @@ src/
 ├── components/
 │   ├── ReviewForm.jsx              (⭐ Form to submit reviews)
 │   ├── ReviewsList.jsx             (⭐ Display reviews + stats)
-│   ├── SellerRatingDisplay.jsx      (⭐ Seller rating & badge)
+│   ├── SellerRating.jsx            (⭐ Seller rating & badge)
 │   ├── chat/
 │   │   ├── ConversationList.jsx     (💬 Active conversations)
 │   │   ├── MessageView.jsx          (💬 Message thread display)
@@ -285,7 +285,7 @@ src/
 ✅ Tabs: Details (specs) vs Reviews (customer feedback)
 ✅ Leave Review button (if buyer)
 ✅ ReviewsList with all product reviews
-✅ SellerRatingDisplay in sidebar
+✅ SellerRating in sidebar
 ✅ Contact Seller button (opens chat)
 ✅ WhatsApp Seller button
 ✅ Place Order button (placeholder for checkout flow)
@@ -428,7 +428,7 @@ Warnings: Chunk size >500kB (non-blocking, can be optimized via code splitting i
 3. `src/services/chat.js` - Messaging (70 LOC)
 4. `src/components/ReviewForm.jsx` - Review form component (92 LOC)
 5. `src/components/ReviewsList.jsx` - Review list display (109 LOC)
-6. `src/components/SellerRatingDisplay.jsx` - Seller rating component (92 LOC)
+6. `src/components/SellerRating.jsx` - Seller rating component (92 LOC)
 7. `src/components/chat/ConversationList.jsx` - Conversation list (86 LOC)
 8. `src/components/chat/MessageView.jsx` - Message display (119 LOC)
 9. `src/components/chat/ChatInput.jsx` - Message input (79 LOC)
