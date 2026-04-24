@@ -31,7 +31,7 @@ All features are production-ready, tested, and integrated into the Dashboard wit
   - `updateReview(reviewId, data)` - Edit existing review
   - `deleteReview(reviewId)` - Remove review
   - `calculateAverageRating(reviews)` - Compute average star rating
-  - `calculateSellerRating(reviews)` - Compute seller's aggregated rating
+  - `calculateAverageRating(reviews)` - Compute seller's aggregated rating
 
 #### Frontend Components:
 - **ReviewForm.jsx** - Form component for buyers to submit reviews
@@ -66,7 +66,7 @@ All features are production-ready, tested, and integrated into the Dashboard wit
 ### 2. Seller Ratings & Trust System
 
 #### Backend Service: Review service provides rating calculations
-- `calculateSellerRating(reviews)` - Returns average rating (0-5 scale)
+- `calculateAverageRating(reviews)` - Returns average rating (0-5 scale)
 - Aggregates all seller reviews into single rating metric
 
 #### Frontend Component: `SellerRating.jsx`

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Card } from "./ui"; // Tabbatar wannan path din daidai ne a gidanka
-import { getSellerReviews, calculateSellerRating } from "../services/reviews";
+import { getSellerReviews, calculateAverageRating } from "../services/reviews";
 
 export default function SellerRating({ sellerId, compact = false }) {
   const [rating, setRating] = useState(0);
@@ -15,7 +15,7 @@ export default function SellerRating({ sellerId, compact = false }) {
       setLoading(true);
       try {
         const reviews = await getSellerReviews(sellerId);
-        const avgRating = calculateSellerRating(reviews);
+        const avgRating = calculateAverageRating(reviews);
         setRating(avgRating);
         setReviewCount(reviews.length);
         setError(null);

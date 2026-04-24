@@ -82,7 +82,8 @@ export async function getSellerReviews(sellerId) {
 }
 
 // 4. Lissafin average rating
-export function calculateSellerRating(reviews) {
+// Tabbatar akwai 'export' a nan
+export function calculateAverageRating(reviews) {
   if (!reviews || reviews.length === 0) return 0;
   const total = reviews.reduce((sum, r) => sum + (Number(r.rating) || 0), 0);
   return total / reviews.length;
