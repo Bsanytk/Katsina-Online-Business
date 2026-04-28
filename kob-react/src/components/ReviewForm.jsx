@@ -39,14 +39,15 @@ export default function ReviewForm({ productId, sellerId, onSubmit, loading }) {
       userEmail: user?.email || "No Email",
       userName: user?.displayName || "Anonymous User",
       rating,
-      text: comment,
+      text: text,
       // orderId: orderId // MUN DAKATAR DA WANNAN
     };
 
     try {
       await onSubmit(reviewData); // Wannan zai kira handleAddReview na ProductDetail
-      setComment("");
-      setRating(0);
+      setText("");
+      setRating(5);
+      setSubmitted();
     } catch (err) {
       alert("Failed to submit review: " + err.message);
     }

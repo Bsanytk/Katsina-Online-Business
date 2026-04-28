@@ -1,49 +1,51 @@
-import React, { Suspense, lazy } from 'react'
-import { Routes, Route } from 'react-router-dom'
-import { AuthProvider, useAuth } from './firebase/auth'
-import TopBar from './layouts/TopBar'
-import Footer from './layouts/Footer'
-import ProtectedRoute from './components/ProtectedRoute'
-import AdminRoute from './components/AdminRoute' // 1. Muka ƙara wannan
-import SupportWidget from './components/widgets/SupportWidget'
-import { PageLoader } from './components/ui'
-import './i18n'
+import React, { Suspense, lazy } from "react";
+import { Routes, Route } from "react-router-dom";
+import { AuthProvider, useAuth } from "./firebase/auth";
+import TopBar from "./layouts/TopBar";
+import Footer from "./layouts/Footer";
+import ProtectedRoute from "./components/ProtectedRoute";
+import AdminRoute from "./components/AdminRoute"; // 1. Muka ƙara wannan
+import SupportWidget from "./components/widgets/SupportWidget";
+import { PageLoader } from "./components/ui";
+import "./i18n";
 
 // lazy load large pages
-const Home = lazy(() => import('./pages/Home'))
-const Marketplace = lazy(() => import('./pages/Marketplace'))
-const Dashboard = lazy(() => import('./pages/Dashboard'))
-const AdminDashboard = lazy(() => import('./pages/AdminDashboard')) // 2. Muka ƙara wannan (Admin)
-const Login = lazy(() => import('./pages/Login'))
-const Register = lazy(() => import('./pages/Register'))
-const Contact = lazy(() => import('./pages/Contact'))
-const FAQ = lazy(() => import('./pages/FAQ'))
-const Help = lazy(() => import('./pages/Help'))
-const Teams = lazy(() => import('./pages/Teams'))
-const Testimonials = lazy(() => import('./pages/Testimonials'))
-const Terms = lazy(() => import('./pages/Terms'))
-const Privacy = lazy(() => import('./pages/Privacy'))
-const CookiePolicy = lazy(() => import('./pages/CookiePolicy'))
-const NotFound = lazy(() => import('./pages/NotFound'))
-const ProductDetail = lazy(() => import('./pages/ProductDetail'))
+const Home = lazy(() => import("./pages/Home"));
+const Marketplace = lazy(() => import("./pages/Marketplace"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard")); // 2. Muka ƙara wannan (Admin)
+const Login = lazy(() => import("./pages/Login"));
+const Register = lazy(() => import("./pages/Register"));
+const Contact = lazy(() => import("./pages/Contact"));
+const FAQ = lazy(() => import("./pages/FAQ"));
+const Help = lazy(() => import("./pages/Help"));
+const Teams = lazy(() => import("./pages/Teams"));
+const Testimonials = lazy(() => import("./pages/Testimonials"));
+const Terms = lazy(() => import("./pages/Terms"));
+const Privacy = lazy(() => import("./pages/Privacy"));
+const CookiePolicy = lazy(() => import("./pages/CookiePolicy"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const ProductDetail = lazy(() => import("./pages/ProductDetail"));
+const SellerShop = lazy(() => import("./pages/SellerShop"));
 
 function AppContent() {
-  const { loading } = useAuth()
+  const { loading } = useAuth();
 
   if (loading) {
-    return <PageLoader message="Initializing..." show={true} />
+    return <PageLoader message="Initializing..." show={true} />;
   }
 
   return (
     <div className="flex flex-col min-h-screen bg-kob-light text-kob-dark">
       <TopBar />
-      
+
       <main className="flex-grow">
         <Suspense fallback={<PageLoader message="Loading..." show={true} />}>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/marketplace" element={<Marketplace />} />
             <Route path="/product/:productId" element={<ProductDetail />} />
+            <Route path="/shop/:sellerId" element={<SellerShop />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/faq" element={<FAQ />} />
             <Route path="/help" element={<Help />} />
@@ -82,7 +84,7 @@ function AppContent() {
       <Footer />
       <SupportWidget />
     </div>
-  )
+  );
 }
 
 export default function App() {
@@ -90,5 +92,5 @@ export default function App() {
     <AuthProvider>
       <AppContent />
     </AuthProvider>
-  )
+  );
 }

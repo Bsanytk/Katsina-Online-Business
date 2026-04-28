@@ -22,6 +22,7 @@ export default function ProductDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState("details");
+  const [reviewloading, setReviewloading] = useState(false);
 
   // 1. Function din Review (Yana wajen useEffect - DAI-DAI)
   const handleAddReview = async (reviewData) => {
@@ -35,6 +36,8 @@ export default function ProductDetail() {
     } catch (err) {
       console.error("Review error:", err);
       throw new Error(err.message);
+    } finally {
+      setReviewloading(false);
     }
   };
 
@@ -280,6 +283,7 @@ export default function ProductDetail() {
                     productId={productId}
                     sellerId={product.ownerUid}
                     onSubmit={handleAddReview}
+                    loading={reviewloading}
                   />
                 ) : (
                   <div className="p-4 bg-kob-light text-kob-primary-dark rounded-lg text-center text-sm italic">
