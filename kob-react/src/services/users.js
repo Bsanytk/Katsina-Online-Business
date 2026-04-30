@@ -93,14 +93,7 @@ export function generateWhatsAppLink(number, product) {
   const validation = formatWhatsAppNumber(number);
   if (!validation.isValid) return "#";
 
-  let finalNumber = validation.formatted;
-
-  // 2. MAGANIN SAURAN KASASHEN:
-  // Idan lambar ta fara da '0', cire shi (misali 080... ya koma 80...)
-  // Domin 'wa.me' ba ya son '0' a gaban lambar kasa.
-  if (finalNumber.startsWith("0")) {
-    finalNumber = finalNumber.substring(1);
-  }
+  const finalNumber = validation.formatted;
 
   // Idan lambar ba ta da 'plus' ko 'country code' a gaba,
   // kuma ka san yawancin masu amfani da kai daga Nigeria suke,

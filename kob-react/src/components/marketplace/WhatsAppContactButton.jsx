@@ -62,7 +62,7 @@ export default function WhatsAppContactButton({ product, sellerUid, user }) {
       return;
     }
 
-    if (!whatsappNumber || !product?.name) return;
+    if (!whatsappNumber || !product?.title) return;
 
     try {
       const link = generateWhatsAppLink(whatsappNumber, product);

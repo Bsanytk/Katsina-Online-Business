@@ -7,6 +7,7 @@ import {
   getDocs,
   doc,
   getDoc,
+  useAuth,
 } from "firebase/firestore";
 import { db } from "../firebase/firebase";
 import { Card, Button } from "../components/ui";
@@ -23,16 +24,72 @@ import SellerRating from "../components/SellerRating";
 import ProductCard from "../components/ProductCard";
 import { useNavigate } from "react-router-dom";
 import { updatePageMeta } from "../services/seo";
+import { createOrGetConversation } from "../services/chat";
 
 export default function SellerShop() {
   const { sellerId } = useParams();
   const navigate = useNavigate();
-
+  const { user } = useAuth();
+  const [startingChat, setStartingChat] = useState(false);
   // 1. DOLE ne a bayyana wadannan state din a cikin function
   const [seller, setSeller] = useState(null);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+
+  // SellerShop.jsx — a sama, ƙara import:
+  import { createOrGetConversation } from "../services/chat";
+  import { useAuth } from "../firebase/auth";
+
+  // Sabon handleMessage function:
+  async function handleMessageSeller() {
+    if (!user) {
+      alert("Please login to message seller.");
+      window.location.href = "/login";
+      return;
+    }
+    if (user.uid === sellerId) {
+      alert("This is your own shop!");
+      return;
+    }
+
+    setStartingChat(true);
+    try {
+      await createOrGetConversation(
+        user.uid, // buyerId
+        sellerId, // sellerId
+        sellerId, // productId (shop-level)
+        user.displayName || user.email, // buyerName
+        shopName, // sellerName
+        `Shop: ${shopName}` // productName
+      );
+      window.location.href = "/dashboard";
+    } catch (err) {
+      alert("Failed to start conversation.");
+    } finally {
+      setStartingChat(false);
+    }
+  }
+
+  // Sabon handleShare function:
+  function handleShareShop() {
+    const shopUrl = `${window.location.origin}/shop/${sellerId}`;
+
+    if (navigator.share) {
+      // Mobile native share sheet
+      navigator
+        .share({
+          title: `${shopName} | KOB Marketplace`,
+          text: `Check Products of ${shopName} at KOB Marketplace!`,
+          url: shopUrl,
+        })
+        .catch(() => {});
+    } else {
+      // Desktop fallback
+      navigator.clipboard.writeText(shopUrl);
+      alert("Shop link copied to clipboard!");
+    }
+  }
 
   useEffect(() => {
     async function fetchShopData() {
@@ -85,7 +142,7 @@ export default function SellerShop() {
       <div className="h-screen flex flex-col items-center justify-center bg-gray-50">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#4B3621]"></div>
         <p className="mt-4 text-[#4B3621] font-bold animate-pulse">
-          BUDE KOB SHOP...
+          OPEN KOB SHOP...
         </p>
       </div>
     );
@@ -107,8 +164,14 @@ export default function SellerShop() {
 
         <div className="container relative z-10 pt-6">
           <button
-            onClick={() => navigate(-1)}
-            className="p-2 bg-white/10 backdrop-blur-md rounded-full text-white hover:bg-white/20 transition-all"
+            onClick={() => {
+              if (window.history.length > 1) {
+                navigate(-1);
+              } else {
+                navigate("/");
+              }
+            }}
+            className="p-2 bg-white/10 backdrop-blur-md rounded-full text-white hover:bg-white/20 transition-all cursor-pointer"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
@@ -131,11 +194,12 @@ export default function SellerShop() {
                   className="w-full h-full object-cover"
                 />
               </div>
-              <div className="absolute bottom-2 right-2 bg-blue-500 text-white p-1.5 rounded-full border-4 border-white">
-                <Verified className="w-5 h-5" />
-              </div>
+              {seller?.isVerified && (
+                <div className="absolute bottom-2 right-2 bg-blue-500 text-white p-1.5 rounded-full border-4 border-white">
+                  <Verified className="w-5 h-5" />
+                </div>
+              )}
             </div>
-
             {/* Seller Details */}
             <div className="flex-1 text-center md:text-left">
               <div className="flex flex-col md:flex-row md:items-center gap-2 mb-2">
@@ -160,11 +224,15 @@ export default function SellerShop() {
 
               <div className="flex flex-wrap justify-center md:justify-start gap-3">
                 <Button className="bg-[#4B3621] hover:bg-[#362718] text-white px-8 rounded-xl font-bold flex gap-2">
-                  <MessageCircle className="w-4 h-4" /> Message Seller
+                  onClick={handleMessageSeller}
+                  disabled={startingChat}
+                  <MessageCircle className="w-4 h-4" />
+                  {startingChat ? "Starting..." : "Message Seller"}
                 </Button>
                 <Button
                   variant="outline"
                   className="border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 px-6"
+                  onClick={handleShareShop}
                 >
                   <Share2 className="w-4 h-4" />
                 </Button>
@@ -194,13 +262,13 @@ export default function SellerShop() {
 
           {/* Search Bar */}
           <div className="relative max-w-md w-full">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 z-10" />
             <input
               type="text"
               placeholder="Search in this shop..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-100 rounded-2xl shadow-sm focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent outline-none transition-all text-sm"
+              className="w-full pl-14 pr-4 py-3.5 bg-white border border-gray-100 rounded-2xl shadow-sm focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent outline-none transition-all text-sm"
             />
           </div>
         </div>

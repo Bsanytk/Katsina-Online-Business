@@ -191,6 +191,7 @@ export default function ProductForm({
       const submissionData = {
         ...finalData,
         ownerUid: user.uid,
+        sellerName: profileData.businessName || profileData.displayName || "",
         price: parseFloat(formData.price),
         images: uploadedUrls,
         imageUrl: uploadedUrls[0] || "",

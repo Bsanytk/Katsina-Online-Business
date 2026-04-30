@@ -1,24 +1,24 @@
-import React, { useState, useEffect } from 'react'
-import { getAllSellers, toggleSellerVerification } from '../services/admin'
-import { Card, Alert } from '../components/ui'
+import React, { useState, useEffect } from "react";
+import { getAllSellers, toggleSellerVerification } from "../services/admin";
+import { Card, Alert } from "../components/ui";
 
 export default function AdminDashboard() {
-  const [sellers, setSellers] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [message, setMessage] = useState(null)
+  const [sellers, setSellers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState(null);
 
   useEffect(() => {
-    fetchSellers()
-  }, [])
+    fetchSellers();
+  }, []);
 
   async function fetchSellers() {
     try {
-      const data = await getAllSellers()
-      setSellers(data)
+      const data = await getAllSellers();
+      setSellers(data);
     } catch (err) {
-      console.error(err)
+      console.error(err);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
@@ -27,21 +27,29 @@ export default function AdminDashboard() {
       // Optimistic UI update
       setSellers((prev) =>
         prev.map((seller) =>
-          seller.id === userId ? { ...seller, isVerified: !currentStatus } : seller
+          seller.id === userId
+            ? { ...seller, isVerified: !currentStatus }
+            : seller
         )
-      )
+      );
 
-      await toggleSellerVerification(userId, currentStatus)
-      setMessage({ type: 'success', text: 'Seller status updated successfully!' })
-
+      await toggleSellerVerification(userId, currentStatus);
+      setMessage({
+        type: "success",
+        text: "Seller status updated successfully!",
+      });
+      setTimeout(() => setMessage(null), 4000);
     } catch (err) {
       // Revert UI change if failed
       setSellers((prev) =>
         prev.map((seller) =>
-          seller.id === userId ? { ...seller, isVerified: currentStatus } : seller
+          seller.id === userId
+            ? { ...seller, isVerified: currentStatus }
+            : seller
         )
-      )
-      setMessage({ type: 'error', text: 'Failed to update status.' })
+      );
+      setMessage({ type: "error", text: "Failed to update status." });
+      setTimeout(() => setMessage(null), 4000);
     }
   }
 
@@ -49,7 +57,9 @@ export default function AdminDashboard() {
     <div className="container py-10 min-h-screen">
       <header className="mb-10">
         <h1 className="text-3xl font-black text-kob-dark">KOB Admin Panel</h1>
-        <p className="text-gray-500">Manage sellers and marketplace verification status.</p>
+        <p className="text-gray-500">
+          Manage sellers and marketplace verification status.
+        </p>
       </header>
 
       {message && (
@@ -65,14 +75,19 @@ export default function AdminDashboard() {
               <th className="p-4 font-bold uppercase text-xs">Seller Name</th>
               <th className="p-4 font-bold uppercase text-xs">Email/UID</th>
               <th className="p-4 font-bold uppercase text-xs">Status</th>
-              <th className="p-4 font-bold uppercase text-xs text-center">Action</th>
+              <th className="p-4 font-bold uppercase text-xs text-center">
+                Action
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
             {sellers.map((seller) => (
-              <tr key={seller.id} className="hover:bg-gray-50 transition-colors">
+              <tr
+                key={seller.id}
+                className="hover:bg-gray-50 transition-colors"
+              >
                 <td className="p-4 font-bold text-gray-800">
-                  {seller.displayName || 'No Name'}
+                  {seller.displayName || "No Name"}
                 </td>
                 <td className="p-4 text-xs text-gray-400">
                   {seller.email || seller.id}
@@ -92,22 +107,30 @@ export default function AdminDashboard() {
                   <button
                     onClick={() => handleVerify(seller.id, seller.isVerified)}
                     className={`px-4 py-2 rounded-lg text-xs font-black transition-all ${
-                      seller.isVerified 
-                        ? 'bg-red-50 text-red-600 hover:bg-red-600 hover:text-white' 
-                        : 'bg-kob-primary text-white hover:scale-105'
+                      seller.isVerified
+                        ? "bg-red-50 text-red-600 hover:bg-red-600 hover:text-white"
+                        : "bg-kob-primary text-white hover:scale-105"
                     }`}
                   >
-                    {seller.isVerified ? 'REVOKE VERIFICATION' : 'VERIFY SELLER'}
+                    {seller.isVerified
+                      ? "REVOKE VERIFICATION"
+                      : "VERIFY SELLER"}
                   </button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-        
-        {loading && <div className="p-10 text-center animate-pulse">Loading sellers...</div>}
-        {!loading && sellers.length === 0 && <div className="p-10 text-center">No sellers found.</div>}
+
+        {loading && (
+          <div className="p-10 text-center animate-pulse">
+            Loading sellers...
+          </div>
+        )}
+        {!loading && sellers.length === 0 && (
+          <div className="p-10 text-center">No sellers found.</div>
+        )}
       </Card>
     </div>
-  )
+  );
 }

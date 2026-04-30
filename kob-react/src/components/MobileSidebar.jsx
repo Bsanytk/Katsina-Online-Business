@@ -119,13 +119,13 @@ export default function MobileSidebar({ isOpen, onClose }) {
                 <Button
                   onClick={() => navigate("/marketplace")}
                   variant="ghost"
-                  className="text-kob-primary font-semibold hover:bg-kob-primary hover:text-white transition-all duration-300"
+                  className="group flex items-center justify-center gap-3 w-full py-4 bg-[#F9F9F9] text-[#4B3621] rounded-xl font-bold uppercase text-[9px] tracking-[0.2em] hover:bg-red-50 hover:text-red-600 transition-all duration-300 border border-gray-100"
                 >
                                 KOB Marketplace →            {" "}
                 </Button>
-                <h4 className="font-black text-[#4B3621] text-lg tracking-tighter  semibold">
+                <p className="font-black text-[#4B3621] text-lg tracking-tighter  semibold">
                   Katsina Online Business(KOB)
-                </h4>
+                </p>
               </div>
             )}
           </div>

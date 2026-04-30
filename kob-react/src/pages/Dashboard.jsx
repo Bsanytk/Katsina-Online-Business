@@ -139,7 +139,7 @@ function SellerDashboard({ user }) {
   return (
     <div className="space-y-8">
       <div className="flex gap-2 border-b-2 border-gray-100 overflow-x-auto">
-        {["products", "sales", "messages", "shop", "profile"].map((id) => (
+        {["products", "profile", "shop", "messages", "sales"].map((id) => (
           <button
             key={id}
             onClick={() => setActiveTab(id)}
@@ -240,6 +240,17 @@ function SellerDashboard({ user }) {
                               }
                             >
                               Details
+                            </Button>
+
+                            <Button
+                              size="sm"
+                              variant="primary"
+                              className="bg-[#D4AF37] hover:bg-[#c49e30] text-white"
+                              onClick={() =>
+                                (window.location.href = `/marketplace?edit=${p.id}`)
+                              }
+                            >
+                              Edit
                             </Button>
                             <Button
                               size="sm"
