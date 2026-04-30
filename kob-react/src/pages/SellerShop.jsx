@@ -7,7 +7,6 @@ import {
   getDocs,
   doc,
   getDoc,
-  useAuth,
 } from "firebase/firestore";
 import { db } from "../firebase/firebase";
 import { Card, Button } from "../components/ui";
@@ -25,6 +24,7 @@ import ProductCard from "../components/ProductCard";
 import { useNavigate } from "react-router-dom";
 import { updatePageMeta } from "../services/seo";
 import { createOrGetConversation } from "../services/chat";
+import { useAuth } from "../firebase/auth";
 
 export default function SellerShop() {
   const { sellerId } = useParams();
@@ -36,7 +36,6 @@ export default function SellerShop() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-
 
   // Sabon handleMessage function:
   async function handleMessageSeller() {
