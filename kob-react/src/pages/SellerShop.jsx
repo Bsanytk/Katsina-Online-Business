@@ -37,9 +37,6 @@ export default function SellerShop() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // SellerShop.jsx — a sama, ƙara import:
-  import { createOrGetConversation } from "../services/chat";
-  import { useAuth } from "../firebase/auth";
 
   // Sabon handleMessage function:
   async function handleMessageSeller() {
