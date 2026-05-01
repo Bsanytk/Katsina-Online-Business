@@ -39,11 +39,19 @@ export default function SellerShop() {
 
   // Sabon handleMessage function:
   async function handleMessageSeller() {
+    // Check if user is logged in
     if (!user) {
-      alert("Please login to message seller.");
-      window.location.href = "/login";
+      if (
+        window.confirm(
+          "You must be logged in to message a seller.\nGo to login now?"
+        )
+      ) {
+        window.location.href = "/login";
+      }
       return;
     }
+
+    // Prevent seller from messaging themselves
     if (user.uid === sellerId) {
       alert("This is your own shop!");
       return;
@@ -54,20 +62,21 @@ export default function SellerShop() {
       await createOrGetConversation(
         user.uid, // buyerId
         sellerId, // sellerId
-        sellerId, // productId (shop-level)
+        sellerId, // productId (shop level)
         user.displayName || user.email, // buyerName
         shopName, // sellerName
         `Shop: ${shopName}` // productName
       );
+      // Redirect to dashboard messages tab
       window.location.href = "/dashboard";
     } catch (err) {
-      alert("Failed to start conversation.");
+      alert("Failed to start conversation. Please try again.");
     } finally {
       setStartingChat(false);
     }
   }
 
-  // Sabon handleShare function:
+  // Share shop link
   function handleShareShop() {
     const shopUrl = `${window.location.origin}/shop/${sellerId}`;
 
@@ -76,12 +85,12 @@ export default function SellerShop() {
       navigator
         .share({
           title: `${shopName} | KOB Marketplace`,
-          text: `Check Products of ${shopName} at KOB Marketplace!`,
+          text: `Check out ${shopName} on KOB Marketplace!`,
           url: shopUrl,
         })
         .catch(() => {});
     } else {
-      // Desktop fallback
+      // Desktop fallback - copy to clipboard
       navigator.clipboard.writeText(shopUrl);
       alert("Shop link copied to clipboard!");
     }
@@ -157,7 +166,7 @@ export default function SellerShop() {
           <div className="absolute -top-20 -left-20 w-64 h-64 bg-[#D4AF37] rounded-full blur-3xl"></div>
           <div className="absolute -bottom-20 -right-20 w-96 h-96 bg-[#D4AF37] rounded-full blur-3xl"></div>
         </div>
-
+        // Back button yana aiki amma bai bayyana sosai ba // REPLACE da wannan:
         <div className="container relative z-10 pt-6">
           <button
             onClick={() => {
@@ -167,9 +176,13 @@ export default function SellerShop() {
                 navigate("/");
               }
             }}
-            className="p-2 bg-white/10 backdrop-blur-md rounded-full text-white hover:bg-white/20 transition-all cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2 
+      bg-white/20 backdrop-blur-md rounded-full 
+      text-white hover:bg-white/30 transition-all 
+      font-bold text-sm"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-4 h-4" />
+            Back
           </button>
         </div>
       </div>
@@ -219,12 +232,17 @@ export default function SellerShop() {
               </div>
 
               <div className="flex flex-wrap justify-center md:justify-start gap-3">
-                <Button className="bg-[#4B3621] hover:bg-[#362718] text-white px-8 rounded-xl font-bold flex gap-2">
+                {/* Message Seller Button - FIXED */}
+                <Button
+                  className="bg-[#4B3621] hover:bg-[#362718] text-white px-8 rounded-xl font-bold flex gap-2"
                   onClick={handleMessageSeller}
                   disabled={startingChat}
+                >
                   <MessageCircle className="w-4 h-4" />
                   {startingChat ? "Starting..." : "Message Seller"}
                 </Button>
+
+                {/* Share Button */}
                 <Button
                   variant="outline"
                   className="border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 px-6"
@@ -256,16 +274,36 @@ export default function SellerShop() {
             <div className="h-1 w-12 bg-[#D4AF37] rounded-full mt-1"></div>
           </div>
 
-          {/* Search Bar */}
+          {/* Search Bar - FIXED */}
           <div className="relative max-w-md w-full">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 z-10" />
+            {/* Icon - pointer-events-none don kada ta toshe input */}
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 
+      w-4 h-4 text-gray-400 pointer-events-none"
+            />
+
             <input
               type="text"
               placeholder="Search in this shop..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-14 pr-4 py-3.5 bg-white border border-gray-100 rounded-2xl shadow-sm focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent outline-none transition-all text-sm"
+              className="w-full pl-10 pr-4 py-3.5 bg-white 
+      border border-gray-100 rounded-2xl shadow-sm 
+      focus:ring-2 focus:ring-[#D4AF37] 
+      focus:border-transparent outline-none 
+      transition-all text-sm placeholder:text-gray-400"
             />
+
+            {/* Clear button - yana bayyana idan akwai text */}
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 
+        text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                ✕
+              </button>
+            )}
           </div>
         </div>
 
@@ -286,18 +324,47 @@ export default function SellerShop() {
       </div>
 
       {/* 4. WhatsApp Floating Button (KOB Special) */}
-      <a
-        href={`https://wa.me/${seller?.phoneNumber || "234..."}`}
-        target="_blank"
-        rel="noreferrer"
-        className="fixed bottom-8 right-8 z-50 bg-[#25D366] text-white p-4 rounded-full shadow-2xl hover:scale-110 transition-transform active:scale-95 flex items-center justify-center"
-      >
-        <MessageCircle className="w-7 h-7 fill-white text-[#25D366]" />
-        <span className="absolute -top-2 -right-2 flex h-5 w-5">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-5 w-5 bg-green-500 border-2 border-white"></span>
-        </span>
-      </a>
+      {seller?.whatsappNumber || seller?.phoneNumber ? (
+        <a
+          href={
+            // Check login first
+            user
+              ? `https://wa.me/${seller?.whatsappNumber || seller?.phoneNumber}`
+              : "/login"
+          }
+          onClick={(e) => {
+            // If not logged in, show confirm instead
+            if (!user) {
+              e.preventDefault();
+              if (
+                window.confirm(
+                  "You must be logged in to contact seller.\nGo to login now?"
+                )
+              ) {
+                window.location.href = "/login";
+              }
+            }
+          }}
+          target={user ? "_blank" : "_self"}
+          rel="noreferrer"
+          className="fixed bottom-8 right-8 z-50 bg-[#25D366] 
+      text-white p-4 rounded-full shadow-2xl 
+      hover:scale-110 transition-transform active:scale-95 
+      flex items-center justify-center"
+        >
+          <MessageCircle className="w-7 h-7 fill-white text-[#25D366]" />
+          <span className="absolute -top-2 -right-2 flex h-5 w-5">
+            <span
+              className="animate-ping absolute inline-flex 
+        h-full w-full rounded-full bg-green-400 opacity-75"
+            ></span>
+            <span
+              className="relative inline-flex rounded-full 
+        h-5 w-5 bg-green-500 border-2 border-white"
+            ></span>
+          </span>
+        </a>
+      ) : null}
     </div>
   );
 }

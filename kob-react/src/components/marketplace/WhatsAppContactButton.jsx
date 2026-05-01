@@ -52,7 +52,9 @@ export default function WhatsAppContactButton({ product, sellerUid, user }) {
   function handleContactClick() {
     // ✅ LOGIN CHECK
     if (!user) {
-      alert("Please register or login to contact seller.");
+      if (window.confirm("Please register or login to contact seller.")) {
+        window.location.href = "/login";
+      }
       return;
     }
 
@@ -68,7 +70,7 @@ export default function WhatsAppContactButton({ product, sellerUid, user }) {
       const link = generateWhatsAppLink(whatsappNumber, product);
       window.open(link, "_blank", "noopener,noreferrer");
     } catch (err) {
-      alert("Failed to open WhatsApp");
+      alert("Failed to open WhatsApp. Please try again.");
     }
   }
 

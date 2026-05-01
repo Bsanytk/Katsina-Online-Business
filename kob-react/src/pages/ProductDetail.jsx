@@ -314,20 +314,48 @@ export default function ProductDetail() {
 
               <div className="mt-6 space-y-3">
                 {/* Dynamic WhatsApp Link using the product's WhatsApp number */}
+                {user ? (
+                  // User is logged in - show WhatsApp button
+                  <WhatsAppContactButton
+                    product={product}
+                    sellerUid={product.ownerUid}
+                    user={user}
+                  />
+                ) : (
+                  // User is not logged in - show lock screen
+                  <div
+                    className="p-4 bg-amber-50 border-2 
+      border-amber-200 rounded-xl text-center"
+                  >
+                    <p className="text-2xl mb-2">🔒</p>
+                    <p className="text-amber-800 font-bold text-sm mb-3">
+                      Login to contact this seller
+                    </p>
+                    <button
+                      onClick={() => (window.location.href = "/login")}
+                      className="w-full py-2 bg-[#4B3621] text-white 
+          rounded-lg font-bold text-sm hover:opacity-90"
+                    >
+                      Login / Register
+                    </button>
+                  </div>
+                )}
 
-                <WhatsAppContactButton
-                  product={product}
-                  sellerUid={product.ownerUid}
-                  user={user}
-                />
-
-                <Button
-                  variant="secondary"
-                  className="w-full"
-                  onClick={() => alert("Order feature linked to dashboard")}
+                {/* Buy Now Button */}
+                <button
+                  onClick={() => {
+                    if (!user) {
+                      window.location.href = "/login";
+                      return;
+                    }
+                    alert("Order feature coming soon!");
+                  }}
+                  className="w-full py-3 bg-kob-light text-kob-primary 
+      rounded-lg font-bold border border-kob-primary/20
+      hover:bg-kob-primary hover:text-white transition-all"
                 >
                   🛒 Buy Now
-                </Button>
+                </button>
               </div>
             </Card>
           </div>

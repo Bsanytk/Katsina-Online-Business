@@ -1,89 +1,201 @@
-import React from 'react'
+import React, { useEffect, useState } from "react";
 
 /**
- * Alert component for messages and notifications
- * @param {string} type - 'success', 'error', 'warning', 'info'
- * @param {boolean} dismissible - Show dismiss button
- * @param {function} onDismiss - Callback for dismiss button
+ * Professional Alert Component - KOB Design System
+ * @param {string} type - 'success' | 'error' | 'warning' | 'info'
+ * @param {string} title - Optional heading
+ * @param {boolean} dismissible - Show close button (default: true)
+ * @param {function} onDismiss - Callback when dismissed
+ * @param {number} autoDismiss - Auto dismiss after N milliseconds (optional)
+ * @param {string} className - Extra classes
  */
 export default function Alert({
   children,
-  type = 'info',
+  type = "info",
   dismissible = true,
   onDismiss,
-  className = '',
+  autoDismiss,
+  className = "",
   title,
 }) {
-  const [isVisible, setIsVisible] = React.useState(true)
+  const [isVisible, setIsVisible] = useState(true);
+  const [isLeaving, setIsLeaving] = useState(false);
 
-  if (!isVisible) return null
+  // Auto dismiss timer
+  useEffect(() => {
+    if (!autoDismiss) return;
+    const timer = setTimeout(() => handleDismiss(), autoDismiss);
+    return () => clearTimeout(timer);
+  }, [autoDismiss]);
 
-  const handleDismiss = () => {
-    setIsVisible(false)
-    onDismiss?.()
+  function handleDismiss() {
+    // Animate out before removing
+    setIsLeaving(true);
+    setTimeout(() => {
+      setIsVisible(false);
+      onDismiss?.();
+    }, 300);
   }
 
-  const typeStyles = {
+  if (!isVisible) return null;
+
+  // Design tokens per type
+  const config = {
     success: {
-      bg: 'bg-kob-success bg-opacity-10',
-      border: 'border-kob-success',
-      text: 'text-kob-success',
-      icon: '✓',
+      container: "bg-emerald-50 border-emerald-500",
+      icon_bg: "bg-emerald-500",
+      title: "text-emerald-800",
+      body: "text-emerald-700",
+      dismiss: "text-emerald-500 hover:bg-emerald-100",
+      icon: (
+        <svg
+          className="w-4 h-4 text-white"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={3}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M5 13l4 4L19 7"
+          />
+        </svg>
+      ),
     },
     error: {
-      bg: 'bg-kob-error bg-opacity-10',
-      border: 'border-kob-error',
-      text: 'text-kob-error',
-      icon: '✕',
+      container: "bg-red-50 border-red-500",
+      icon_bg: "bg-red-500",
+      title: "text-red-800",
+      body: "text-red-700",
+      dismiss: "text-red-400 hover:bg-red-100",
+      icon: (
+        <svg
+          className="w-4 h-4 text-white"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={3}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M6 18L18 6M6 6l12 12"
+          />
+        </svg>
+      ),
     },
     warning: {
-      bg: 'bg-kob-warning bg-opacity-10',
-      border: 'border-kob-warning',
-      text: 'text-kob-warning',
-      icon: '!',
+      container: "bg-amber-50 border-amber-500",
+      icon_bg: "bg-amber-500",
+      title: "text-amber-800",
+      body: "text-amber-700",
+      dismiss: "text-amber-400 hover:bg-amber-100",
+      icon: (
+        <svg
+          className="w-4 h-4 text-white"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={3}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M12 9v4m0 4h.01M10.29 3.86L1.82 
+              18a2 2 0 001.71 3h16.94a2 2 0 
+              001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
+          />
+        </svg>
+      ),
     },
     info: {
-      bg: 'bg-kob-info bg-opacity-10',
-      border: 'border-kob-info',
-      text: 'text-kob-info',
-      icon: 'ℹ',
+      container: "bg-blue-50 border-blue-500",
+      icon_bg: "bg-blue-500",
+      title: "text-blue-800",
+      body: "text-blue-700",
+      dismiss: "text-blue-400 hover:bg-blue-100",
+      icon: (
+        <svg
+          className="w-4 h-4 text-white"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={3}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M13 16h-1v-4h-1m1-4h.01M21 
+              12a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
+        </svg>
+      ),
     },
-  }
+  };
 
-  const styles = typeStyles[type]
+  const c = config[type] || config.info;
 
   return (
     <div
+      role="alert"
       className={`
-        rounded-lg border-l-4 p-4 flex items-start gap-3 transition-all duration-200
-        ${styles.bg} ${styles.border}
+        flex items-start gap-4 p-4 rounded-xl border-l-4 shadow-sm
+        transition-all duration-300
+        ${
+          isLeaving
+            ? "opacity-0 -translate-y-2 scale-95"
+            : "opacity-100 translate-y-0 scale-100"
+        }
+        ${c.container}
         ${className}
       `}
     >
-      <div className={`text-lg font-bold flex-shrink-0 ${styles.text}`}>
-        {styles.icon}
+      {/* Icon Circle */}
+      <div
+        className={`
+        flex-shrink-0 w-8 h-8 rounded-full 
+        flex items-center justify-center shadow-sm
+        ${c.icon_bg}
+      `}
+      >
+        {c.icon}
       </div>
-      <div className="flex-grow">
+
+      {/* Content */}
+      <div className="flex-grow min-w-0">
         {title && (
-          <h4 className={`font-semibold ${styles.text} mb-1`}>
-            {title}
-          </h4>
+          <p className={`font-bold text-sm mb-0.5 ${c.title}`}>{title}</p>
         )}
-        <div className={`text-sm ${styles.text}`}>
-          {children}
-        </div>
+        <div className={`text-sm leading-relaxed ${c.body}`}>{children}</div>
       </div>
+
+      {/* Dismiss Button */}
       {dismissible && (
         <button
           onClick={handleDismiss}
-          className={`flex-shrink-0 ${styles.text} hover:opacity-70 transition-opacity`}
-          aria-label="Dismiss alert"
+          aria-label="Dismiss"
+          className={`
+            flex-shrink-0 p-1.5 rounded-lg 
+            transition-colors duration-150
+            ${c.dismiss}
+          `}
         >
-          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2.5}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M6 18L18 6M6 6l12 12"
+            />
           </svg>
         </button>
       )}
     </div>
-  )
+  );
 }
