@@ -168,7 +168,6 @@ export default function ProductCard({ product, onEdit, onDelete, onBuyClick }) {
             </div>
           ) : (
             <div className="flex gap-2 w-full">
-              // REPLACE Details button da wannan:
               <button
                 onClick={() => {
                   // Check login before viewing details
@@ -192,7 +191,6 @@ export default function ProductCard({ product, onEdit, onDelete, onBuyClick }) {
               >
                 Details
               </button>
-              // REPLACE WhatsApp tag da wannan:
               <button
                 onClick={(e) => {
                   e.preventDefault();

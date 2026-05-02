@@ -166,7 +166,6 @@ export default function SellerShop() {
           <div className="absolute -top-20 -left-20 w-64 h-64 bg-[#D4AF37] rounded-full blur-3xl"></div>
           <div className="absolute -bottom-20 -right-20 w-96 h-96 bg-[#D4AF37] rounded-full blur-3xl"></div>
         </div>
-        // Back button yana aiki amma bai bayyana sosai ba // REPLACE da wannan:
         <div className="container relative z-10 pt-6">
           <button
             onClick={() => {
@@ -276,7 +275,6 @@ export default function SellerShop() {
 
           {/* Search Bar - FIXED */}
           <div className="relative max-w-md w-full">
-            {/* Icon - pointer-events-none don kada ta toshe input */}
             <Search
               className="absolute left-3 top-1/2 -translate-y-1/2 
       w-4 h-4 text-gray-400 pointer-events-none"
@@ -287,7 +285,7 @@ export default function SellerShop() {
               placeholder="Search in this shop..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3.5 bg-white 
+              className="w-full pl-12 pr-4 py-3.5 bg-white 
       border border-gray-100 rounded-2xl shadow-sm 
       focus:ring-2 focus:ring-[#D4AF37] 
       focus:border-transparent outline-none 

@@ -1,59 +1,58 @@
-import React from 'react'
-import { useTranslation } from '../hooks/useTranslation'
-import { Card } from '../components/ui'
-import BackButton from '../components/BackButton'
+import React from "react";
+import { useTranslation } from "../hooks/useTranslation";
+import { Card } from "../components/ui";
+import BackButton from "../components/BackButton";
 
 export default function Privacy() {
-  const t = useTranslation()
+  const t = useTranslation();
 
   const sections = [
     {
-      heading: t('privacy.collection.heading'),
-      intro: t('privacy.collection.intro'),
-      items: t('privacy.collection.items'),
-      isList: true
+      heading: t("privacy.collection.heading"),
+      intro: t("privacy.collection.intro"),
+      items: t("privacy.collection.items"),
+      isList: true,
     },
     {
-      heading: t('privacy.usage.heading'),
-      intro: t('privacy.usage.intro'),
-      items: t('privacy.usage.items'),
-      isList: true
+      heading: t("privacy.usage.heading"),
+      intro: t("privacy.usage.intro"),
+      items: t("privacy.usage.items"),
+      isList: true,
     },
     {
-      heading: t('privacy.protection.heading'),
-      content: t('privacy.protection.content'),
-      isList: false
+      heading: t("privacy.protection.heading"),
+      content: t("privacy.protection.content"),
+      isList: false,
     },
     {
-      heading: t('privacy.sharing.heading'),
-      content: t('privacy.sharing.content'),
-      isList: false
+      heading: t("privacy.sharing.heading"),
+      content: t("privacy.sharing.content"),
+      isList: false,
     },
     {
-      heading: t('privacy.retention.heading'),
-      content: t('privacy.retention.content'),
-      isList: false
+      heading: t("privacy.retention.heading"),
+      content: t("privacy.retention.content"),
+      isList: false,
     },
     {
-      heading: t('privacy.rights.heading'),
-      content: t('privacy.rights.content'),
-      isList: false
+      heading: t("privacy.rights.heading"),
+      content: t("privacy.rights.content"),
+      isList: false,
     },
     {
-      heading: t('privacy.cookies.heading'),
-      content: t('privacy.cookies.content'),
-      isList: false
+      heading: t("privacy.cookies.heading"),
+      content: t("privacy.cookies.content"),
+      isList: false,
     },
     {
-      heading: t('privacy.contact.heading'),
-      content: t('privacy.contact.content'),
-      isList: false
-    }
-  ]
+      heading: t("privacy.contact.heading"),
+      content: t("privacy.contact.content"),
+      isList: false,
+    },
+  ];
 
   return (
     <main className="min-h-screen bg-kob-light">
-
       <div className="container py-4">
         <BackButton />
       </div>
@@ -61,43 +60,33 @@ export default function Privacy() {
       {/* Header */}
       <div className="bg-gradient-to-r from-kob-primary to-kob-gold text-white py-16 md:py-20">
         <div className="container text-center">
-
           <h1 className="text-5xl md:text-6xl font-extrabold mb-4">
-            {t('privacy.title')}
+            {t("privacy.title")}
           </h1>
 
-          <p className="text-lg opacity-90 mb-4">
-            {t('privacy.last_updated')}
-          </p>
+          <p className="text-lg opacity-90 mb-4">{t("privacy.last_updated")}</p>
 
           <p className="text-lg opacity-95 font-light max-w-3xl mx-auto italic">
-            {t('privacy.intro')}
+            {t("privacy.intro")}
           </p>
-
         </div>
       </div>
 
       <div className="container max-w-4xl py-16 md:py-24">
-
         <Card variant="default" className="p-10 md:p-12 rounded-2xl space-y-10">
-
           {sections.map((section, idx) => {
-
             const itemsArray = Array.isArray(section.items)
               ? section.items
-              : []
+              : [];
 
             return (
               <section key={idx} className="scroll-mt-20">
-
                 <div className="flex items-start gap-4">
-
                   <div className="text-4xl font-bold text-kob-primary opacity-20 flex-shrink-0 w-12 text-center">
                     {idx + 1}
                   </div>
 
                   <div className="flex-1">
-
                     <h2 className="text-3xl font-bold text-kob-dark mb-4">
                       {section.heading}
                     </h2>
@@ -112,7 +101,9 @@ export default function Privacy() {
                       <ul className="space-y-3 text-gray-700 text-base leading-relaxed">
                         {itemsArray.map((item, i) => (
                           <li key={i} className="flex gap-3">
-                            <span className="text-kob-primary font-bold flex-shrink-0">•</span>
+                            <span className="text-kob-primary font-bold flex-shrink-0">
+                              •
+                            </span>
                             <span>{item}</span>
                           </li>
                         ))}
@@ -123,57 +114,50 @@ export default function Privacy() {
                       </p>
                     )}
 
-                    {section.heading === t('privacy.contact.heading') && (
+                    {section.heading === t("privacy.contact.heading") && (
                       <div className="mt-6 p-6 bg-gradient-to-br from-kob-light to-white rounded-lg border-2 border-kob-primary">
-
                         <p className="font-semibold text-kob-dark mb-3 text-lg">
-                          📧 {t('common.contact_email')}
+                          📧 {t("common.contact_email")}
                         </p>
 
                         <p className="font-semibold text-kob-dark text-lg">
-                          📞 {t('common.contact_phone')}
+                          📞 {t("common.contact_phone")}
                         </p>
 
                         <p className="mt-4 text-gray-600 text-sm">
                           This Privacy Policy is maintained and reviewed by the
                           <strong> KOB Legal & Privacy Compliance Team</strong>
                           to ensure that personal data is handled responsibly,
-                          securely, and transparently across the KOB marketplace.
+                          securely, and transparently across the KOB
+                          marketplace.
                         </p>
-
                       </div>
                     )}
-
                   </div>
-
                 </div>
-
               </section>
-            )
+            );
           })}
-
         </Card>
 
         {/* Contact Banner */}
 
         <div className="mt-12 bg-gradient-to-br from-kob-primary via-kob-primary-light to-kob-gold text-white rounded-2xl p-12 text-center shadow-lg">
-
           <h2 className="text-4xl font-extrabold mb-4">
             Your Privacy Matters to Us
           </h2>
 
           <p className="text-lg opacity-95 mb-8 font-light">
-            If you have any concerns about how your information is handled,
-            our privacy team is ready to assist you.
+            If you have any concerns about how your information is handled, our
+            privacy team is ready to assist you.
           </p>
 
           <a
-            href={`mailto:${t('common.contact_email')}`}
+            href={`mailto:${t("common.contact_email")}`}
             className="inline-block px-8 py-4 bg-white text-kob-primary font-bold rounded-lg hover:bg-gray-100 transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105"
           >
             Contact Privacy Team
           </a>
-
         </div>
 
         {/* Rights Info */}
@@ -185,13 +169,11 @@ export default function Privacy() {
           <p className="text-green-900 text-base">
             <strong>🛡️ Your Rights:</strong>
             You may request access to, correction of, or deletion of your
-            personal data stored on the KOB platform. Contact our support
-            team if you need help exercising these rights.
+            personal data stored on the KOB platform. Contact our support team
+            if you need help exercising these rights.
           </p>
         </Card>
-
       </div>
-
     </main>
-  )
+  );
 }

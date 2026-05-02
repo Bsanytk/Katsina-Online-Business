@@ -139,7 +139,7 @@ function SellerDashboard({ user }) {
   return (
     <div className="space-y-8">
       <div className="flex gap-2 border-b-2 border-gray-100 overflow-x-auto">
-        {["products", "profile", "shop", "messages", "sales"].map((id) => (
+        {["products", "Profile", "shop", "messages", "sales"].map((id) => (
           <button
             key={id}
             onClick={() => setActiveTab(id)}
@@ -149,7 +149,7 @@ function SellerDashboard({ user }) {
                 : "text-gray-400 hover:text-[#4B3621]"
             }`}
           >
-            {id === "shop" ? "🏪 My Shop" : id}
+            {id === "shop" ? "My Shop" : id}
           </button>
         ))}
       </div>
