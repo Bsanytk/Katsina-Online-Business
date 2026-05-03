@@ -30,7 +30,7 @@ export default function Teams() {
     },
     {
       id: 4,
-      name: "Salahuddeen Ahmad Zainab MLadan",
+      name: "Salahuddeen Ahmad & Zainab MLadan",
       role: "Community Manager",
       bio: "Supporting buyers and sellers, building a thriving marketplace community.",
       avatar: "👩‍🤝‍👨",
