@@ -1,43 +1,64 @@
-// Firebase Cloud Messaging Service Worker
-// Handles background push notifications
-
 importScripts(
-  "https://www.gstatic.com/firebasejs/10.0.0/firebase-app-compat.js"
-);
+  'https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js'
+)
 importScripts(
-  "https://www.gstatic.com/firebasejs/10.0.0/firebase-messaging-compat.js"
-);
+  'https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js'
+)
 
 firebase.initializeApp({
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID",
-});
+  apiKey:            typeof __FIREBASE_API_KEY__ !== 'undefined'
+    ? __FIREBASE_API_KEY__ : '',
+  authDomain:        typeof __FIREBASE_AUTH_DOMAIN__ !== 'undefined'
+    ? __FIREBASE_AUTH_DOMAIN__ : '',
+  projectId:         typeof __FIREBASE_PROJECT_ID__ !== 'undefined'
+    ? __FIREBASE_PROJECT_ID__ : '',
+  storageBucket:     typeof __FIREBASE_STORAGE_BUCKET__ !== 'undefined'
+    ? __FIREBASE_STORAGE_BUCKET__ : '',
+  messagingSenderId: typeof __FIREBASE_MESSAGING_SENDER_ID__ !== 'undefined'
+    ? __FIREBASE_MESSAGING_SENDER_ID__ : '',
+  appId:             typeof __FIREBASE_APP_ID__ !== 'undefined'
+    ? __FIREBASE_APP_ID__ : '',
+})
 
-const messaging = firebase.messaging();
+const messaging = firebase.messaging()
 
-// Handle background messages
 messaging.onBackgroundMessage((payload) => {
-  console.log("Background message received:", payload);
+  const {
+    title = 'KOB Marketplace',
+    body  = 'You have a new notification',
+    icon,
+  } = payload.notification || {}
 
-  const { title, body, icon } = payload.notification || {};
+  self.registration.showNotification(title, {
+    body,
+    icon: icon ||
+      'https://res.cloudinary.com/dn5crslee/image/upload/v1768211566/20260108_135034_qj155b.png',
+    badge:   '/badge.png',
+    data:    payload.data || {},
+    vibrate: [200, 100, 200],
+    actions: [
+      { action: 'open',    title: 'Open KOB' },
+      { action: 'dismiss', title: 'Dismiss'  },
+    ],
+  })
+})
 
-  self.registration.showNotification(title || "KOB Marketplace", {
-    body: body || "You have a new notification",
-    icon:
-      icon ||
-      "https://res.cloudinary.com/dn5crslee/image/upload/v1768211566/20260108_135034_qj155b.png",
-    badge: "/badge.png",
-    data: payload.data,
-  });
-});
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close()
+  if (event.action === 'dismiss') return
+  const url = event.notification.data?.url || '/'
+  event.waitUntil(
+    clients.matchAll({
+      type:                'window',
+      includeUncontrolled: true,
+    }).then((list) => {
+      for (const client of list) {
+        if ('focus' in client) return client.focus()
+      }
+      if (clients.openWindow) return clients.openWindow(url)
+    })
+  )
+})
 
-// Handle notification click
-self.addEventListener("notificationclick", (event) => {
-  event.notification.close();
-  const url = event.notification.data?.url || "/";
-  event.waitUntil(clients.openWindow(url));
-});
+self.addEventListener('install',   () => self.skipWaiting())
+self.addEventListener('activate',  (e) => e.waitUntil(clients.claim()))
