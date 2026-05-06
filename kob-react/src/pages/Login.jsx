@@ -1,14 +1,19 @@
 import React, { useState } from 'react'
 import { loginUser } from '../firebase/auth'
 import { useNavigate, Link } from 'react-router-dom'
-import { Input, ButtonLoader, Alert, Card } from '../components/ui'
 import BackButton from '../components/BackButton'
+import { motion } from 'framer-motion'
+import { Eye, EyeOff, ArrowRight } from 'lucide-react'
+
+const KOB_LOGO =
+  "https://res.cloudinary.com/dn5crslee/image/upload/v1768211566/20260108_135034_qj155b.png"
 
 export default function Login() {
-  const [email, setEmail] = useState('')
+  const [email, setEmail]       = useState('')
   const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
+  const [loading, setLoading]   = useState(false)
+  const [error, setError]       = useState(null)
+  const [showPass, setShowPass] = useState(false)
   const navigate = useNavigate()
 
   async function handleSubmit(e) {
@@ -17,7 +22,7 @@ export default function Login() {
     setError(null)
     try {
       await loginUser(email, password)
-      navigate('/')
+      navigate('/dashboard')
     } catch (err) {
       setError(err.message || 'Login failed. Please try again.')
     } finally {
@@ -26,108 +31,197 @@ export default function Login() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-kob-light via-white to-kob-primary-light flex items-center justify-center p-4 py-12">
+    <main className="min-h-screen bg-[#FAFAF8]
+      flex items-center justify-center p-4 py-10">
+
       <div className="absolute top-4 left-4">
         <BackButton />
       </div>
-      {/* Decorative Elements */}
-      <div className="absolute inset-0 opacity-5 pointer-events-none">
-        <div className="absolute top-20 right-20 w-96 h-96 bg-kob-primary rounded-full blur-3xl"></div>
-        <div className="absolute bottom-20 left-20 w-96 h-96 bg-kob-gold rounded-full blur-3xl"></div>
+
+      {/* Decorative blobs */}
+      <div className="absolute inset-0 overflow-hidden
+        pointer-events-none">
+        <div className="absolute -top-32 -right-32 w-96 h-96
+          bg-[#4B3621]/5 rounded-full blur-3xl" />
+        <div className="absolute -bottom-32 -left-32 w-96 h-96
+          bg-[#D4AF37]/5 rounded-full blur-3xl" />
       </div>
 
-      <div className="w-full max-w-md relative z-10">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="w-full max-w-sm relative z-10"
+      >
         {/* Card */}
-        <Card variant="elevated" className="p-8 md:p-10 rounded-2xl">
+        <div className="bg-white rounded-3xl shadow-sm
+          border border-gray-100 overflow-hidden">
+
           {/* Header */}
-          <div className="text-center mb-8 animate-fade-in">
-            <div className="inline-block p-4 bg-gradient-to-br from-kob-primary to-kob-gold rounded-full mb-4 transform hover:scale-110 transition-transform duration-300">
-              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <h1 className="text-4xl font-bold text-kob-dark mb-2">Welcome Back</h1>
-            <p className="text-gray-600 text-lg">Sign in to your KOB account</p>
+          <div className="bg-[#4B3621] px-8 py-8 text-center">
+            <img src={KOB_LOGO} alt="KOB"
+              className="h-12 w-auto mx-auto mb-3" />
+            <h1 className="text-xl font-bold text-white mb-1">
+              Welcome Back
+            </h1>
+            <p className="text-xs text-white/60">
+              Sign in to your KOB account
+            </p>
           </div>
 
-          {/* Error Message */}
-          {error && (
-            <Alert type="error" title="Login Failed" className="mb-6 animate-fade-in">
-              {error}
-            </Alert>
-          )}
+          <div className="p-7">
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <Input
-              type="email"
-              label="Email Address"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              disabled={loading}
-              className="rounded-lg focus:ring-2 focus:ring-offset-2 transition-all"
-            />
+            {/* Error */}
+            {error && (
+              <div className="flex items-start gap-2
+                p-3.5 bg-red-50 border border-red-100
+                rounded-xl mb-5">
+                <span className="text-red-500 flex-shrink-0
+                  text-sm mt-0.5">⚠</span>
+                <p className="text-xs text-red-700 font-medium">
+                  {error}
+                </p>
+              </div>
+            )}
 
-            <Input
-              type="password"
-              label="Password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              disabled={loading}
-              className="rounded-lg focus:ring-2 focus:ring-offset-2 transition-all"
-            />
+            <form onSubmit={handleSubmit} className="space-y-4">
 
-            <div className="flex items-center justify-between text-sm">
-              <label className="flex items-center gap-2 cursor-pointer">
+              {/* Email */}
+              <div>
+                <label className="block text-xs font-semibold
+                  uppercase tracking-widest text-gray-400 mb-1.5">
+                  Email Address
+                </label>
                 <input
-                  type="checkbox"
-                  className="w-4 h-4 rounded border-gray-300 text-kob-primary focus:ring-2 focus:ring-kob-primary"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  required
                   disabled={loading}
+                  className="w-full px-4 py-3 border-2
+                    border-gray-200 rounded-xl text-sm
+                    outline-none focus:border-[#4B3621]
+                    transition-colors disabled:opacity-50
+                    disabled:bg-gray-50"
                 />
-                <span className="text-gray-700">Remember me</span>
-              </label>
-              <Link to="/contact" className="text-kob-primary hover:text-kob-primary-dark font-medium transition-colors duration-200">
-                Need help?
-              </Link>
+              </div>
+
+              {/* Password */}
+              <div>
+                <div className="flex items-center
+                  justify-between mb-1.5">
+                  <label className="text-xs font-semibold
+                    uppercase tracking-widest text-gray-400">
+                    Password
+                  </label>
+                  <Link to="/contact"
+                    className="text-[10px] text-[#4B3621]
+                      hover:text-[#D4AF37] font-semibold
+                      transition-colors">
+                    Need help?
+                  </Link>
+                </div>
+                <div className="relative">
+                  <input
+                    type={showPass ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                    disabled={loading}
+                    className="w-full px-4 py-3 pr-11
+                      border-2 border-gray-200 rounded-xl
+                      text-sm outline-none
+                      focus:border-[#4B3621] transition-colors
+                      disabled:opacity-50 disabled:bg-gray-50"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPass(!showPass)}
+                    className="absolute right-3 top-1/2
+                      -translate-y-1/2 text-gray-400
+                      hover:text-gray-600 transition-colors"
+                  >
+                    {showPass
+                      ? <EyeOff className="w-4 h-4" />
+                      : <Eye className="w-4 h-4" />
+                    }
+                  </button>
+                </div>
+              </div>
+
+              {/* Submit */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full flex items-center
+                  justify-center gap-2 py-3.5 mt-2
+                  bg-[#4B3621] text-white rounded-2xl
+                  font-semibold text-sm
+                  hover:bg-[#362818] transition-colors
+                  shadow-sm active:scale-[0.98]
+                  disabled:opacity-50
+                  disabled:cursor-not-allowed"
+              >
+                {loading ? (
+                  <>
+                    <svg className="animate-spin w-4 h-4"
+                      fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12"
+                        cy="12" r="10" stroke="currentColor"
+                        strokeWidth="4" />
+                      <path className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    Signing in...
+                  </>
+                ) : (
+                  <>
+                    Sign In
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
+              </button>
+
+            </form>
+
+            {/* Divider */}
+            <div className="flex items-center gap-3 my-5">
+              <div className="flex-1 h-px bg-gray-100" />
+              <span className="text-[10px] text-gray-400
+                uppercase tracking-wider font-medium">
+                or
+              </span>
+              <div className="flex-1 h-px bg-gray-100" />
             </div>
 
-            <ButtonLoader
-              type="submit"
-              size="lg"
-              variant="primary"
-              className="w-full mt-8 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 rounded-lg font-semibold"
-              loading={loading}
-              loadingText="Signing in..."
-            >
-              ✓ Sign In
-            </ButtonLoader>
-          </form>
+            {/* Register link */}
+            <p className="text-center text-xs text-gray-500">
+              Don't have an account?{' '}
+              <Link to="/register"
+                className="text-[#4B3621] font-bold
+                  hover:text-[#D4AF37] transition-colors">
+                Create one now
+              </Link>
+            </p>
 
-          {/* Divider */}
-          <div className="my-7 flex items-center gap-3">
-            <div className="flex-1 h-px bg-gradient-to-r from-kob-neutral-300 to-transparent"></div>
-            <span className="text-xs text-gray-500 font-medium uppercase">OR</span>
-            <div className="flex-1 h-px bg-gradient-to-l from-kob-neutral-300 to-transparent"></div>
           </div>
-
-          {/* Register Link */}
-          <p className="text-center text-gray-700 text-base font-medium">
-            Don't have an account?{' '}
-            <Link to="/register" className="text-kob-primary hover:text-kob-primary-dark font-bold hover:underline transition-colors">
-              Create one now
-            </Link>
-          </p>
-        </Card>
-
-        {/* Footer Help */}
-        <div className="mt-8 text-center text-sm text-gray-600">
-          <p>Having trouble? <Link to="/contact" className="text-kob-primary hover:text-kob-primary-dark font-bold hover:underline transition-colors">Contact support</Link></p>
         </div>
-      </div>
+
+        {/* Footer */}
+        <p className="text-center text-[10px] text-gray-400
+          mt-5">
+          Having trouble?{' '}
+          <Link to="/contact"
+            className="text-[#4B3621] font-semibold
+              hover:underline">
+            Contact support
+          </Link>
+        </p>
+
+      </motion.div>
     </main>
   )
 }
