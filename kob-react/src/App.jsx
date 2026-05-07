@@ -163,8 +163,9 @@ function AppContent() {
 
       {/* 💻 Desktop Footer (Hidden on mobile via hidden lg:block if needed) */}
       <Footer className="hidden lg:block" />
-
-      <SupportWidget />
+      <div className="hidde lg:block">
+        <SupportWidget />
+      </div>
     </div>
   );
 }
