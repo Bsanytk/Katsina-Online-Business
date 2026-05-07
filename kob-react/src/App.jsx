@@ -9,51 +9,50 @@ import SupportWidget from "./components/widgets/SupportWidget";
 import { PageLoader } from "./components/ui";
 import { initFCM, onForegroundMessage } from "./services/fcm";
 import "./i18n";
+import BottomNav from "./components/BottomNav";
 
 // Lazy load pages
-const Home          = lazy(() => import("./pages/Home"));
-const Marketplace   = lazy(() => import("./pages/Marketplace"));
-const Dashboard     = lazy(() => import("./pages/Dashboard"));
+const Home = lazy(() => import("./pages/Home"));
+const Marketplace = lazy(() => import("./pages/Marketplace"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
-const Login         = lazy(() => import("./pages/Login"));
-const Register      = lazy(() => import("./pages/Register"));
-const Contact       = lazy(() => import("./pages/Contact"));
-const FAQ           = lazy(() => import("./pages/FAQ"));
-const Help          = lazy(() => import("./pages/Help"));
-const Teams         = lazy(() => import("./pages/Teams"));
-const Testimonials  = lazy(() => import("./pages/Testimonials"));
-const Terms         = lazy(() => import("./pages/Terms"));
-const Privacy       = lazy(() => import("./pages/Privacy"));
-const CookiePolicy  = lazy(() => import("./pages/CookiePolicy"));
-const NotFound      = lazy(() => import("./pages/NotFound"));
+const Login = lazy(() => import("./pages/Login"));
+const Register = lazy(() => import("./pages/Register"));
+const Contact = lazy(() => import("./pages/Contact"));
+const FAQ = lazy(() => import("./pages/FAQ"));
+const Help = lazy(() => import("./pages/Help"));
+const Teams = lazy(() => import("./pages/Teams"));
+const Testimonials = lazy(() => import("./pages/Testimonials"));
+const Terms = lazy(() => import("./pages/Terms"));
+const Privacy = lazy(() => import("./pages/Privacy"));
+const CookiePolicy = lazy(() => import("./pages/CookiePolicy"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 const ProductDetail = lazy(() => import("./pages/ProductDetail"));
-const SellerShop    = lazy(() => import("./pages/SellerShop"));
+const SellerShop = lazy(() => import("./pages/SellerShop"));
 
 // ================================
-// FCM Notification Toast
+// FCM Notification Toast Component
 // ================================
 function NotificationToast({ notification, onClose }) {
   useEffect(() => {
-    const timer = setTimeout(onClose, 5000)
-    return () => clearTimeout(timer)
-  }, [onClose])
+    if (notification) {
+      const timer = setTimeout(onClose, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [notification, onClose]);
 
-  if (!notification) return null
+  if (!notification) return null;
 
   return (
-    <div className="fixed top-4 right-4 z-[100]
-      max-w-sm w-full bg-white rounded-2xl shadow-xl
-      border border-gray-100 p-4 animate-slide-down">
+    <div className="fixed top-4 right-4 z-[100] max-w-sm w-full bg-white rounded-2xl shadow-xl border border-gray-100 p-4 animate-slide-down">
       <div className="flex items-start gap-3">
         <img
           src="https://res.cloudinary.com/dn5crslee/image/upload/v1768211566/20260108_135034_qj155b.png"
-          className="w-10 h-10 rounded-xl object-contain
-            flex-shrink-0"
+          className="w-10 h-10 rounded-xl object-contain flex-shrink-0"
           alt="KOB"
         />
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-[#2C1F0E]
-            mb-0.5">
+          <p className="text-sm font-semibold text-[#2C1F0E] mb-0.5">
             {notification.title}
           </p>
           <p className="text-xs text-gray-500 leading-relaxed">
@@ -62,56 +61,53 @@ function NotificationToast({ notification, onClose }) {
         </div>
         <button
           onClick={onClose}
-          className="text-gray-300 hover:text-gray-500
-            flex-shrink-0 text-lg leading-none"
+          className="text-gray-300 hover:text-gray-500 flex-shrink-0 text-lg leading-none"
         >
           ×
         </button>
       </div>
     </div>
-  )
+  );
 }
 
 // ================================
-// App Content
+// Main App Content
 // ================================
 function AppContent() {
-  const { user, loading } = useAuth()
-  const [notification, setNotification] = useState(null)
+  const { user, loading } = useAuth();
+  const [notification, setNotification] = useState(null);
 
-  // ================================
-  // Init FCM when user logs in
-  // ================================
   useEffect(() => {
-    if (!user?.uid) return
+    if (!user?.uid) return;
 
-    // Initialize FCM + save token
-    initFCM(user.uid)
+    // 1. Initialize FCM (registers token)
+    initFCM(user.uid);
 
-    // Listen for foreground notifications
-    let unsubscribe = () => {}
+    // 2. Setup listener for foreground notifications
+    let unsubscribe;
+    const setupListener = async () => {
+      unsubscribe = await onForegroundMessage((payload) => {
+        const { title, body } = payload.notification || {};
+        setNotification({ title, body });
+      });
+    };
 
-    onForegroundMessage((payload) => {
-      const { title, body } = payload.notification || {}
-      setNotification({ title, body })
-    }).then((fn) => {
-      unsubscribe = fn
-    })
+    setupListener();
 
     return () => {
-      if (typeof unsubscribe === 'function') unsubscribe()
-    }
-  }, [user?.uid])
+      if (typeof unsubscribe === "function") unsubscribe();
+    };
+  }, [user?.uid]);
 
   if (loading) {
-    return <PageLoader message="Initializing..." show={true} />
+    return (
+      <PageLoader message="Initializing KOB Infrastructure..." show={true} />
+    );
   }
 
   return (
-    <div className="flex flex-col min-h-screen
-      bg-kob-light text-kob-dark">
-
-      {/* Foreground notification toast */}
+    <div className="flex flex-col min-h-screen bg-kob-light text-kob-dark">
+      {/* 🔔 Floating Notifications */}
       <NotificationToast
         notification={notification}
         onClose={() => setNotification(null)}
@@ -119,27 +115,25 @@ function AppContent() {
 
       <TopBar />
 
-      <main className="flex-grow">
+      <main className="flex-grow pb-20 lg:pb-0">
         <Suspense
-          fallback={
-            <PageLoader message="Loading..." show={true} />
-          }
+          fallback={<PageLoader message="Loading page..." show={true} />}
         >
           <Routes>
-            <Route path="/"              element={<Home />} />
-            <Route path="/marketplace"   element={<Marketplace />} />
+            <Route path="/" element={<Home />} />
+            <Route path="/marketplace" element={<Marketplace />} />
             <Route path="/product/:productId" element={<ProductDetail />} />
-            <Route path="/shop/:sellerId"     element={<SellerShop />} />
-            <Route path="/contact"       element={<Contact />} />
-            <Route path="/faq"           element={<FAQ />} />
-            <Route path="/help"          element={<Help />} />
-            <Route path="/teams"         element={<Teams />} />
-            <Route path="/testimonials"  element={<Testimonials />} />
-            <Route path="/terms"         element={<Terms />} />
-            <Route path="/privacy"       element={<Privacy />} />
-            <Route path="/cookies"       element={<CookiePolicy />} />
-            <Route path="/login"         element={<Login />} />
-            <Route path="/register"      element={<Register />} />
+            <Route path="/shop/:sellerId" element={<SellerShop />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/faq" element={<FAQ />} />
+            <Route path="/help" element={<Help />} />
+            <Route path="/teams" element={<Teams />} />
+            <Route path="/testimonials" element={<Testimonials />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/cookies" element={<CookiePolicy />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
 
             <Route
               path="/dashboard/*"
@@ -164,10 +158,15 @@ function AppContent() {
         </Suspense>
       </main>
 
-      <Footer />
+      {/* 📱 Mobile Navigation (Shown on mobile, hidden on desktop) */}
+      <BottomNav />
+
+      {/* 💻 Desktop Footer (Hidden on mobile via hidden lg:block if needed) */}
+      <Footer className="hidden lg:block" />
+
       <SupportWidget />
     </div>
-  )
+  );
 }
 
 export default function App() {
@@ -175,5 +174,5 @@ export default function App() {
     <AuthProvider>
       <AppContent />
     </AuthProvider>
-  )
+  );
 }
