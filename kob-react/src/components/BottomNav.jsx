@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../firebase/auth";
+import { collection, query, onSnapshot } from "firebase/firestore";
+import { db } from "../firebase/firebase";
 
 // ================================
 // SVG Icons
