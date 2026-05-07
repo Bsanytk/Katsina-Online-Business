@@ -1,95 +1,210 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { getProducts } from "../services/products";
 import { useTranslation } from "../hooks/useTranslation";
 import ProductCard from "../components/ProductCard";
 import Loading from "../components/Loading";
 import TestimonialsSection from "../components/TestimonialsSection";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  ShoppingBag,
-  ArrowRight,
-  Shield,
-  Zap,
-  MessageCircle,
-  Star,
-  ChevronRight,
-  CheckCircle,
-} from "lucide-react";
+import { useAuth } from "../firebase/auth";
 
 // ================================
 // Animation Variants
 // ================================
+const heroVariants = {
+  hidden: { opacity: 0, y: -30 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.6, ease: "easeOut" },
+  },
+};
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
 };
-
 const stagger = {
-  visible: { transition: { staggerChildren: 0.12 } },
-};
-
-const fadeIn = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { duration: 0.4 } },
+  visible: { transition: { staggerChildren: 0.1 } },
 };
 
 // ================================
-// TICKER ITEMS
+// Constants
 // ================================
-const TICKER_ITEMS = [
-  "Verified sellers across Katsina State",
-  "KOB Express Delivery — fast & affordable",
-  "Authentic local products guaranteed",
-  "Direct WhatsApp contact with sellers",
-  "New listings added daily",
+const CATEGORIES = [
+  { label: "Fashion", emoji: "👗", q: "Fashion" },
+  { label: "Electronics", emoji: "📱", q: "Electronics" },
+  { label: "Footwear", emoji: "👟", q: "Footwear" },
+  { label: "Beauty", emoji: "💄", q: "Beauty" },
+  { label: "Jewellery", emoji: "💍", q: "Jewellery" },
+  { label: "Food", emoji: "🍱", q: "Food" },
+  { label: "Gadgets", emoji: "💻", q: "Gadgets" },
+  { label: "Home", emoji: "🛋️", q: "Home" },
+  { label: "Kids", emoji: "🧸", q: "Kids" },
+  { label: "Books", emoji: "📚", q: "Books" },
 ];
 
-// ================================
-// FEATURES
-// ================================
-const FEATURES = [
+const TICKER = [
+  "Verified Sellers Only",
+  "KOB Express Delivery",
+  "Authentic Local Products",
+  "Direct WhatsApp Contact",
+  "New Listings Daily",
+];
+
+const WHY_KOB = [
   {
-    icon: <Shield className="w-6 h-6" />,
+    icon: (
+      <svg
+        className="w-5 h-5"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        strokeWidth={2}
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112
+          2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0
+          003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332
+          9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+        />
+      </svg>
+    ),
     title: "Verified Sellers",
-    desc: "Every seller is manually verified by KOB admin before listing.",
-    color: "bg-[#4B3621]",
+    desc: "Every seller is manually verified before listing.",
   },
   {
-    icon: <Star className="w-6 h-6" />,
-    title: "Quality Products",
-    desc: "Authentic goods with honest descriptions and real photos.",
-    color: "bg-[#D4AF37]",
-  },
-  {
-    icon: <MessageCircle className="w-6 h-6" />,
+    icon: (
+      <svg
+        className="w-5 h-5"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        strokeWidth={2}
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03
+          8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512
+          15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+        />
+      </svg>
+    ),
     title: "Direct Contact",
-    desc: "Message any seller directly via WhatsApp in one tap.",
-    color: "bg-emerald-600",
+    desc: "Message any seller instantly via WhatsApp.",
   },
   {
-    icon: <Zap className="w-6 h-6" />,
+    icon: (
+      <svg
+        className="w-5 h-5"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        strokeWidth={2}
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4
+          7m8 4v10M4 7v10l8 4"
+        />
+      </svg>
+    ),
+    title: "Quality Products",
+    desc: "Authentic goods with real photos and honest pricing.",
+  },
+  {
+    icon: (
+      <svg
+        className="w-5 h-5"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        strokeWidth={2}
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M13 10V3L4 14h7v7l9-11h-7z"
+        />
+      </svg>
+    ),
     title: "KOB Express",
-    desc: "Fast and tracked delivery service across Katsina.",
-    color: "bg-blue-600",
+    desc: "Fast tracked delivery across Katsina State.",
   },
 ];
 
 // ================================
-// STATS
+// Toast Notification
 // ================================
-const STATS = [
-  { label: "Verified Sellers", value: "50+" },
-  { label: "Products Listed", value: "200+" },
-  { label: "Happy Buyers", value: "1K+" },
-  { label: "Cities Covered", value: "6+" },
-];
+function Toast({ message, onClose }) {
+  useEffect(() => {
+    const t = setTimeout(onClose, 4000);
+    return () => clearTimeout(t);
+  }, [onClose]);
 
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -60, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: -60, scale: 0.95 }}
+      className="fixed top-4 left-1/2 -translate-x-1/2
+        z-[100] max-w-sm w-full mx-4"
+    >
+      <div
+        className="flex items-center gap-3 px-4 py-3.5
+        bg-[#4B3621] text-white rounded-2xl shadow-2xl
+        shadow-[#4B3621]/30"
+      >
+        <div
+          className="w-8 h-8 bg-white/15 rounded-xl
+          flex items-center justify-center flex-shrink-0
+          text-sm"
+        >
+          🏪
+        </div>
+        <p
+          className="text-xs font-semibold leading-snug
+          flex-1"
+        >
+          {message}
+        </p>
+        <button
+          onClick={onClose}
+          className="text-white/60 hover:text-white
+            flex-shrink-0"
+        >
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2.5}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+      </div>
+    </motion.div>
+  );
+}
+
+// ================================
+// Main Home
+// ================================
 export default function Home() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState(null);
   const navigate = useNavigate();
   const t = useTranslation();
+  const { user } = useAuth();
 
   useEffect(() => {
     getProducts({ pageSize: 6 })
@@ -100,43 +215,78 @@ export default function Home() {
       .catch(() => setLoading(false));
   }, []);
 
+  // ✅ Smart "Start Selling" handler
+  function handleStartSelling() {
+    if (!user) {
+      navigate("/register");
+      return;
+    }
+    if (user.role === "seller") {
+      setToast(
+        "You are already a registered seller! Redirecting to your dashboard..."
+      );
+      setTimeout(() => navigate("/dashboard"), 2000);
+      return;
+    }
+    if (user.role === "admin") {
+      navigate("/admin");
+      return;
+    }
+    // Buyer — redirect to register as seller
+    navigate("/register");
+  }
+
   return (
-    <main className="min-h-screen bg-[#FAFAF8]">
+    <main
+      className="min-h-screen bg-[#FAFAF8]
+      pb-20 lg:pb-0"
+    >
+      {/* Toast */}
+      <AnimatePresence>
+        {toast && <Toast message={toast} onClose={() => setToast(null)} />}
+      </AnimatePresence>
+
       {/* ================================ */}
-      {/* HERO SECTION                     */}
+      {/* HERO                             */}
       {/* ================================ */}
-      <section className="relative overflow-hidden bg-[#4B3621]">
-        {/* Background decorative elements */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+      <section
+        className="relative overflow-hidden
+        bg-gradient-to-br from-[#2C1F0E] via-[#4B3621]
+        to-[#6B4C31]"
+      >
+        {/* Decorative */}
+        <div
+          className="absolute inset-0 pointer-events-none
+          overflow-hidden"
+        >
           <div
-            className="absolute -top-32 -right-32 w-96 h-96
+            className="absolute -top-24 -right-24 w-96 h-96
             bg-[#D4AF37]/10 rounded-full blur-3xl"
           />
           <div
-            className="absolute -bottom-32 -left-32 w-96 h-96
+            className="absolute top-1/2 -left-20 w-64 h-64
             bg-white/5 rounded-full blur-3xl"
-          />
-          <div
-            className="absolute top-1/2 left-1/2 -translate-x-1/2
-            -translate-y-1/2 w-[600px] h-[600px]
-            bg-[#D4AF37]/5 rounded-full blur-3xl"
           />
         </div>
 
-        <div className="container relative z-10 py-20 md:py-28">
+        <div
+          className="container relative z-10 pt-8 pb-14
+          md:pt-12 md:pb-20"
+        >
           <motion.div
-            variants={stagger}
+            variants={heroVariants}
             initial="hidden"
             animate="visible"
-            className="max-w-3xl mx-auto text-center"
+            className="max-w-2xl mx-auto text-center"
           >
             {/* Badge */}
-            <motion.div variants={fadeUp}>
+            <motion.div variants={fadeUp} className="mb-4">
               <span
                 className="inline-flex items-center gap-2
-                px-4 py-1.5 bg-[#D4AF37]/20 border border-[#D4AF37]/30
-                rounded-full text-[#D4AF37] text-xs font-semibold
-                uppercase tracking-widest mb-6"
+                px-4 py-1.5 bg-[#D4AF37]/20
+                border border-[#D4AF37]/30 rounded-full
+                text-[#D4AF37] text-xs font-bold
+                uppercase tracking-widest"
               >
                 <span
                   className="w-1.5 h-1.5 rounded-full
@@ -149,24 +299,22 @@ export default function Home() {
             {/* Heading */}
             <motion.h1
               variants={fadeUp}
-              className="text-4xl md:text-6xl font-bold
-                text-white mb-5 leading-tight tracking-tight"
+              className="text-4xl md:text-6xl font-black
+                text-white leading-tight tracking-tight mb-4"
             >
-              Buy & Sell with <span className="text-[#D4AF37]">Confidence</span>{" "}
-              in Katsina
+              KOB <span className="text-[#D4AF37]">Marketplace</span>
             </motion.h1>
 
-            {/* Subheading */}
             <motion.p
               variants={fadeUp}
-              className="text-base md:text-lg text-white/60
-                mb-8 max-w-xl mx-auto leading-relaxed"
+              className="text-sm text-white/60 mb-8
+                max-w-md mx-auto leading-relaxed"
             >
-              Connect with verified local sellers, discover authentic products,
-              and enjoy fast delivery across Katsina State.
+              Discover authentic products from verified local sellers. Buy,
+              sell, and connect — all in one place.
             </motion.p>
 
-            {/* CTA Buttons */}
+            {/* CTA */}
             <motion.div
               variants={fadeUp}
               className="flex flex-col sm:flex-row gap-3
@@ -174,74 +322,98 @@ export default function Home() {
             >
               <button
                 onClick={() => navigate("/marketplace")}
-                className="flex items-center justify-center gap-2
-                  px-7 py-3.5 bg-[#D4AF37] text-[#2C1F0E]
-                  rounded-xl font-semibold text-sm
-                  hover:bg-[#c49e30] transition-all duration-200
-                  shadow-lg shadow-[#D4AF37]/20 active:scale-[0.98]"
+                className="flex items-center justify-center
+                  gap-2 px-7 py-3.5 bg-[#D4AF37]
+                  text-[#2C1F0E] rounded-xl font-bold text-sm
+                  hover:bg-[#c49e30] transition-all shadow-lg
+                  shadow-[#D4AF37]/20 active:scale-[0.98]"
               >
-                <ShoppingBag className="w-4 h-4" />
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+                  />
+                </svg>
                 Explore Marketplace
-                <ArrowRight className="w-4 h-4" />
               </button>
 
               <button
-                onClick={() => navigate("/register")}
-                className="flex items-center justify-center gap-2
-                  px-7 py-3.5 border border-white/20 text-white
-                  rounded-xl font-semibold text-sm
-                  hover:bg-white/10 transition-all duration-200
+                onClick={handleStartSelling}
+                className="flex items-center justify-center
+                  gap-2 px-7 py-3.5 border-2 border-white/20
+                  text-white rounded-xl font-semibold text-sm
+                  hover:bg-white/10 transition-all
                   active:scale-[0.98]"
               >
-                Start Selling
+                Start Selling Free
               </button>
             </motion.div>
 
-            {/* Trust indicators */}
+            {/* Trust */}
             <motion.div
               variants={fadeUp}
-              className="flex items-center justify-center
-                gap-4 mt-8 text-white/40 text-xs"
+              className="flex flex-wrap items-center
+                justify-center gap-4 mt-7"
             >
-              {[
-                "Free to browse",
-                "Verified sellers only",
-                "WhatsApp support",
-              ].map((item, i) => (
-                <React.Fragment key={item}>
-                  <span className="flex items-center gap-1">
-                    <CheckCircle className="w-3 h-3 text-[#D4AF37]" />
-                    {item}
-                  </span>
-                  {i < 2 && <span className="w-px h-3 bg-white/20" />}
-                </React.Fragment>
-              ))}
+              {["Free to browse", "Verified sellers", "WhatsApp support"].map(
+                (item, i) => (
+                  <React.Fragment key={item}>
+                    <span
+                      className="flex items-center gap-1.5
+                    text-white/40 text-xs"
+                    >
+                      <svg
+                        className="w-3 h-3 text-[#D4AF37]"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1
+                        0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8
+                        12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      {item}
+                    </span>
+                    {i < 2 && <span className="w-px h-3 bg-white/20" />}
+                  </React.Fragment>
+                )
+              )}
             </motion.div>
           </motion.div>
         </div>
 
-        {/* ---- Ticker ---- */}
+        {/* Ticker */}
         <div
           className="border-t border-white/10
-          bg-white/5 py-3 overflow-hidden"
+          bg-black/20 py-3 overflow-hidden"
         >
           <motion.div
             animate={{ x: ["0%", "-50%"] }}
             transition={{
               ease: "linear",
-              duration: 25,
+              duration: 30,
               repeat: Infinity,
             }}
-            className="flex whitespace-nowrap gap-12 items-center"
+            className="flex whitespace-nowrap gap-16 items-center"
           >
             {[1, 2].map((i) => (
               <span
                 key={i}
-                className="flex items-center gap-12
-                  text-xs font-medium text-white/50
+                className="flex items-center gap-16
+                  text-xs font-semibold text-white/40
                   uppercase tracking-widest"
               >
-                {TICKER_ITEMS.map((item, idx) => (
+                {TICKER.map((item, idx) => (
                   <React.Fragment key={idx}>
                     <span>{item}</span>
                     <span className="text-[#D4AF37]">★</span>
@@ -254,31 +426,34 @@ export default function Home() {
       </section>
 
       {/* ================================ */}
-      {/* STATS SECTION                    */}
+      {/* STATS BAR                        */}
       {/* ================================ */}
-      <section className="bg-white border-b border-gray-100">
-        <div className="container py-10">
+      <section className="bg-[#4B3621]">
+        <div className="container py-5">
           <motion.div
             variants={stagger}
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            className="grid grid-cols-2 md:grid-cols-4 gap-6"
+            className="grid grid-cols-2 md:grid-cols-4 gap-4"
           >
-            {STATS.map((stat) => (
+            {[
+              { value: "50+", label: "Verified Sellers" },
+              { value: "200+", label: "Products Listed" },
+              { value: "1K+", label: "Happy Buyers" },
+              { value: "6+", label: "Cities Covered" },
+            ].map((s) => (
               <motion.div
-                key={stat.label}
+                key={s.label}
                 variants={fadeUp}
                 className="text-center"
               >
-                <p className="text-3xl font-bold text-[#4B3621]">
-                  {stat.value}
-                </p>
+                <p className="text-2xl font-black text-[#D4AF37]">{s.value}</p>
                 <p
-                  className="text-xs text-gray-400 mt-1
+                  className="text-[10px] text-white/40 mt-0.5
                   font-medium uppercase tracking-wider"
                 >
-                  {stat.label}
+                  {s.label}
                 </p>
               </motion.div>
             ))}
@@ -287,73 +462,89 @@ export default function Home() {
       </section>
 
       {/* ================================ */}
-      {/* FEATURES SECTION                 */}
+      {/* CATEGORIES                       */}
       {/* ================================ */}
-      <section className="py-16 md:py-20 bg-[#FAFAF8]">
+      <section className="py-10 bg-white">
         <div className="container">
           <motion.div
             variants={stagger}
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            className="text-center mb-12"
           >
-            <motion.p
+            <motion.div
               variants={fadeUp}
-              className="text-xs font-semibold uppercase
-                tracking-widest text-[#D4AF37] mb-3"
+              className="flex items-center justify-between mb-6"
             >
-              Why KOB
-            </motion.p>
-            <motion.h2
-              variants={fadeUp}
-              className="text-2xl md:text-3xl font-bold
-                text-[#2C1F0E]"
-            >
-              Built for Katsina Businesses
-            </motion.h2>
-          </motion.div>
-
-          <motion.div
-            variants={stagger}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            className="grid grid-cols-1 sm:grid-cols-2
-              lg:grid-cols-4 gap-5"
-          >
-            {FEATURES.map((feature) => (
-              <motion.div
-                key={feature.title}
-                variants={fadeUp}
-                className="bg-white rounded-2xl p-6
-                  border border-gray-100 shadow-sm
-                  hover:shadow-md transition-all duration-200
-                  hover:-translate-y-0.5 group"
-              >
-                <div
-                  className={`
-                  w-12 h-12 rounded-xl flex items-center
-                  justify-center text-white mb-4
-                  ${feature.color}
-                `}
-                >
-                  {feature.icon}
-                </div>
-                <h3
-                  className="text-sm font-semibold
-                  text-[#2C1F0E] mb-2"
-                >
-                  {feature.title}
-                </h3>
+              <div>
                 <p
-                  className="text-xs text-gray-400
-                  leading-relaxed"
+                  className="text-[10px] font-bold uppercase
+                  tracking-widest text-[#D4AF37] mb-1"
                 >
-                  {feature.desc}
+                  Categories
                 </p>
-              </motion.div>
-            ))}
+                <h2 className="text-xl font-bold text-[#2C1F0E]">
+                  Browse by Category
+                </h2>
+              </div>
+              <Link
+                to="/marketplace"
+                className="text-xs font-semibold
+                  text-[#4B3621] hover:text-[#D4AF37]
+                  transition-colors flex items-center gap-1"
+              >
+                View all
+                <svg
+                  className="w-3.5 h-3.5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2.5}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </Link>
+            </motion.div>
+
+            <div
+              className="grid grid-cols-5 md:grid-cols-10
+              gap-3"
+            >
+              {CATEGORIES.map((cat) => (
+                <motion.button
+                  key={cat.label}
+                  variants={fadeUp}
+                  onClick={() => navigate(`/marketplace?category=${cat.q}`)}
+                  className="flex flex-col items-center gap-2
+                    p-3 rounded-2xl bg-white border border-gray-100
+                    shadow-sm hover:shadow-md
+                    hover:-translate-y-0.5 transition-all
+                    group"
+                >
+                  <div
+                    className="w-11 h-11 rounded-2xl
+                    bg-[#4B3621]/5 flex items-center
+                    justify-center text-xl
+                    group-hover:bg-[#4B3621]/10
+                    transition-colors"
+                  >
+                    {cat.emoji}
+                  </div>
+                  <p
+                    className="text-[9px] font-semibold
+                    text-gray-500 text-center leading-tight
+                    group-hover:text-[#4B3621]
+                    transition-colors"
+                  >
+                    {cat.label}
+                  </p>
+                </motion.button>
+              ))}
+            </div>
           </motion.div>
         </div>
       </section>
@@ -361,52 +552,56 @@ export default function Home() {
       {/* ================================ */}
       {/* FEATURED PRODUCTS                */}
       {/* ================================ */}
-      <section className="py-16 md:py-20 bg-white">
+      <section className="py-10 bg-[#FAFAF8]">
         <div className="container">
           <motion.div
+            variants={stagger}
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            variants={stagger}
           >
-            {/* Section header */}
             <motion.div
               variants={fadeUp}
-              className="flex items-end justify-between mb-8"
+              className="flex items-end justify-between mb-7"
             >
               <div>
                 <p
-                  className="text-xs font-semibold uppercase
-                  tracking-widest text-[#D4AF37] mb-2"
+                  className="text-[10px] font-bold uppercase
+                  tracking-widest text-[#D4AF37] mb-1"
                 >
                   Fresh Listings
                 </p>
-                <h2
-                  className="text-2xl md:text-3xl font-bold
-                  text-[#2C1F0E]"
-                >
+                <h2 className="text-xl font-bold text-[#2C1F0E]">
                   Featured Products
                 </h2>
               </div>
               <button
                 onClick={() => navigate("/marketplace")}
-                className="flex items-center gap-1.5
-                  text-sm font-semibold text-[#4B3621]
+                className="text-xs font-semibold text-[#4B3621]
                   hover:text-[#D4AF37] transition-colors
-                  group"
+                  flex items-center gap-1 group"
               >
                 View all
-                <ChevronRight
-                  className="w-4 h-4
+                <svg
+                  className="w-3.5 h-3.5
                   group-hover:translate-x-0.5 transition-transform"
-                />
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2.5}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
               </button>
             </motion.div>
 
-            {/* Products */}
             {loading ? (
               <div className="py-16">
-                <Loading size="md" message="Loading featured products..." />
+                <Loading size="md" message="Loading products..." />
               </div>
             ) : products.length > 0 ? (
               <motion.div
@@ -415,42 +610,66 @@ export default function Home() {
                   gap-4 md:gap-5"
               >
                 {products.map((p) => (
-                  <motion.div key={p.id} variants={fadeUp}>
-                    <ProductCard product={p} />
+                  <motion.div key={p.id} variants={fadeUp} className="group">
+                    {/* Blur-up image placeholder */}
+                    <div
+                      className="relative overflow-hidden
+                      rounded-2xl bg-gray-100"
+                    >
+                      <ProductCard product={p} />
+                    </div>
                   </motion.div>
                 ))}
               </motion.div>
             ) : (
               <motion.div
-                variants={fadeIn}
-                className="py-20 text-center bg-[#FAFAF8]
+                variants={fadeUp}
+                className="py-20 text-center bg-white
                   rounded-2xl border border-gray-100"
               >
-                <ShoppingBag
+                <svg
                   className="w-12 h-12 text-gray-200
                   mx-auto mb-3"
-                />
-                <p className="text-sm font-medium text-gray-400">
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={1.5}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+                  />
+                </svg>
+                <p className="text-sm text-gray-400">
                   No products available yet
-                </p>
-                <p className="text-xs text-gray-300 mt-1">
-                  Check back soon for new listings
                 </p>
               </motion.div>
             )}
 
-            {/* View more CTA */}
             {products.length > 0 && (
-              <motion.div variants={fadeUp} className="text-center mt-10">
+              <motion.div variants={fadeUp} className="text-center mt-8">
                 <button
                   onClick={() => navigate("/marketplace")}
                   className="inline-flex items-center gap-2
-                    px-7 py-3 bg-[#4B3621] text-white
+                    px-8 py-3.5 bg-[#4B3621] text-white
                     rounded-xl text-sm font-semibold
                     hover:bg-[#362818] transition-colors
                     shadow-sm active:scale-[0.98]"
                 >
-                  <ShoppingBag className="w-4 h-4" />
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+                    />
+                  </svg>
                   Browse All Products
                 </button>
               </motion.div>
@@ -460,13 +679,90 @@ export default function Home() {
       </section>
 
       {/* ================================ */}
-      {/* CTA SECTION                      */}
+      {/* WHY KOB                          */}
+      {/* ================================ */}
+      <section className="py-12 bg-white">
+        <div className="container">
+          <motion.div
+            variants={stagger}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+          >
+            <motion.div variants={fadeUp} className="text-center mb-10">
+              <div
+                className="flex items-center gap-4
+                justify-center mb-3"
+              >
+                <div
+                  className="h-px flex-1 max-w-16
+                  bg-[#D4AF37]/30"
+                />
+                <span
+                  className="text-[10px] font-bold uppercase
+                  tracking-widest text-[#D4AF37]"
+                >
+                  Why KOB?
+                </span>
+                <div
+                  className="h-px flex-1 max-w-16
+                  bg-[#D4AF37]/30"
+                />
+              </div>
+              <h2 className="text-2xl font-bold text-[#2C1F0E]">
+                Built for Katsina Businesses
+              </h2>
+            </motion.div>
+
+            <div
+              className="grid grid-cols-2 md:grid-cols-4
+              gap-4"
+            >
+              {WHY_KOB.map((item, idx) => (
+                <motion.div
+                  key={item.title}
+                  variants={fadeUp}
+                  className="bg-white rounded-2xl p-5
+                    border border-gray-100 shadow-sm
+                    hover:shadow-md hover:-translate-y-0.5
+                    transition-all group"
+                >
+                  <div
+                    className="w-11 h-11 rounded-2xl
+                    bg-[#4B3621] flex items-center
+                    justify-center text-white mb-4 flex-shrink-0"
+                  >
+                    {item.icon}
+                  </div>
+                  <h3
+                    className="text-xs font-bold
+                    text-[#2C1F0E] mb-1.5
+                    group-hover:text-[#4B3621]
+                    transition-colors"
+                  >
+                    {item.title}
+                  </h3>
+                  <p
+                    className="text-[10px] text-gray-400
+                    leading-relaxed"
+                  >
+                    {item.desc}
+                  </p>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ================================ */}
+      {/* SELLER CTA                       */}
       {/* ================================ */}
       <section
-        className="relative overflow-hidden
-        bg-[#4B3621] py-16 md:py-20"
+        className="relative overflow-hidden py-14
+        bg-gradient-to-br from-[#2C1F0E] via-[#4B3621]
+        to-[#6B4C31]"
       >
-        {/* Decorative */}
         <div className="absolute inset-0 pointer-events-none">
           <div
             className="absolute -top-20 -right-20 w-72 h-72
@@ -484,29 +780,18 @@ export default function Home() {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            className="max-w-2xl mx-auto text-center"
+            className="max-w-xl mx-auto text-center"
           >
-            <motion.p
-              variants={fadeUp}
-              className="text-xs font-semibold uppercase
-                tracking-widest text-[#D4AF37] mb-3"
-            >
-              Join KOB Today
-            </motion.p>
             <motion.h2
               variants={fadeUp}
-              className="text-2xl md:text-4xl font-bold
-                text-white mb-4"
+              className="text-2xl md:text-4xl font-black
+                text-white mb-3 leading-tight"
             >
               Ready to Start Selling?
             </motion.h2>
-            <motion.p
-              variants={fadeUp}
-              className="text-sm text-white/60 mb-8
-                leading-relaxed"
-            >
-              Join our growing community of verified sellers and reach thousands
-              of buyers across Katsina State.
+            <motion.p variants={fadeUp} className="text-sm text-white/60 mb-8">
+              Join verified sellers reaching thousands of buyers across Katsina
+              State.
             </motion.p>
 
             <motion.div
@@ -514,25 +799,35 @@ export default function Home() {
               className="flex flex-col sm:flex-row gap-3
                 justify-center"
             >
-              <a
-                href={t("seller.forms.seller_registration")}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2
-                  px-7 py-3.5 bg-[#D4AF37] text-[#2C1F0E]
-                  rounded-xl font-semibold text-sm
+              <button
+                onClick={handleStartSelling}
+                className="flex items-center justify-center
+                  gap-2 px-7 py-3.5 bg-[#D4AF37]
+                  text-[#2C1F0E] rounded-xl font-bold text-sm
                   hover:bg-[#c49e30] transition-all
                   shadow-lg shadow-[#D4AF37]/20
                   active:scale-[0.98]"
               >
                 Become a Seller
-                <ArrowRight className="w-4 h-4" />
-              </a>
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M14 5l7 7m0 0l-7 7m7-7H3"
+                  />
+                </svg>
+              </button>
 
               <button
                 onClick={() => navigate("/marketplace")}
-                className="flex items-center justify-center gap-2
-                  px-7 py-3.5 border border-white/20
+                className="flex items-center justify-center
+                  gap-2 px-7 py-3.5 border-2 border-white/20
                   text-white rounded-xl font-semibold text-sm
                   hover:bg-white/10 transition-all
                   active:scale-[0.98]"
@@ -541,8 +836,7 @@ export default function Home() {
               </button>
             </motion.div>
 
-            {/* WhatsApp support line */}
-            <motion.p variants={fadeUp} className="mt-6 text-xs text-white/30">
+            <motion.p variants={fadeUp} className="mt-5 text-xs text-white/30">
               Need help?{" "}
               <a
                 href="https://wa.me/2347089454544"
@@ -550,16 +844,13 @@ export default function Home() {
                 rel="noreferrer"
                 className="text-[#D4AF37] hover:underline"
               >
-                Chat with us on WhatsApp
+                Chat on WhatsApp
               </a>
             </motion.p>
           </motion.div>
         </div>
       </section>
 
-      {/* ================================ */}
-      {/* TESTIMONIALS                     */}
-      {/* ================================ */}
       <TestimonialsSection />
     </main>
   );

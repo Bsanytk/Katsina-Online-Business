@@ -32,15 +32,27 @@ module.exports = {
         "kob-neutral-900": "#1C1917",
       },
 
-      // 2. MOBILE SAFE AREAS
+      // 2. MOBILE SAFE AREAS & SPACING (Fixed Syntax)
       padding: {
         safe: "env(safe-area-inset-bottom)",
+        "safe-top": "env(safe-area-inset-top)",
       },
       height: {
         "safe-bottom": "env(safe-area-inset-bottom)",
       },
+      // Merged all spacing here to avoid duplication errors
+      spacing: {
+        safe: "env(safe-area-inset-bottom)",
+        xs: "0.25rem",
+        sm: "0.5rem",
+        md: "1rem",
+        lg: "1.5rem",
+        xl: "2rem",
+        "2xl": "3rem",
+        "3xl": "4rem",
+      },
 
-      // 3. TYPOGRAPHY & SPACING
+      // 3. TYPOGRAPHY
       fontFamily: {
         sans: [
           "-apple-system",
@@ -77,15 +89,6 @@ module.exports = {
         bold: "700",
         extrabold: "800",
         black: "900",
-      },
-      spacing: {
-        xs: "0.25rem",
-        sm: "0.5rem",
-        md: "1rem",
-        lg: "1.5rem",
-        xl: "2rem",
-        "2xl": "3rem",
-        "3xl": "4rem",
       },
       borderRadius: {
         xs: "0.25rem",

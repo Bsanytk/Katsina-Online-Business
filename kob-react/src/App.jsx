@@ -80,10 +80,8 @@ function AppContent() {
   useEffect(() => {
     if (!user?.uid) return;
 
-    // 1. Initialize FCM (registers token)
     initFCM(user.uid);
 
-    // 2. Setup listener for foreground notifications
     let unsubscribe;
     const setupListener = async () => {
       unsubscribe = await onForegroundMessage((payload) => {
@@ -106,8 +104,7 @@ function AppContent() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-kob-light text-kob-dark">
-      {/* 🔔 Floating Notifications */}
+    <div className="flex flex-col min-h-screen bg-[#FAFAF8] text-[#2C1F0E]">
       <NotificationToast
         notification={notification}
         onClose={() => setNotification(null)}
@@ -115,10 +112,8 @@ function AppContent() {
 
       <TopBar />
 
-      <main className="flex-grow pb-20 lg:pb-0">
-        <Suspense
-          fallback={<PageLoader message="Loading page..." show={true} />}
-        >
+      <main className="flex-grow pb-[72px] lg:pb-0">
+        <Suspense fallback={<PageLoader message="Loading..." show={true} />}>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/marketplace" element={<Marketplace />} />
@@ -158,13 +153,19 @@ function AppContent() {
         </Suspense>
       </main>
 
-      {/* 📱 Mobile Navigation (Shown on mobile, hidden on desktop) */}
-      <BottomNav />
+      {/* Footer — hidden on mobile */}
+      <footer className="hidden lg:block">
+        <Footer />
+      </footer>
 
-      {/* 💻 Desktop Footer (Hidden on mobile via hidden lg:block if needed) */}
-      <Footer className="hidden lg:block" />
-      <div className="hidde lg:block">
+      {/* SupportWidget — hidden on mobile to avoid icon overlap */}
+      <div className="hidden lg:block">
         <SupportWidget />
+      </div>
+
+      {/* BottomNav — mobile only, respects safe area */}
+      <div className="lg:hidden">
+        <BottomNav />
       </div>
     </div>
   );

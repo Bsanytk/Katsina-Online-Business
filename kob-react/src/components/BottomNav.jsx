@@ -1,11 +1,12 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../firebase/auth";
 
 // ================================
 // SVG Icons
 // ================================
-const NavIcons = {
+
+const Icons = {
   Home: ({ active }) => (
     <svg
       className="w-5 h-5"
@@ -23,7 +24,6 @@ const NavIcons = {
       />
     </svg>
   ),
-
   Shop: ({ active }) => (
     <svg
       className="w-5 h-5"
@@ -40,19 +40,6 @@ const NavIcons = {
       />
     </svg>
   ),
-
-  AddProduct: () => (
-    <svg
-      className="w-6 h-6"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={2}
-    >
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-    </svg>
-  ),
-
   Catalogue: ({ active }) => (
     <svg
       className="w-5 h-5"
@@ -64,15 +51,15 @@ const NavIcons = {
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
-        d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2
-        2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0
+        d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2
+        0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0
         01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0
         012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0
-        012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
+        012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0
+        01-2-2v-2z"
       />
     </svg>
   ),
-
   Search: ({ active }) => (
     <svg
       className="w-5 h-5"
@@ -88,8 +75,7 @@ const NavIcons = {
       />
     </svg>
   ),
-
-  Alert: ({ active, count }) => (
+  Alert: ({ active, count = 0 }) => (
     <div className="relative">
       <svg
         className="w-5 h-5"
@@ -101,24 +87,25 @@ const NavIcons = {
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
-          d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002
-          6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388
-          6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0
+          d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118
+          14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4
+          0v.341C7.67 6.165 6 8.388 6 11v3.159c0
+          .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0
           11-6 0v-1m6 0H9"
         />
       </svg>
       {count > 0 && (
         <span
-          className="absolute -top-1.5 -right-1.5 w-4 h-4
-          bg-red-500 text-white text-[9px] font-bold
-          rounded-full flex items-center justify-center"
+          className="absolute -top-1.5 -right-1.5
+          min-w-[16px] h-4 bg-red-500 text-white
+          text-[9px] font-bold rounded-full
+          flex items-center justify-center px-0.5"
         >
           {count > 9 ? "9+" : count}
         </span>
       )}
     </div>
   ),
-
   Profile: ({ active }) => (
     <svg
       className="w-5 h-5"
@@ -130,104 +117,66 @@ const NavIcons = {
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
-        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7
-        7h14a7 7 0 00-7-7z"
+        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0
+        00-7 7h14a7 7 0 00-7-7z"
       />
     </svg>
   ),
-
-  Help: ({ active }) => (
+  Plus: () => (
     <svg
-      className="w-5 h-5"
-      fill={active ? "currentColor" : "none"}
+      className="w-6 h-6"
+      fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
-      strokeWidth={active ? 0 : 1.8}
+      strokeWidth={2.5}
     >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343
-        4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994
-        1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-      />
-    </svg>
-  ),
-
-  Dashboard: ({ active }) => (
-    <svg
-      className="w-5 h-5"
-      fill={active ? "currentColor" : "none"}
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={active ? 0 : 1.8}
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002
-        2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6
-        0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0
-        012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-      />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
     </svg>
   ),
 };
 
 // ================================
-// Nav Item Component
+// Single Nav Item
 // ================================
-function NavItem({ to, icon, label, active, isCenter, onClick }) {
+function NavItem({ to, icon, label, active, onClick }) {
   const content = (
     <div
-      className={`
-      flex flex-col items-center gap-1 relative
-      transition-all duration-200
-      ${isCenter ? "" : "px-1"}
-    `}
+      className="flex flex-col items-center gap-0.5
+      relative px-1 py-1 min-w-[52px]"
     >
-      {isCenter ? (
-        // Center Add Button — special style
-        <div
-          className="w-14 h-14 -mt-6 bg-gradient-to-br
-          from-[#4B3621] to-[#6B4C31] rounded-2xl
-          flex items-center justify-center shadow-xl
-          shadow-[#4B3621]/30 active:scale-95
-          transition-transform border-4 border-white"
+      <div
+        className={`
+        relative flex items-center justify-center
+        w-8 h-8 rounded-xl transition-all duration-200
+        ${active ? "bg-[#4B3621]/10" : ""}
+      `}
+      >
+        <span
+          className={`
+          transition-colors duration-200
+          ${active ? "text-[#4B3621]" : "text-gray-400"}
+        `}
         >
-          <span className="text-white">
-            <NavIcons.AddProduct />
-          </span>
-        </div>
-      ) : (
-        <>
-          <div
-            className={`
-            relative p-1.5 rounded-xl transition-all duration-200
-            ${active ? "text-[#4B3621]" : "text-gray-400 hover:text-gray-600"}
-          `}
-          >
-            {icon}
-            {/* Active dot */}
-            {active && (
-              <span
-                className="absolute -bottom-0.5 left-1/2
-                -translate-x-1/2 w-1 h-1 rounded-full
-                bg-[#4B3621]"
-              />
-            )}
-          </div>
+          {icon}
+        </span>
+        {/* Active indicator dot */}
+        {active && (
           <span
-            className={`
-            text-[10px] font-semibold tracking-wide
-            transition-colors duration-200
-            ${active ? "text-[#4B3621]" : "text-gray-400"}
-          `}
-          >
-            {label}
-          </span>
-        </>
-      )}
+            className="absolute -bottom-0.5 left-1/2
+            -translate-x-1/2 w-1 h-1 rounded-full
+            bg-[#4B3621]"
+          />
+        )}
+      </div>
+      <span
+        className={`
+        text-[9px] font-semibold tracking-wide
+        leading-tight text-center transition-colors
+        ${active ? "text-[#4B3621]" : "text-gray-400"}
+      `}
+      >
+        {label}
+      </span>
     </div>
   );
 
@@ -235,8 +184,8 @@ function NavItem({ to, icon, label, active, isCenter, onClick }) {
     return (
       <button
         onClick={onClick}
-        className="flex-1 flex
-        items-center justify-center"
+        className="flex-1 flex items-center justify-center
+          active:scale-95 transition-transform"
       >
         {content}
       </button>
@@ -246,8 +195,8 @@ function NavItem({ to, icon, label, active, isCenter, onClick }) {
   return (
     <Link
       to={to}
-      className="flex-1 flex
-      items-center justify-center"
+      className="flex-1 flex items-center justify-center
+        active:scale-95 transition-transform"
     >
       {content}
     </Link>
@@ -255,20 +204,85 @@ function NavItem({ to, icon, label, active, isCenter, onClick }) {
 }
 
 // ================================
-// Main BottomNav Component
+// Center Search Button
+// ================================
+function CenterSearchButton({ onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      className="flex flex-col items-center gap-0.5
+        flex-1 active:scale-95 transition-transform"
+    >
+      <div
+        className="w-12 h-12 -mt-5 bg-[#4B3621]
+        rounded-2xl flex items-center justify-center
+        shadow-xl shadow-[#4B3621]/30
+        border-4 border-white transition-all
+        hover:bg-[#362818] active:scale-95"
+      >
+        <span className="text-white">
+          <Icons.Search active={false} />
+        </span>
+      </div>
+      <span
+        className="text-[9px] font-semibold
+        text-gray-400 mt-0.5"
+      >
+        Search
+      </span>
+    </button>
+  );
+}
+
+// ================================
+// Main BottomNav
 // ================================
 export default function BottomNav() {
   const { user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-
+  const [alertCount, setAlertCount] = useState(0);
   const path = location.pathname;
+  //Real-time notification listener
+  useEffect(() => {
+    const q = query(collection(db, "broadcasts"));
+    const unsubscribe = onSnapshot(q, (onSnapshot) => {
+      setAlertCount(Snapshot.docs.length);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // Hide on admin + login + register pages
+  if (path.startsWith("/admin") || path === "/login" || path === "/register")
+    return null;
 
   const isActive = (route) =>
     route === "/" ? path === "/" : path.startsWith(route);
 
-  // Hide on admin pages
-  if (path.startsWith("/admin")) return null;
+  // Search handler
+  function handleSearch() {
+    navigate("/marketplace");
+    // Small delay then focus search input if present
+    setTimeout(() => {
+      const input = document.querySelector(
+        'input[placeholder*="Search"], input[placeholder*="search"]'
+      );
+      if (input) input.focus();
+    }, 300);
+  }
+
+  // Profile handler — depends on user state
+  function handleProfile() {
+    if (!user) {
+      navigate("/login");
+    } else if (user.role === "seller") {
+      navigate("/dashboard");
+    } else if (user.role === "admin") {
+      navigate("/admin");
+    } else {
+      navigate("/dashboard");
+    }
+  }
 
   // ================================
   // SELLER NAV
@@ -276,27 +290,26 @@ export default function BottomNav() {
   if (user?.role === "seller") {
     return (
       <nav
-        className="fixed bottom-0 left-0 right-0 z-50
-        lg:hidden"
+        className="fixed bottom-0 left-0 right-0
+        z-50 lg:hidden"
       >
-        {/* Blur backdrop */}
         <div
-          className="absolute inset-0 bg-white/90
+          className="absolute inset-0 bg-white/95
           backdrop-blur-xl border-t border-gray-100
           shadow-2xl shadow-black/10"
         />
 
         <div
           className="relative flex items-end
-          justify-around px-2 pb-safe pt-2
-          max-w-lg mx-auto h-[72px]"
+          justify-around px-3 pt-2 pb-2 max-w-lg
+          mx-auto h-[68px]"
         >
           {/* Home */}
           <NavItem
             to="/"
             label="Home"
             active={isActive("/")}
-            icon={<NavIcons.Home active={isActive("/")} />}
+            icon={<Icons.Home active={isActive("/")} />}
           />
 
           {/* My Shop */}
@@ -304,39 +317,36 @@ export default function BottomNav() {
             to={`/shop/${user.uid}`}
             label="My Shop"
             active={isActive(`/shop/${user.uid}`)}
-            icon={<NavIcons.Shop active={isActive(`/shop/${user.uid}`)} />}
+            icon={<Icons.Shop active={isActive(`/shop/${user.uid}`)} />}
           />
 
-          {/* Add Product — Center */}
-          <NavItem to="/marketplace" label="" isCenter />
+          {/* Search — Center */}
+          <CenterSearchButton onClick={handleSearch} />
 
-          {/* Dashboard */}
+          {/* Alerts */}
           <NavItem
-            to="/dashboard"
-            label="Dashboard"
-            active={isActive("/dashboard")}
-            icon={<NavIcons.Dashboard active={isActive("/dashboard")} />}
+            to="/alerts"
+            label="Alerts"
+            active={isActive("/alerts")}
+            icon={
+              <Icons.Alert active={isActive("/alerts")} count={alertCount} />
+            }
           />
 
-          {/* Profile */}
+          {/* Profile → Dashboard */}
           <NavItem
-            to="/dashboard"
             label="Profile"
-            active={false}
-            onClick={() => {
-              navigate("/dashboard");
-              // Small delay then trigger profile tab
-              setTimeout(() => {
-                window.dispatchEvent(
-                  new CustomEvent("kob:dashboard:tab", { detail: "profile" })
-                );
-              }, 100);
-            }}
-            icon={<NavIcons.Profile active={false} />}
+            active={isActive("/dashboard")}
+            icon={<Icons.Profile active={isActive("/dashboard")} />}
+            onClick={handleProfile}
           />
         </div>
-        {/* iOS safe area padding */}
-        <div className="h-safe-bottom bg-white/90" />
+
+        {/* iOS safe area */}
+        <div
+          className="h-[env(safe-area-inset-bottom)]
+          bg-white/95"
+        />
       </nav>
     );
   }
@@ -346,27 +356,26 @@ export default function BottomNav() {
   // ================================
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50
-      lg:hidden"
+      className="fixed bottom-0 left-0 right-0
+      z-50 lg:hidden"
     >
-      {/* Blur backdrop */}
       <div
-        className="absolute inset-0 bg-white/90
+        className="absolute inset-0 bg-white/95
         backdrop-blur-xl border-t border-gray-100
         shadow-2xl shadow-black/10"
       />
 
       <div
         className="relative flex items-end
-        justify-around px-2 pb-safe pt-2
-        max-w-lg mx-auto h-[72px]"
+        justify-around px-3 pt-2 pb-2 max-w-lg
+        mx-auto h-[68px]"
       >
         {/* Home */}
         <NavItem
           to="/"
           label="Home"
           active={isActive("/")}
-          icon={<NavIcons.Home active={isActive("/")} />}
+          icon={<Icons.Home active={isActive("/")} />}
         />
 
         {/* Catalogue */}
@@ -374,31 +383,46 @@ export default function BottomNav() {
           to="/marketplace"
           label="Catalogue"
           active={isActive("/marketplace")}
-          icon={<NavIcons.Catalogue active={isActive("/marketplace")} />}
+          icon={<Icons.Catalogue active={isActive("/marketplace")} />}
         />
 
         {/* Search — Center */}
-        <NavItem to="/marketplace" label="" isCenter />
+        <CenterSearchButton onClick={handleSearch} />
 
         {/* Alerts */}
         <NavItem
           to={user ? "/dashboard" : "/login"}
           label="Alerts"
           active={false}
-          icon={<NavIcons.Alert active={false} count={0} />}
+          icon={<Icons.Alert active={false} count={0} />}
         />
 
-        {/* Help */}
+        {/* Profile */}
         <NavItem
-          to="/help"
-          label="Help"
-          active={isActive("/help")}
-          icon={<NavIcons.Help active={isActive("/help")} />}
+          label="Profile"
+          active={
+            isActive("/dashboard") ||
+            isActive("/login") ||
+            isActive("/register")
+          }
+          icon={
+            <Icons.Profile
+              active={
+                isActive("/dashboard") ||
+                isActive("/login") ||
+                isActive("/register")
+              }
+            />
+          }
+          onClick={handleProfile}
         />
       </div>
 
       {/* iOS safe area */}
-      <div className="h-safe-bottom bg-white/90" />
+      <div
+        className="h-[env(safe-area-inset-bottom)]
+        bg-white/95"
+      />
     </nav>
   );
 }
