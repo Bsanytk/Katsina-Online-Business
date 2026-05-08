@@ -327,13 +327,12 @@ export default function BottomNav() {
 
           {/* Alerts */}
           <NavItem
-            to="/alerts"
-            label="Alerts"
-            active={isActive("/alerts")}
-            icon={
-              <Icons.Alert active={isActive("/alerts")} count={alertCount} />
-            }
-          />
+         to="/alerts"
+         label="Alerts"
+         active={isActive('/alerts')}
+         icon={
+         <Icons.Alert active={isActive('/alerts')} count={0} />}
+       />
 
           {/* Profile → Dashboard */}
           <NavItem
