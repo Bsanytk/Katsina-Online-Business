@@ -241,13 +241,13 @@ function SellerDashboard({ user }) {
       label: "Inventory",
       icon: <LayoutGrid className="w-3.5 h-3.5" />,
     },
+    { id: "profile", label: "Profile", icon: <User className="w-3.5 h-3.5" /> },
     {
       id: "messages",
       label: "Messages",
       icon: <MessageCircle className="w-3.5 h-3.5" />,
     },
     { id: "shop", label: "My Shop", icon: <Store className="w-3.5 h-3.5" /> },
-    { id: "profile", label: "Profile", icon: <User className="w-3.5 h-3.5" /> },
     {
       id: "sales",
       label: "Sales",
@@ -523,10 +523,11 @@ function SellerDashboard({ user }) {
           </div>
         </div>
       )}
-
+      
+      {activeTab === "profile" && <SellerProfileEdit />}
       {activeTab === "messages" && <MessagesTab />}
       {activeTab === "sales" && <OrdersTab />}
-      {activeTab === "profile" && <SellerProfileEdit />}
+      
 
       {/* ---- SHOP TAB ---- */}
       {activeTab === "shop" && (
