@@ -29,6 +29,7 @@ const CookiePolicy = lazy(() => import("./pages/CookiePolicy"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const ProductDetail = lazy(() => import("./pages/ProductDetail"));
 const SellerShop = lazy(() => import("./pages/SellerShop"));
+const Alerts = lazy(() => import("./pages/Alerts"));
 
 // ================================
 // FCM Notification Toast Component
