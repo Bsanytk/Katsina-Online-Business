@@ -130,6 +130,7 @@ function AppContent() {
             <Route path="/cookies" element={<CookiePolicy />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/alerts" element={<Alerts />} />
 
             <Route
               path="/dashboard/*"
