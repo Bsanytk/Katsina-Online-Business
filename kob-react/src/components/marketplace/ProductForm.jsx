@@ -216,7 +216,7 @@ export default function ProductForm({
   // ================================
   function handleImageAdd(e) {
     const files = Array.from(e.target.files);
-    const availableSlots = 5 - images.length;
+    const availableSlots = 2 - images.length;
     const newImages = files.slice(0, availableSlots).map((file) => ({
       file,
       preview: URL.createObjectURL(file),
@@ -672,11 +672,11 @@ export default function ProductForm({
             >
               Product Images
             </label>
-            <span className="text-xs text-gray-400">{images.length}/5</span>
+            <span className="text-xs text-gray-400">{images.length}/2</span>
           </div>
 
           {/* Upload Zone */}
-          {images.length < 5 && (
+          {images.length < 2 && (
             <label
               className="flex flex-col items-center
               justify-center gap-2 p-6 border-2 border-dashed
@@ -689,7 +689,7 @@ export default function ProductForm({
                 Click to upload images
               </p>
               <p className="text-[10px] text-gray-300">
-                Max 5 images — JPG, PNG, WEBP
+                Max 2 images — JPG, PNG, WEBP
               </p>
               <input
                 type="file"
