@@ -487,8 +487,18 @@ export default function Alerts() {
   // ================================
   // Real-time Firestore listener
   // ================================
+  // Replace the useEffect in Alerts.jsx:
+
   useEffect(() => {
-    const q = query(collection(db, "broadcasts"), orderBy("createdAt", "desc"));
+    let q;
+
+    try {
+      // Try with orderBy first
+      q = query(collection(db, "broadcasts"), orderBy("sentAt", "desc"));
+    } catch {
+      // Fallback — no orderBy
+      q = collection(db, "broadcasts");
+    }
 
     const unsubscribe = onSnapshot(
       q,
@@ -496,15 +506,61 @@ export default function Alerts() {
         const data = snap.docs.map((d) => ({
           id: d.id,
           ...d.data(),
-          // Normalize — sentAt or createdAt
-          createdAt: d.data().sentAt || d.data().createdAt,
+          // ✅ Handle both sentAt and createdAt
+          createdAt: d.data().sentAt || d.data().createdAt || null,
         }));
-        setAlerts(data);
+
+        // Sort client-side as backup
+        const sorted = data.sort((a, b) => {
+          const aTime = a.createdAt?.toDate?.()
+            ? a.createdAt.toDate().getTime()
+            : new Date(a.createdAt || 0).getTime();
+          const bTime = b.createdAt?.toDate?.()
+            ? b.createdAt.toDate().getTime()
+            : new Date(b.createdAt || 0).getTime();
+          return bTime - aTime;
+        });
+
+        setAlerts(sorted);
         setLoading(false);
         setError(null);
       },
       (err) => {
-        console.error("Alerts fetch error:", err);
+        console.error("Alerts error:", err.code, err.message);
+
+        // ✅ If index error — retry without orderBy
+        if (err.code === "failed-precondition") {
+          const fallbackQ = collection(db, "broadcasts");
+          onSnapshot(
+            fallbackQ,
+            (snap) => {
+              const data = snap.docs
+                .map((d) => ({
+                  id: d.id,
+                  ...d.data(),
+                  createdAt: d.data().sentAt || d.data().createdAt || null,
+                }))
+                .sort((a, b) => {
+                  const aTime = a.createdAt?.toDate?.()
+                    ? a.createdAt.toDate().getTime()
+                    : new Date(a.createdAt || 0).getTime();
+                  const bTime = b.createdAt?.toDate?.()
+                    ? b.createdAt.toDate().getTime()
+                    : new Date(b.createdAt || 0).getTime();
+                  return bTime - aTime;
+                });
+              setAlerts(data);
+              setLoading(false);
+              setError(null);
+            },
+            () => {
+              setError("Failed to load alerts.");
+              setLoading(false);
+            }
+          );
+          return;
+        }
+
         setError("Failed to load alerts.");
         setLoading(false);
       }

@@ -170,11 +170,16 @@ export async function saveFCMToken(uid, token) {
 // ================================
 // Send broadcast notification
 // ================================
+// Tabbatar saveBroadcast tana haka:
 export async function saveBroadcast(data) {
   const ref = await addDoc(collection(db, "broadcasts"), {
-    ...data,
-    sentAt: serverTimestamp(),
+    title: data.title || "",
+    body: data.body || "",
+    url: data.url || "/",
+    type: data.type || "broadcast",
     status: "sent",
+    sentAt: serverTimestamp(), // ✅ Primary timestamp
+    createdAt: serverTimestamp(), // ✅ Backup timestamp
   });
   return ref.id;
 }

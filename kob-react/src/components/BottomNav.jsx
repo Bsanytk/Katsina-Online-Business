@@ -327,12 +327,13 @@ export default function BottomNav() {
 
           {/* Alerts */}
           <NavItem
-         to="/alerts"
-         label="Alerts"
-         active={isActive('/alerts')}
-         icon={
-         <Icons.Alert active={isActive('/alerts')} count={0} />}
-       />
+            to="/alerts"
+            label="Alerts"
+            active={isActive("/alerts")}
+            icon={
+              <Icons.Alert active={isActive("/alerts")} count={alertCount} />
+            }
+          />
 
           {/* Profile → Dashboard */}
           <NavItem
@@ -391,15 +392,13 @@ export default function BottomNav() {
         <CenterSearchButton onClick={handleSearch} />
 
         {/* Alerts */}
-        
-       <NavItem
-         to="/alerts"
-         label="Alerts"
-         active={isActive('/alerts')}
-         icon={
-         <Icons.Alert active={isActive('/alerts')} count={0} />}
-       />
-   
+        <NavItem
+          to="/alerts"
+          label="Alerts"
+          active={isActive("/alerts")}
+          icon={<Icons.Alert active={isActive("/alerts")} count={alertCount} />}
+        />
+
         {/* Profile */}
         <NavItem
           label="Profile"
