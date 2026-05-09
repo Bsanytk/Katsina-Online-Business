@@ -848,7 +848,7 @@ export default function SellerShop() {
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.8, type: "spring", stiffness: 200 }}
           onClick={handleWhatsApp}
-          className="fixed bottom-6 right-6 z-40
+          className="fixed bottom-20 right-6 z-40
             bg-[#25D366] text-white p-4 rounded-full
             shadow-xl hover:scale-110 active:scale-95
             transition-transform flex items-center
