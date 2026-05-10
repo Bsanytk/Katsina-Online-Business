@@ -9,7 +9,9 @@ import SupportWidget from "./components/widgets/SupportWidget";
 import { PageLoader } from "./components/ui";
 import { initFCM, onForegroundMessage } from "./services/fcm";
 import "./i18n";
+import { ProfileProvider } from "./contexts/ProfileContext";
 import BottomNav from "./components/BottomNav";
+import { ProfileProvider } from "./contexts/ProfileContext";
 
 // Lazy load pages
 const Home = lazy(() => import("./pages/Home"));
@@ -131,6 +133,7 @@ function AppContent() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/alerts" element={<Alerts />} />
+            <Route path="/alerts" element={<Alerts />} />
 
             <Route
               path="/dashboard/*"
@@ -176,7 +179,9 @@ function AppContent() {
 export default function App() {
   return (
     <AuthProvider>
-      <AppContent />
+      <ProfileProvider>
+        <AppContent />
+      </ProfileProvider>
     </AuthProvider>
   );
 }

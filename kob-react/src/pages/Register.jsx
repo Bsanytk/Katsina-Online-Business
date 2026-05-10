@@ -75,33 +75,26 @@ export default function Register() {
   const [showConfirm, setShowConfirm] = useState(false);
   const navigate = useNavigate();
 
+  // Add this to BOTH Login.jsx and Register.jsx
+  // After successful login/register:
+
   async function handleSubmit(e) {
     e.preventDefault();
-    setError(null);
-    setPolicyError(false);
-
-    // Policy check
-    if (!agreed) {
-      setPolicyError(true);
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setError("Passwords do not match.");
-      return;
-    }
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters.");
-      return;
-    }
-
     setLoading(true);
     try {
-      await registerUser(email, password, role);
-      navigate("/dashboard");
+      await loginUser(email, password); // or registerUser
+
+      // ✅ Smart return — check sessionStorage
+      const returnTo = sessionStorage.getItem("returnTo");
+      if (returnTo) {
+        sessionStorage.removeItem("returnTo");
+        // Use window.location to fully reset history stack
+        window.location.href = returnTo;
+      } else {
+        window.location.href = "/dashboard";
+      }
     } catch (err) {
-      setError(err.message || "Registration failed.");
-    } finally {
+      setError(err.message);
       setLoading(false);
     }
   }

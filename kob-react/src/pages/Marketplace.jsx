@@ -14,7 +14,7 @@ import ProductFilter from "../components/marketplace/ProductFilter";
 import ProductForm from "../components/marketplace/ProductForm";
 import { Alert } from "../components/ui";
 import BackButton from "../components/BackButton";
-import { getUserProfile } from "../services/users";
+import { useProfile } from "../contexts/ProfileContext";
 import { ShoppingBag, SlidersHorizontal, X, Plus } from "lucide-react";
 
 export default function Marketplace() {
@@ -30,7 +30,7 @@ export default function Marketplace() {
   const [userData, setUserData] = useState(null);
   const [showFilter, setShowFilter] = useState(false);
 
-  const { user } = useAuth();
+  const { profile } = useProfile(); // ✅ No Firestore read
   const [searchParams, setSearchParams] = useSearchParams();
 
   // ================================

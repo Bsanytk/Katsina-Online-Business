@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Alert } from "../ui";
 import Loading from "../Loading";
 import { useAuth } from "../../firebase/auth";
-import { getUserProfile } from "../../services/users";
+import { useProfile } from "../contexts/ProfileContext";
 import { uploadImage } from "../../services/cloudinary";
 import { Upload, X, ImagePlus, Truck, FileText } from "lucide-react";
 
@@ -31,7 +31,9 @@ export default function ProductForm({
   error = null,
   uploadingImage = false,
 }) {
-  const { user } = useAuth();
+  const { profile, isVerified } = useProfile(); // ✅ Cached
+
+  // Use profile.whatsappNumber, profile.location, etc.
 
   const [formData, setFormData] = useState({
     title: "",
@@ -672,11 +674,11 @@ export default function ProductForm({
             >
               Product Images
             </label>
-            <span className="text-xs text-gray-400">{images.length}/2</span>
+            <span className="text-xs text-gray-400">{images.length}/1</span>
           </div>
 
           {/* Upload Zone */}
-          {images.length < 2 && (
+          {images.length < 1 && (
             <label
               className="flex flex-col items-center
               justify-center gap-2 p-6 border-2 border-dashed
@@ -689,7 +691,7 @@ export default function ProductForm({
                 Click to upload images
               </p>
               <p className="text-[10px] text-gray-300">
-                Max 2 images — JPG, PNG, WEBP
+                Max 1 images — JPG, PNG, WEBP
               </p>
               <input
                 type="file"
