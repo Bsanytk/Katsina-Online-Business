@@ -11,7 +11,6 @@ import { initFCM, onForegroundMessage } from "./services/fcm";
 import "./i18n";
 import { ProfileProvider } from "./contexts/ProfileContext";
 import BottomNav from "./components/BottomNav";
-import { ProfileProvider } from "./contexts/ProfileContext";
 
 // Lazy load pages
 const Home = lazy(() => import("./pages/Home"));
@@ -32,6 +31,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const ProductDetail = lazy(() => import("./pages/ProductDetail"));
 const SellerShop = lazy(() => import("./pages/SellerShop"));
 const Alerts = lazy(() => import("./pages/Alerts"));
+const Profile = lazy(() => import("./pages/Profile"));
 
 // ================================
 // FCM Notification Toast Component
@@ -133,7 +133,7 @@ function AppContent() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/alerts" element={<Alerts />} />
-            <Route path="/alerts" element={<Alerts />} />
+            <Route path="/profile" element={<Profile />} />
 
             <Route
               path="/dashboard/*"
