@@ -47,7 +47,7 @@ export default function ProductForm({
 
   const [images, setImages] = useState([]);
   const [validationErrors, setValidationErrors] = useState({});
-  const [isVerified, setIsVerified] = useState(false);
+
   const [checkingStatus, setCheckingStatus] = useState(true);
 
   const isEditMode = initialData !== null;
