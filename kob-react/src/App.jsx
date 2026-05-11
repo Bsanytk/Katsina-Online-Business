@@ -107,7 +107,9 @@ function AppContent() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#FAFAF8] text-[#2C1F0E]">
+    /* 1. Na kara 'pb-24' a nan don samar da sarari a karkashin kowane page.
+       2. 'lg:pb-0' zai cire sararin idan ana amfani da Computer (Desktop). */
+    <div className="flex flex-col min-h-screen bg-[#FAFAF8] text-[#2C1F0E] pb-24 lg:pb-0">
       <NotificationToast
         notification={notification}
         onClose={() => setNotification(null)}
