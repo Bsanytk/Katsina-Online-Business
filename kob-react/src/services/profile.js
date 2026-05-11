@@ -89,8 +89,8 @@ export async function updateProfile(uid, data) {
 export async function uploadAvatar(file, uid) {
   // Validate file
   if (!file) throw new Error("No file selected");
-  if (file.size > 5 * 1024 * 1024) {
-    throw new Error("Image must be under 5MB");
+  if (file.size > 2 * 1024 * 1024) {
+    throw new Error("Image must be under 2MB");
   }
   const allowed = ["image/jpeg", "image/png", "image/webp"];
   if (!allowed.includes(file.type)) {

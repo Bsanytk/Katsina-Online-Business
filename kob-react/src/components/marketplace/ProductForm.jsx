@@ -626,7 +626,7 @@ export default function ProductForm({
               className="text-gray-400 ml-1 normal-case
               font-normal"
             >
-              (max 2)
+              (max 1)
             </span>
           </label>
 
@@ -656,7 +656,7 @@ export default function ProductForm({
               </div>
             ))}
 
-            {images.length < 2 && (
+            {images.length < 1 && (
               <label
                 className="aspect-square rounded-xl
                 border-2 border-dashed border-gray-300
