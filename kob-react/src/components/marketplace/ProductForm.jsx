@@ -1,10 +1,20 @@
+/**
+ * ProductForm.jsx — KOB Product Form
+ *
+ * REFACTORED:
+ * ✅ Accepts `profile` prop (from ProfileContext via Marketplace)
+ * ✅ Removed: getUserProfile useEffect, isVerified useState
+ * ✅ profile?.isVerified replaces local verification fetch
+ * ✅ All seller fields from profile prop — safe optional chaining
+ * ✅ Zero Firestore reads inside this component
+ */
+
 import React, { useState, useEffect } from "react";
 import { Alert } from "../ui";
 import Loading from "../Loading";
 import { useAuth } from "../../firebase/auth";
-import { useProfile } from "../contexts/ProfileContext";
 import { uploadImage } from "../../services/cloudinary";
-import { Upload, X, ImagePlus, Truck, FileText } from "lucide-react";
+import { Upload, X, ImagePlus, FileText } from "lucide-react";
 
 const CATEGORIES = [
   "Electronics",
@@ -26,14 +36,16 @@ export default function ProductForm({
   onSubmit = () => {},
   onCancel = () => {},
   initialData = null,
-  userData = null,
+  profile = null, // ✅ ProfileContext data (was userData)
   loading = false,
   error = null,
   uploadingImage = false,
 }) {
-  const { profile, isVerified } = useProfile(); // ✅ Cached
+  const { user } = useAuth();
 
-  // Use profile.whatsappNumber, profile.location, etc.
+  // ✅ isVerified from profile prop — no Firestore fetch
+  const isVerified = profile?.isVerified === true;
+  const isEditMode = initialData !== null;
 
   const [formData, setFormData] = useState({
     title: "",
@@ -49,31 +61,10 @@ export default function ProductForm({
 
   const [images, setImages] = useState([]);
   const [validationErrors, setValidationErrors] = useState({});
-  const [isVerified, setIsVerified] = useState(false);
-  const [checkingStatus, setCheckingStatus] = useState(true);
-
-  const isEditMode = initialData !== null;
 
   // ================================
-  // Check verification status
-  // ================================
-  useEffect(() => {
-    async function checkSellerStatus() {
-      if (user?.uid) {
-        try {
-          const profile = await getUserProfile(user.uid);
-          setIsVerified(profile?.isVerified === true);
-        } catch (err) {
-          console.error("Error fetching user status:", err);
-        }
-      }
-      setCheckingStatus(false);
-    }
-    checkSellerStatus();
-  }, [user]);
-
-  // ================================
-  // Populate form from initialData or userData
+  // Populate form from initialData or profile
+  // ✅ profile replaces userData — same structure
   // ================================
   useEffect(() => {
     if (initialData) {
@@ -84,16 +75,16 @@ export default function ProductForm({
         price: initialData.price?.toString() || "",
         category: initialData.category || "",
         location:
-          userData?.fullAddress ||
-          userData?.location ||
+          profile?.fullAddress ||
+          profile?.location ||
           initialData.location ||
           "",
         whatsappNumber:
-          userData?.whatsappNumber ||
-          userData?.phoneNumber ||
+          profile?.whatsappNumber ||
+          profile?.phoneNumber ||
           initialData.whatsappNumber ||
           "",
-        sellerIDNumber: userData?.kobNumber || initialData.sellerIDNumber || "",
+        sellerIDNumber: profile?.kobNumber || initialData.sellerIDNumber || "",
         deliveryOption: initialData.deliveryOption || "KOB Express Delivery",
         isDraft: initialData.isDraft ?? true,
       });
@@ -110,15 +101,16 @@ export default function ProductForm({
           }))
         );
       }
-    } else if (userData) {
+    } else if (profile) {
+      // ✅ Pre-fill new form with profile data
       setFormData((prev) => ({
         ...prev,
-        sellerIDNumber: userData.kobNumber || "",
-        location: userData.fullAddress || userData.location || "",
-        whatsappNumber: userData.whatsappNumber || userData.phoneNumber || "",
+        sellerIDNumber: profile?.kobNumber || "",
+        location: profile?.fullAddress || profile?.location || "",
+        whatsappNumber: profile?.whatsappNumber || profile?.phoneNumber || "",
       }));
     }
-  }, [initialData, userData]);
+  }, [initialData, profile?.uid]);
 
   // ================================
   // Validation
@@ -151,6 +143,7 @@ export default function ProductForm({
 
   // ================================
   // Submit
+  // ✅ Uses profile prop — no getUserProfile call
   // ================================
   async function handleSubmit(e) {
     e.preventDefault();
@@ -162,12 +155,11 @@ export default function ProductForm({
 
     const finalData = {
       ...formData,
-      location:
-        userData?.fullAddress || userData?.location || formData.location,
-      sellerIDNumber: userData?.kobNumber || formData.sellerIDNumber,
+      location: profile?.fullAddress || profile?.location || formData.location,
+      sellerIDNumber: profile?.kobNumber || formData.sellerIDNumber,
       whatsappNumber:
-        userData?.whatsappNumber ||
-        userData?.phoneNumber ||
+        profile?.whatsappNumber ||
+        profile?.phoneNumber ||
         formData.whatsappNumber,
     };
 
@@ -191,8 +183,8 @@ export default function ProductForm({
       const submissionData = {
         ...finalData,
         ownerUid: user.uid,
-        // ✅ FIX: userData ne — ba profileData ba
-        sellerName: userData?.businessName || userData?.displayName || "",
+        // ✅ From profile prop — safe fallback chain
+        sellerName: profile?.businessName || profile?.displayName || "",
         price: parseFloat(formData.price),
         images: uploadedUrls,
         imageUrl: uploadedUrls[0] || "",
@@ -218,15 +210,14 @@ export default function ProductForm({
   // ================================
   function handleImageAdd(e) {
     const files = Array.from(e.target.files);
-    const availableSlots = 2 - images.length;
-    const newImages = files.slice(0, availableSlots).map((file) => ({
+    const slots = 2 - images.length;
+    const newImgs = files.slice(0, slots).map((file) => ({
       file,
       preview: URL.createObjectURL(file),
       isNew: true,
       id: `img-${Date.now()}-${Math.random()}`,
     }));
-    setImages((prev) => [...prev, ...newImages]);
-    // Reset input so same file can be re-added
+    setImages((prev) => [...prev, ...newImgs]);
     e.target.value = "";
   }
 
@@ -236,18 +227,8 @@ export default function ProductForm({
   }
 
   // ================================
-  // Loading state
-  // ================================
-  if (checkingStatus) {
-    return (
-      <div className="py-16">
-        <Loading size="sm" message="Checking account status..." />
-      </div>
-    );
-  }
-
-  // ================================
-  // Verification lock screen
+  // ✅ Verification lock screen
+  // Uses profile?.isVerified — no Firestore fetch
   // ================================
   if (!isVerified && !isEditMode) {
     return (
@@ -269,13 +250,12 @@ export default function ProductForm({
               strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth="2"
-              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54
-                0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464
-                0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0
+              2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464
+              0L3.34 16c-.77 1.333.192 3 1.732 3z"
             />
           </svg>
         </div>
-
         <h2 className="text-lg font-semibold text-amber-900 mb-1">
           Account Not Verified
         </h2>
@@ -283,19 +263,14 @@ export default function ProductForm({
           Only verified sellers can post products on KOB Marketplace. Contact
           admin to get verified.
         </p>
-
-        <div
-          className="flex flex-col sm:flex-row gap-3
-          justify-center"
-        >
+        <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <a
             href="https://wa.me/2347089454544"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center justify-center gap-2
               px-6 py-2.5 bg-green-600 text-white rounded-xl
-              text-sm font-semibold hover:bg-green-700
-              transition-colors"
+              text-sm font-semibold hover:bg-green-700 transition-colors"
           >
             Chat with Admin
           </a>
@@ -307,8 +282,7 @@ export default function ProductForm({
             }
             className="flex items-center justify-center gap-2
               px-6 py-2.5 bg-[#4B3621] text-white rounded-xl
-              text-sm font-semibold hover:bg-[#362818]
-              transition-colors"
+              text-sm font-semibold hover:bg-[#362818] transition-colors"
           >
             Verification Form
           </button>
@@ -345,21 +319,18 @@ export default function ProductForm({
         <button
           type="button"
           onClick={() => setFormData((p) => ({ ...p, isDraft: !p.isDraft }))}
-          className={`
-            flex items-center gap-2 px-4 py-2
-            rounded-xl text-xs font-semibold
-            border-2 transition-all duration-200
+          className={`flex items-center gap-2 px-4 py-2
+            rounded-xl text-xs font-semibold border-2
+            transition-all duration-200
             ${
               formData.isDraft
                 ? "bg-amber-50 border-amber-200 text-amber-700"
                 : "bg-emerald-50 border-emerald-200 text-emerald-700"
-            }
-          `}
+            }`}
         >
           {formData.isDraft ? (
             <>
-              <FileText className="w-3.5 h-3.5" />
-              Draft
+              <FileText className="w-3.5 h-3.5" /> Draft
             </>
           ) : (
             <>
@@ -373,7 +344,6 @@ export default function ProductForm({
         </button>
       </div>
 
-      {/* Error Alert */}
       {error && (
         <div className="px-6 pt-4">
           <Alert type="error">{error}</Alert>
@@ -381,9 +351,8 @@ export default function ProductForm({
       )}
 
       <form onSubmit={handleSubmit} className="p-6 space-y-5">
-        {/* ---- Row 1: Title + KOB ID ---- */}
+        {/* Row 1: Title + KOB ID */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Title */}
           <div>
             <label
               className="block text-xs font-semibold
@@ -397,15 +366,13 @@ export default function ProductForm({
               value={formData.title}
               onChange={handleChange}
               placeholder="e.g. Quality Roba Shoes"
-              className={`
-                w-full px-4 py-2.5 rounded-xl border-2
+              className={`w-full px-4 py-2.5 rounded-xl border-2
                 text-sm outline-none transition-all
                 ${
                   validationErrors.title
                     ? "border-red-300 bg-red-50"
                     : "border-gray-200 focus:border-[#4B3621]"
-                }
-              `}
+                }`}
             />
             {validationErrors.title && (
               <p className="text-xs text-red-500 mt-1">
@@ -414,7 +381,7 @@ export default function ProductForm({
             )}
           </div>
 
-          {/* KOB ID — Read only */}
+          {/* ✅ KOB ID from profile prop */}
           <div>
             <label
               className="block text-xs font-semibold
@@ -429,13 +396,13 @@ export default function ProductForm({
             >
               <span className="text-sm">🆔</span>
               <span className="text-sm font-semibold text-[#4B3621]">
-                {formData.sellerIDNumber || userData?.kobNumber || "Loading..."}
+                {formData.sellerIDNumber || profile?.kobNumber || "—"}
               </span>
             </div>
           </div>
         </div>
 
-        {/* ---- Description ---- */}
+        {/* Description */}
         <div>
           <label
             className="block text-xs font-semibold
@@ -450,15 +417,13 @@ export default function ProductForm({
             onChange={handleChange}
             rows={4}
             placeholder="Describe size, color, quality, condition..."
-            className={`
-              w-full px-4 py-3 rounded-xl border-2
+            className={`w-full px-4 py-3 rounded-xl border-2
               text-sm outline-none transition-all resize-none
               ${
                 validationErrors.description
                   ? "border-red-300 bg-red-50"
                   : "border-gray-200 focus:border-[#4B3621]"
-              }
-            `}
+              }`}
           />
           <div className="flex items-center justify-between mt-1">
             {validationErrors.description ? (
@@ -469,7 +434,8 @@ export default function ProductForm({
               <span />
             )}
             <p
-              className={`text-xs ${
+              className={`text-xs
+              ${
                 formData.description.length >= 400
                   ? "text-red-500"
                   : "text-gray-400"
@@ -480,9 +446,8 @@ export default function ProductForm({
           </div>
         </div>
 
-        {/* ---- Row 2: Price + Location ---- */}
+        {/* Row 2: Price + Location */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Price */}
           <div>
             <label
               className="block text-xs font-semibold
@@ -497,15 +462,13 @@ export default function ProductForm({
               value={formData.price}
               onChange={handleChange}
               placeholder="e.g. 5000"
-              className={`
-                w-full px-4 py-2.5 rounded-xl border-2
+              className={`w-full px-4 py-2.5 rounded-xl border-2
                 text-sm outline-none transition-all
                 ${
                   validationErrors.price
                     ? "border-red-300 bg-red-50"
                     : "border-gray-200 focus:border-[#4B3621]"
-                }
-              `}
+                }`}
             />
             {validationErrors.price && (
               <p className="text-xs text-red-500 mt-1">
@@ -514,7 +477,7 @@ export default function ProductForm({
             )}
           </div>
 
-          {/* Location — Read only */}
+          {/* ✅ Location from profile prop */}
           <div>
             <label
               className="block text-xs font-semibold
@@ -527,7 +490,8 @@ export default function ProductForm({
               border-2 border-dashed border-gray-200"
             >
               <p className="text-sm text-gray-500 truncate">
-                {userData?.fullAddress ||
+                {profile?.fullAddress ||
+                  profile?.location ||
                   formData.location ||
                   "Set in your profile"}
               </p>
@@ -535,9 +499,9 @@ export default function ProductForm({
           </div>
         </div>
 
-        {/* ---- Row 3: WhatsApp + Category ---- */}
+        {/* Row 3: WhatsApp + Category */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* WhatsApp — Read only */}
+          {/* ✅ WhatsApp from profile prop */}
           <div>
             <label
               className="block text-xs font-semibold
@@ -550,14 +514,13 @@ export default function ProductForm({
               border-2 border-dashed border-gray-200"
             >
               <p className="text-sm text-gray-500">
-                {userData?.whatsappNumber ||
-                  userData?.phoneNumber ||
+                {profile?.whatsappNumber ||
+                  profile?.phoneNumber ||
                   "Set in your profile"}
               </p>
             </div>
           </div>
 
-          {/* Category */}
           <div>
             <label
               className="block text-xs font-semibold
@@ -570,16 +533,14 @@ export default function ProductForm({
               name="category"
               value={formData.category}
               onChange={handleChange}
-              className={`
-                w-full px-4 py-2.5 rounded-xl border-2
+              className={`w-full px-4 py-2.5 rounded-xl border-2
                 text-sm outline-none transition-all
                 appearance-none cursor-pointer bg-white
                 ${
                   validationErrors.category
                     ? "border-red-300 bg-red-50"
                     : "border-gray-200 focus:border-[#4B3621]"
-                }
-              `}
+                }`}
             >
               <option value="">Select category...</option>
               {CATEGORIES.map((cat) => (
@@ -596,7 +557,7 @@ export default function ProductForm({
           </div>
         </div>
 
-        {/* ---- Delivery Method ---- */}
+        {/* Delivery Method */}
         <div>
           <label
             className="block text-xs font-semibold
@@ -623,8 +584,7 @@ export default function ProductForm({
             ].map((opt) => (
               <label
                 key={opt.value}
-                className={`
-                  flex items-center gap-3 p-4
+                className={`flex items-center gap-3 p-4
                   rounded-xl border-2 cursor-pointer
                   transition-all duration-200
                   ${
@@ -633,8 +593,7 @@ export default function ProductForm({
                         ? "border-emerald-500 bg-emerald-50"
                         : "border-[#4B3621] bg-[#4B3621]/5"
                       : "border-gray-200 hover:border-gray-300"
-                  }
-                `}
+                  }`}
               >
                 <input
                   type="radio"
@@ -645,17 +604,8 @@ export default function ProductForm({
                   className="sr-only"
                 />
                 <span className="text-xl">{opt.icon}</span>
-                <div>
-                  <p
-                    className={`text-xs font-semibold
-                    ${
-                      formData.deliveryOption === opt.value
-                        ? opt.color === "emerald"
-                          ? "text-emerald-700"
-                          : "text-[#4B3621]"
-                        : "text-gray-600"
-                    }`}
-                  >
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-[#4B3621]">
                     {opt.label}
                   </p>
                   <p className="text-[10px] text-gray-400">{opt.desc}</p>
@@ -665,142 +615,125 @@ export default function ProductForm({
           </div>
         </div>
 
-        {/* ---- Images ---- */}
+        {/* Image Upload */}
         <div>
-          <div className="flex items-center justify-between mb-2">
-            <label
-              className="text-xs font-semibold
-              uppercase tracking-widest text-gray-500"
+          <label
+            className="block text-xs font-semibold
+            uppercase tracking-widest text-gray-500 mb-2"
+          >
+            Product Images
+            <span
+              className="text-gray-400 ml-1 normal-case
+              font-normal"
             >
-              Product Images
-            </label>
-            <span className="text-xs text-gray-400">{images.length}/1</span>
+              (max 2)
+            </span>
+          </label>
+
+          <div className="grid grid-cols-2 gap-3">
+            {images.map((img) => (
+              <div
+                key={img.id}
+                className="relative
+                aspect-square rounded-xl overflow-hidden
+                border-2 border-gray-100"
+              >
+                <img
+                  src={img.preview}
+                  alt=""
+                  className="w-full h-full object-cover"
+                />
+                <button
+                  type="button"
+                  onClick={() => handleImageRemove(img)}
+                  className="absolute top-2 right-2 w-6 h-6
+                    bg-red-500 text-white rounded-full
+                    flex items-center justify-center
+                    hover:bg-red-600 transition-colors"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ))}
+
+            {images.length < 2 && (
+              <label
+                className="aspect-square rounded-xl
+                border-2 border-dashed border-gray-300
+                flex flex-col items-center justify-center
+                cursor-pointer hover:border-[#4B3621]
+                hover:bg-[#4B3621]/5 transition-all group"
+              >
+                <ImagePlus
+                  className="w-7 h-7 text-gray-300
+                  group-hover:text-[#4B3621] mb-2"
+                />
+                <span
+                  className="text-[10px] text-gray-400
+                  group-hover:text-[#4B3621] font-medium"
+                >
+                  Add Photo
+                </span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleImageAdd}
+                  className="hidden"
+                />
+              </label>
+            )}
           </div>
 
-          {/* Upload Zone */}
-          {images.length < 1 && (
-            <label
-              className="flex flex-col items-center
-              justify-center gap-2 p-6 border-2 border-dashed
-              border-gray-200 rounded-xl bg-gray-50
-              hover:border-[#4B3621] hover:bg-[#4B3621]/5
-              cursor-pointer transition-all duration-200"
-            >
-              <ImagePlus className="w-8 h-8 text-gray-300" />
-              <p className="text-xs font-medium text-gray-400">
-                Click to upload images
-              </p>
-              <p className="text-[10px] text-gray-300">
-                Max 1 images — JPG, PNG, WEBP
-              </p>
-              <input
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={handleImageAdd}
-                className="sr-only"
+          {uploadingImage && (
+            <div className="flex items-center gap-2 mt-2">
+              <div
+                className="w-4 h-4 border-2
+                border-[#4B3621] border-t-transparent
+                rounded-full animate-spin"
               />
-            </label>
-          )}
-
-          {/* Image Previews */}
-          {images.length > 0 && (
-            <div
-              className="grid grid-cols-3 md:grid-cols-5
-              gap-3 mt-3"
-            >
-              {images.map((img) => (
-                <div key={img.id} className="relative aspect-square group">
-                  <img
-                    src={img.preview}
-                    alt="Product"
-                    className="w-full h-full object-cover
-                      rounded-xl border border-gray-100"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => handleImageRemove(img)}
-                    className="absolute -top-2 -right-2
-                      w-6 h-6 bg-red-500 text-white
-                      rounded-full flex items-center
-                      justify-center shadow-md
-                      opacity-0 group-hover:opacity-100
-                      transition-opacity"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
-                  {/* First image badge */}
-                  {img === images[0] && (
-                    <div
-                      className="absolute bottom-1 left-1
-                      px-1.5 py-0.5 bg-[#4B3621] text-white
-                      text-[9px] font-bold rounded-md"
-                    >
-                      Main
-                    </div>
-                  )}
-                </div>
-              ))}
+              <p className="text-xs text-gray-400">Uploading image...</p>
             </div>
           )}
         </div>
 
-        {/* ---- Submit Buttons ---- */}
+        {/* Submit buttons */}
         <div className="flex gap-3 pt-2">
-          <button
-            type="submit"
-            disabled={loading || uploadingImage}
-            className={`
-              flex-1 flex items-center justify-center gap-2
-              py-3 rounded-xl text-sm font-semibold
-              transition-all duration-200
-              ${
-                loading || uploadingImage
-                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                  : "bg-[#4B3621] text-white hover:bg-[#362818] shadow-sm"
-              }
-            `}
-          >
-            {loading || uploadingImage ? (
-              <>
-                <svg
-                  className="animate-spin w-4 h-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0
-                      5.373 0 12h4z"
-                  />
-                </svg>
-                {uploadingImage ? "Uploading images..." : "Processing..."}
-              </>
-            ) : formData.isDraft ? (
-              "Save as Draft"
-            ) : (
-              "Publish Listing"
-            )}
-          </button>
-
           <button
             type="button"
             onClick={onCancel}
-            className="px-6 py-3 border-2 border-gray-200
+            disabled={loading}
+            className="flex-1 py-3 border-2 border-gray-200
               text-gray-500 rounded-xl text-sm font-semibold
-              hover:border-gray-300 hover:text-gray-700
-              transition-all duration-200"
+              hover:border-gray-300 transition-all
+              disabled:opacity-50"
           >
             Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={loading}
+            className="flex-1 py-3 bg-[#4B3621] text-white
+              rounded-xl text-sm font-semibold
+              hover:bg-[#362818] transition-colors shadow-sm
+              active:scale-[0.98] disabled:opacity-50
+              disabled:cursor-not-allowed
+              flex items-center justify-center gap-2"
+          >
+            {loading ? (
+              <>
+                <div
+                  className="w-4 h-4 border-2
+                  border-white border-t-transparent
+                  rounded-full animate-spin"
+                />
+                Saving...
+              </>
+            ) : isEditMode ? (
+              "Update Product"
+            ) : (
+              "Post Listing"
+            )}
           </button>
         </div>
       </form>

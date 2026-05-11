@@ -1,3 +1,14 @@
+/**
+ * Marketplace.jsx — KOB Marketplace
+ *
+ * REFACTORED:
+ * ✅ useProfile() replaces getUserProfile() Firestore call
+ * ✅ Removed: userData state, getProfile useEffect
+ * ✅ profile passed directly to ProductForm
+ * ✅ payload uses profile fields directly
+ * ✅ Zero extra Firestore reads
+ */
+
 import React, { useEffect, useState, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
@@ -8,16 +19,23 @@ import {
 } from "../services/products";
 import Loading from "../components/Loading";
 import { useAuth } from "../firebase/auth";
+import { useProfile } from "../contexts/ProfileContext";
 import { uploadImage } from "../services/cloudinary";
 import ProductList from "../components/marketplace/ProductList";
 import ProductFilter from "../components/marketplace/ProductFilter";
 import ProductForm from "../components/marketplace/ProductForm";
+import ProductCard from "../components/ProductCard";
 import { Alert } from "../components/ui";
 import BackButton from "../components/BackButton";
-import { useProfile } from "../contexts/ProfileContext";
 import { ShoppingBag, SlidersHorizontal, X, Plus } from "lucide-react";
 
 export default function Marketplace() {
+  const { user } = useAuth();
+
+  // ✅ ProfileContext — replaces getUserProfile() useEffect
+  // Zero extra Firestore reads
+  const { profile } = useProfile();
+
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -27,10 +45,8 @@ export default function Marketplace() {
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [formError, setFormError] = useState(null);
-  const [userData, setUserData] = useState(null);
   const [showFilter, setShowFilter] = useState(false);
 
-  const { profile } = useProfile(); // ✅ No Firestore read
   const [searchParams, setSearchParams] = useSearchParams();
 
   // ================================
@@ -59,22 +75,7 @@ export default function Marketplace() {
     }
   }, [searchParams, user?.uid, products, loadProductForEdit]);
 
-  // ================================
-  // Fetch user profile
-  // ================================
-  useEffect(() => {
-    async function getProfile() {
-      if (user?.uid) {
-        try {
-          const profile = await getUserProfile(user.uid);
-          setUserData(profile);
-        } catch (err) {
-          console.error("Error fetching profile:", err);
-        }
-      }
-    }
-    getProfile();
-  }, [user, showForm]);
+  // ✅ REMOVED: getUserProfile useEffect — ProfileContext handles it
 
   // ================================
   // Fetch products
@@ -86,7 +87,7 @@ export default function Marketplace() {
       setProducts(items);
       setFilteredProducts(items);
       setError(null);
-    } catch (err) {
+    } catch {
       setError("Failed to load products. Please check your connection.");
     } finally {
       setLoading(false);
@@ -95,10 +96,11 @@ export default function Marketplace() {
 
   // ================================
   // Submit product
+  // ✅ Uses profile directly — no userData state
   // ================================
   async function handleProductSubmit(formData) {
     if (!user) {
-      setFormError("You must be logged in to perform this action.");
+      setFormError("You must be logged in.");
       return;
     }
 
@@ -106,46 +108,61 @@ export default function Marketplace() {
     setFormError(null);
 
     try {
+      // Upload images
       let finalImages = [];
       setUploadingImage(true);
 
       for (const img of formData.images) {
         if (img.file) {
-          const uploadedUrl = await uploadImage(img.file);
-          finalImages.push(uploadedUrl);
+          const url = await uploadImage(img.file);
+          finalImages.push(url);
         } else if (img.isExisting || typeof img === "string") {
-          const existingUrl = typeof img === "string" ? img : img.preview;
-          finalImages.push(existingUrl);
+          finalImages.push(typeof img === "string" ? img : img.preview);
         }
       }
       setUploadingImage(false);
 
-      const firstImageUrl = finalImages[0] || "";
+      const firstImage = finalImages[0] || "";
 
+      // ✅ All seller fields from ProfileContext
+      // No getUserProfile call needed
       const payload = {
         title: formData.title,
         description: formData.description,
         price: Number(formData.price),
         category: formData.category,
-        sellerName: userData?.businessName || userData?.displayName || "",
+
+        // ✅ From ProfileContext — safe optional chaining
+        sellerName: profile?.businessName || profile?.displayName || "",
+
         whatsappNumber:
-          formData.whatsappNumber || userData?.whatsappNumber || "",
+          formData.whatsappNumber ||
+          profile?.whatsappNumber ||
+          profile?.phoneNumber ||
+          "",
+
         cleanWhatsapp: (
           formData.whatsappNumber ||
-          userData?.whatsappNumber ||
+          profile?.whatsappNumber ||
+          profile?.phoneNumber ||
           ""
         ).replace(/\D/g, ""),
-        location: formData.location || userData?.location || "",
-        sellerIDNumber: formData.sellerIDNumber || userData?.kobNumber || "",
+
+        location:
+          formData.location || profile?.fullAddress || profile?.location || "",
+
+        sellerIDNumber: formData.sellerIDNumber || profile?.kobNumber || "",
+
         deliveryOption: formData.deliveryOption,
         deliveryLink:
           formData.deliveryOption === "KOB Express Delivery"
             ? "https://docs.google.com/forms/d/e/1FAIpQLSc5Ml7GWZNeNzKhbiqwfULxtFiQUQ0Cgt9eAM2is4JKou3F1Q/viewform"
             : null,
+
         isDraft: formData.isDraft ?? false,
         ownerUid: user.uid,
-        imageUrl: firstImageUrl,
-        mainImage: firstImageUrl,
+        imageUrl: firstImage,
+        mainImage: firstImage,
         images: finalImages,
         views: editingProduct?.views || 0,
         salesCount: editingProduct?.salesCount || 0,
@@ -164,9 +181,7 @@ export default function Marketplace() {
       return true;
     } catch (err) {
       console.error("Submission error:", err);
-      setFormError(
-        err.message || "An error occurred while saving the product."
-      );
+      setFormError(err.message || "An error occurred while saving.");
       throw err;
     } finally {
       setSubmitting(false);
@@ -205,16 +220,13 @@ export default function Marketplace() {
         className="relative overflow-hidden
         bg-[#4B3621] text-white py-14"
       >
-        {/* Decorative blobs */}
         <div
           className="absolute -top-16 -right-16 w-72 h-72
-          bg-[#D4AF37]/10 rounded-full blur-3xl
-          pointer-events-none"
+          bg-[#D4AF37]/10 rounded-full blur-3xl pointer-events-none"
         />
         <div
           className="absolute -bottom-16 -left-16 w-72 h-72
-          bg-white/5 rounded-full blur-3xl
-          pointer-events-none"
+          bg-white/5 rounded-full blur-3xl pointer-events-none"
         />
 
         <div className="container relative z-10">
@@ -234,8 +246,6 @@ export default function Marketplace() {
             Discover authentic products from verified sellers across Katsina
             State.
           </p>
-
-          {/* Stats row */}
           <div className="flex items-center gap-6 mt-6">
             <div className="flex items-center gap-2">
               <ShoppingBag className="w-4 h-4 text-[#D4AF37]" />
@@ -261,7 +271,7 @@ export default function Marketplace() {
             <div
               className="flex items-center justify-between
               p-5 bg-white rounded-2xl border border-gray-100
-              shadow-sm mb-0"
+              shadow-sm"
             >
               <div>
                 <p className="text-sm font-semibold text-[#4B3621]">
@@ -274,8 +284,8 @@ export default function Marketplace() {
               <button
                 onClick={() => setShowForm(true)}
                 className="flex items-center gap-2 px-5 py-2.5
-                  bg-[#4B3621] text-white rounded-xl
-                  text-sm font-semibold hover:bg-[#362818]
+                  bg-[#4B3621] text-white rounded-xl text-sm
+                  font-semibold hover:bg-[#362818]
                   transition-colors shadow-sm flex-shrink-0"
               >
                 <Plus className="w-4 h-4" />
@@ -283,6 +293,7 @@ export default function Marketplace() {
               </button>
             </div>
           ) : (
+            // ✅ Pass profile instead of userData
             <ProductForm
               onSubmit={handleProductSubmit}
               onCancel={() => {
@@ -290,7 +301,7 @@ export default function Marketplace() {
                 setEditingProduct(null);
               }}
               initialData={editingProduct}
-              userData={userData}
+              profile={profile}
               loading={submitting}
               error={formError}
               uploadingImage={uploadingImage}
@@ -309,7 +320,7 @@ export default function Marketplace() {
           </Alert>
         )}
 
-        {/* Mobile Filter Toggle */}
+        {/* Mobile filter toggle */}
         <div
           className="flex items-center justify-between
           mb-6 lg:hidden"
@@ -337,13 +348,10 @@ export default function Marketplace() {
         </div>
 
         <div className="flex gap-8">
-          {/* ================================ */}
-          {/* FILTER SIDEBAR                   */}
-          {/* ================================ */}
+          {/* Filter Sidebar */}
           <aside
             className={`
-            w-64 flex-shrink-0
-            lg:block
+            w-64 flex-shrink-0 lg:block
             ${showFilter ? "block" : "hidden"}
           `}
           >
@@ -355,11 +363,8 @@ export default function Marketplace() {
             </div>
           </aside>
 
-          {/* ================================ */}
-          {/* PRODUCTS GRID — 2 COLUMNS        */}
-          {/* ================================ */}
+          {/* Products Grid */}
           <div className="flex-1 min-w-0">
-            {/* Results count — desktop */}
             <div
               className="hidden lg:flex items-center
               justify-between mb-5"
@@ -378,7 +383,6 @@ export default function Marketplace() {
                 <Loading size="md" message="Fetching listings..." />
               </div>
             ) : filteredProducts.length === 0 ? (
-              /* Empty State */
               <div
                 className="py-20 text-center bg-white
                 rounded-2xl border border-gray-100"
@@ -395,15 +399,12 @@ export default function Marketplace() {
                 </p>
               </div>
             ) : (
-              /* ✅ 2 COLUMN GRID */
               <div
                 className="grid grid-cols-2 md:grid-cols-2
                 lg:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-5"
               >
                 {filteredProducts.map((product) => (
                   <div key={product.id} className="animate-fade-in">
-                    {/* Import ProductCard directly
-                        for 2-column layout control */}
                     <ProductCardWrapper
                       product={product}
                       user={user}
@@ -422,10 +423,8 @@ export default function Marketplace() {
 }
 
 // ================================
-// Wrapper — passes correct props
+// Product Card Wrapper
 // ================================
-import ProductCard from "../components/ProductCard";
-
 function ProductCardWrapper({ product, user, onEdit, onDelete }) {
   const canManage = user && product.ownerUid === user.uid;
   return (
