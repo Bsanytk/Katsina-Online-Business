@@ -29,7 +29,7 @@ import { auth, db } from "../firebase/firebase";
 // Cloudinary config
 // ================================
 const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dn5crslee/image/upload";
-const UPLOAD_PRESET = "kob_profiles";
+const UPLOAD_PRESET = "kob_unsigned";
 
 // ================================
 // Get profile — with safe fallback
