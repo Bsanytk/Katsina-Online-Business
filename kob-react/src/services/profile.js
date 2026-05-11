@@ -1,22 +1,14 @@
 /**
- * services/profile.js — KOB Profile Service Layer
+ * profile.js — KOB Profile Service
  *
- * MISSION: Only place that writes profile to Firestore.
- * - Centralized, safe, validated updates
- * - Never overwrites unrelated fields (uses merge)
- * - Backward compatible with old user documents
- * - Cloudinary image upload
- * - Password change
- * - Account deletion
+ * FIXES:
+ * ✅ Cloudinary config from env vars
+ * ✅ Removed public_id + overwrite (unsigned upload)
+ * ✅ Firestore only updated after successful upload
+ * ✅ Safe error handling throughout
  */
 
-import {
-  doc,
-  getDoc,
-  updateDoc,
-  setDoc,
-  serverTimestamp,
-} from "firebase/firestore";
+import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import {
   updatePassword,
   deleteUser,
@@ -26,30 +18,30 @@ import {
 import { auth, db } from "../firebase/firebase";
 
 // ================================
-// Cloudinary config
+// ✅ Cloudinary config from env
+// Never hardcode secrets
 // ================================
-const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dn5crslee/image/upload";
-const UPLOAD_PRESET = "kob_unsigned";
+const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`;
 
 // ================================
-// Get profile — with safe fallback
+// Get profile
 // ================================
 export async function getProfile(uid) {
   if (!uid) throw new Error("No user ID");
   const snap = await getDoc(doc(db, "users", uid));
   if (snap.exists()) return { id: snap.id, ...snap.data() };
-  return { uid }; // Fallback for brand new users
+  return { uid };
 }
 
 // ================================
-// Update profile — SAFE partial update
-// Never touches: role, kobNumber,
-//   isVerified, isAdmin, createdAt, email
+// Update profile — safe partial update
+// Strict allowlist protects critical fields
 // ================================
 export async function updateProfile(uid, data) {
   if (!uid) throw new Error("Not authenticated");
 
-  // Strict allowlist — protect critical fields
   const ALLOWED = [
     "displayName",
     "businessName",
@@ -61,17 +53,14 @@ export async function updateProfile(uid, data) {
     "phoneNumber",
     "whatsappNumber",
     "socialLinks",
-    "kobExpress",
   ];
 
   const safe = {};
   ALLOWED.forEach((key) => {
-    if (data[key] !== undefined) {
-      safe[key] = data[key];
-    }
+    if (data[key] !== undefined) safe[key] = data[key];
   });
 
-  // Keep phoneNumber + whatsappNumber in sync
+  // Keep phone fields in sync
   if (safe.phone && !safe.phoneNumber) {
     safe.phoneNumber = safe.phone;
   }
@@ -88,42 +77,58 @@ export async function updateProfile(uid, data) {
 }
 
 // ================================
-// Upload avatar — Cloudinary
-// Returns new photoURL
+// Upload avatar — Cloudinary unsigned
+//
+// ✅ FIXES:
+// - Config from env vars
+// - Removed public_id (causes unsigned upload error)
+// - Removed overwrite (not allowed unsigned)
+// - Firestore updated ONLY after successful upload
+// - Proper error propagation
 // ================================
 export async function uploadAvatar(file, uid) {
-  // Validate
+  // Validate file
   if (!file) throw new Error("No file selected");
   if (file.size > 5 * 1024 * 1024) {
     throw new Error("Image must be under 5MB");
   }
   const allowed = ["image/jpeg", "image/png", "image/webp"];
   if (!allowed.includes(file.type)) {
-    throw new Error("Only JPG, PNG, or WebP allowed");
+    throw new Error("Only JPG, PNG or WebP allowed");
   }
 
-  // Upload to Cloudinary
+  // Validate env
+  if (!CLOUD_NAME || !UPLOAD_PRESET) {
+    throw new Error(
+      "Cloudinary config missing. Check VITE_CLOUDINARY_* env vars."
+    );
+  }
+
+  // Build form — unsigned upload only needs file + preset
   const form = new FormData();
   form.append("file", file);
   form.append("upload_preset", UPLOAD_PRESET);
-  form.append("folder", `kob/profiles/${uid}`);
-  form.append("public_id", `avatar_${uid}`);
-  form.append("overwrite", "true");
+  form.append("folder", `kob/avatars`);
+  // ✅ NO public_id — causes unsigned upload rejection
+  // ✅ NO overwrite — not allowed for unsigned presets
 
+  // Upload to Cloudinary
   const res = await fetch(CLOUDINARY_URL, {
     method: "POST",
     body: form,
   });
 
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error?.message || "Upload failed");
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.error?.message || `Upload failed (${res.status})`);
   }
 
   const result = await res.json();
   const url = result.secure_url;
 
-  // Save to Firestore — only photoURL
+  if (!url) throw new Error("Upload succeeded but no URL returned");
+
+  // ✅ Only update Firestore AFTER successful upload
   await updateDoc(doc(db, "users", uid), {
     photoURL: url,
     updatedAt: serverTimestamp(),
@@ -133,8 +138,7 @@ export async function uploadAvatar(file, uid) {
 }
 
 // ================================
-// Profile completion score
-// 0–100 based on filled fields
+// Profile completion score 0–100
 // ================================
 export function getCompletionScore(profile = {}) {
   const checks = [
@@ -159,7 +163,6 @@ export async function changePassword(currentPwd, newPwd) {
   if (newPwd.length < 6) {
     throw new Error("New password must be at least 6 characters");
   }
-
   const cred = EmailAuthProvider.credential(user.email, currentPwd);
   await reauthenticateWithCredential(user, cred);
   await updatePassword(user, newPwd);
@@ -167,13 +170,10 @@ export async function changePassword(currentPwd, newPwd) {
 
 // ================================
 // Delete account — requires re-auth
-// Removes Firebase Auth user
-// Note: Firestore data retained per KOB policy
 // ================================
 export async function deleteAccount(currentPwd) {
   const user = auth.currentUser;
   if (!user) throw new Error("Not authenticated");
-
   const cred = EmailAuthProvider.credential(user.email, currentPwd);
   await reauthenticateWithCredential(user, cred);
   await deleteUser(user);

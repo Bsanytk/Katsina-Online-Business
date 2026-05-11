@@ -1,12 +1,12 @@
 /**
- * MobileSidebar.jsx — KOB Mobile Navigation Drawer
+ * MobileSidebar.jsx
  *
- * REFACTORED:
- * - Consumes ProfileContext (ZERO extra Firestore reads)
- * - Role-based nav links
- * - KOB brand design
- * - Smooth animations
- * - Backward compatible
+ * FIXES:
+ * ✅ flex flex-col h-full — logout always at bottom
+ * ✅ Scrollable middle nav section
+ * ✅ Fixed header + fixed footer
+ * ✅ Safe area support for iPhone home bar
+ * ✅ No content hidden behind safe area
  */
 
 import React, { useEffect } from "react";
@@ -15,14 +15,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth, logoutUser } from "../firebase/auth";
 import { useProfile } from "../contexts/ProfileContext";
 
-// ================================
-// KOB Logo
-// ================================
 const KOB_LOGO =
   "https://res.cloudinary.com/dn5crslee/image/upload/v1768211566/20260108_135034_qj155b.png";
 
 // ================================
-// SVG Nav Icons
+// Icons
 // ================================
 const Icons = {
   Home: () => (
@@ -177,22 +174,6 @@ const Icons = {
       <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
     </svg>
   ),
-  Logout: () => (
-    <svg
-      className="w-4 h-4"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={1.8}
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3
-        3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-      />
-    </svg>
-  ),
   Team: () => (
     <svg
       className="w-4 h-4"
@@ -204,12 +185,9 @@ const Icons = {
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
-        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10
-        0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0
-        015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0
-        0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0
-        016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0
-        11-4 0 2 2 0 014 0z"
+        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7
+        20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002
+        5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
       />
     </svg>
   ),
@@ -227,6 +205,22 @@ const Icons = {
         d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0
         002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0
         002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+      />
+    </svg>
+  ),
+  Logout: () => (
+    <svg
+      className="w-4 h-4"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={1.8}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3
+        3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
       />
     </svg>
   ),
@@ -248,53 +242,47 @@ const Icons = {
 };
 
 // ================================
-// Single Nav Link
+// Nav Link
 // ================================
 function NavLink({ to, icon, label, active, onClick }) {
   const base = `
     flex items-center gap-3 px-4 py-3 rounded-2xl
     text-sm font-semibold transition-all duration-150
-    active:scale-[0.98]
+    active:scale-[0.98] touch-manipulation w-full text-left
   `;
-  const activeClass = `
-    bg-[#4B3621] text-white shadow-sm
-    shadow-[#4B3621]/20
-  `;
-  const inactiveClass = `
-    text-gray-500 hover:bg-[#4B3621]/5
-    hover:text-[#4B3621]
-  `;
+  const activeClass = `bg-[#4B3621] text-white shadow-sm`;
+  const inactiveClass = `text-gray-500 hover:bg-[#4B3621]/5 hover:text-[#4B3621]`;
+
+  const content = (
+    <>
+      <span className="flex-shrink-0">{icon}</span>
+      <span className="truncate">{label}</span>
+    </>
+  );
 
   if (onClick) {
     return (
       <button
         onClick={onClick}
-        className={`${base} ${
-          active ? activeClass : inactiveClass
-        } w-full text-left`}
+        className={`${base} ${active ? activeClass : inactiveClass}`}
       >
-        <span className="flex-shrink-0">{icon}</span>
-        <span className="truncate">{label}</span>
+        {content}
       </button>
     );
   }
 
   return (
     <Link to={to} className={`${base} ${active ? activeClass : inactiveClass}`}>
-      <span className="flex-shrink-0">{icon}</span>
-      <span className="truncate">{label}</span>
+      {content}
     </Link>
   );
 }
 
-// ================================
-// Nav Section Header
-// ================================
-function SectionHeader({ label }) {
+function SectionLabel({ label }) {
   return (
     <p
       className="text-[9px] font-bold uppercase tracking-[0.2em]
-      text-gray-400 px-4 pt-4 pb-1"
+      text-gray-400 px-4 pt-4 pb-1 flex-shrink-0"
     >
       {label}
     </p>
@@ -308,8 +296,6 @@ export default function MobileSidebar({ isOpen, onClose }) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
-
-  // ✅ ProfileContext — no duplicate Firestore read
   const { profile, isSeller, isAdmin } = useProfile();
 
   const path = location.pathname;
@@ -319,13 +305,9 @@ export default function MobileSidebar({ isOpen, onClose }) {
     onClose?.();
   }, [path]);
 
-  // Lock body scroll when open
+  // Lock body scroll
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
+    document.body.style.overflow = isOpen ? "hidden" : "";
     return () => {
       document.body.style.overflow = "";
     };
@@ -344,16 +326,14 @@ export default function MobileSidebar({ isOpen, onClose }) {
   const isActive = (route) =>
     route === "/" ? path === "/" : path.startsWith(route);
 
-  // ================================
-  // Avatar initials
-  // ================================
-  const initials = (profile?.displayName || user?.email || "?")
-    .charAt(0)
-    .toUpperCase();
+  const displayName =
+    profile?.displayName ||
+    profile?.fullName ||
+    user?.email?.split("@")[0] ||
+    "KOB User";
 
-  // ================================
-  // Role config
-  // ================================
+  const initials = displayName.charAt(0).toUpperCase();
+
   const roleConfig = {
     admin: { label: "👑 Admin", cls: "bg-[#4B3621] text-white" },
     seller: { label: "🏪 Seller", cls: "bg-[#D4AF37]/20 text-[#4B3621]" },
@@ -378,7 +358,7 @@ export default function MobileSidebar({ isOpen, onClose }) {
             onClick={onClose}
           />
 
-          {/* Drawer */}
+          {/* ✅ DRAWER — full height flex column */}
           <motion.aside
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
@@ -389,17 +369,15 @@ export default function MobileSidebar({ isOpen, onClose }) {
               damping: 30,
             }}
             className="fixed top-0 right-0 bottom-0 z-50
-              w-[min(320px,90vw)] bg-white shadow-2xl
-              flex flex-col overflow-hidden"
+              w-[min(320px,88vw)] bg-white shadow-2xl
+              flex flex-col"
+            // ✅ h-full via flex — no content overflow
           >
-            {/* ============================== */}
-            {/* HEADER                         */}
-            {/* ============================== */}
-            <div
-              className="bg-[#4B3621] px-5 py-5
-              flex-shrink-0"
-            >
-              {/* Close + Logo row */}
+            {/* ================================ */}
+            {/* HEADER — flex-shrink-0           */}
+            {/* ================================ */}
+            <div className="flex-shrink-0 bg-[#4B3621] px-5 py-5">
+              {/* Logo + close */}
               <div
                 className="flex items-center
                 justify-between mb-5"
@@ -407,12 +385,7 @@ export default function MobileSidebar({ isOpen, onClose }) {
                 <div className="flex items-center gap-2.5">
                   <img src={KOB_LOGO} alt="KOB" className="h-8 w-auto" />
                   <div>
-                    <p
-                      className="text-white font-bold text-sm
-                      leading-tight"
-                    >
-                      KOB
-                    </p>
+                    <p className="text-white font-bold text-sm">KOB</p>
                     <p
                       className="text-[#D4AF37] text-[9px]
                       font-bold uppercase tracking-widest"
@@ -426,50 +399,45 @@ export default function MobileSidebar({ isOpen, onClose }) {
                   className="w-9 h-9 flex items-center
                     justify-center rounded-xl bg-white/15
                     text-white hover:bg-white/25
-                    transition-colors"
+                    transition-colors touch-manipulation"
                 >
                   <Icons.Close />
                 </button>
               </div>
 
-              {/* User Card */}
+              {/* User card */}
               {user ? (
                 <div
                   className="flex items-center gap-3
                   p-3 bg-white/10 rounded-2xl"
                 >
-                  {/* Avatar */}
                   <div
-                    className="w-12 h-12 rounded-xl
-                    bg-[#D4AF37]/30 border-2
-                    border-[#D4AF37]/40 flex items-center
-                    justify-center flex-shrink-0 overflow-hidden"
+                    className="w-11 h-11 rounded-xl
+                    bg-[#D4AF37]/30 border-2 border-[#D4AF37]/40
+                    flex items-center justify-center
+                    flex-shrink-0 overflow-hidden"
                   >
                     {profile?.photoURL ? (
                       <img
                         src={profile.photoURL}
-                        alt={profile.displayName || "Avatar"}
+                        alt={displayName}
                         className="w-full h-full object-cover"
                       />
                     ) : (
                       <span
-                        className="text-white text-lg
+                        className="text-white text-base
                         font-bold"
                       >
                         {initials}
                       </span>
                     )}
                   </div>
-
-                  {/* Name + Role */}
                   <div className="flex-1 min-w-0">
                     <p
                       className="text-white text-sm font-bold
                       truncate"
                     >
-                      {profile?.displayName ||
-                        user.email?.split("@")[0] ||
-                        "KOB User"}
+                      {displayName}
                     </p>
                     {profile?.businessName && (
                       <p
@@ -479,10 +447,7 @@ export default function MobileSidebar({ isOpen, onClose }) {
                         {profile.businessName}
                       </p>
                     )}
-                    <div
-                      className="flex items-center gap-1.5
-                      mt-1"
-                    >
+                    <div className="flex items-center gap-1.5 mt-1">
                       <span
                         className={`px-2 py-0.5 rounded-lg
                         text-[9px] font-bold uppercase
@@ -492,8 +457,8 @@ export default function MobileSidebar({ isOpen, onClose }) {
                       </span>
                       {profile?.kobNumber && (
                         <span
-                          className="text-[9px]
-                          text-white/40 font-mono"
+                          className="text-[9px] text-white/40
+                          font-mono"
                         >
                           {profile.kobNumber}
                         </span>
@@ -502,7 +467,6 @@ export default function MobileSidebar({ isOpen, onClose }) {
                   </div>
                 </div>
               ) : (
-                /* Guest card */
                 <div className="flex gap-2">
                   <Link
                     to="/login"
@@ -528,14 +492,15 @@ export default function MobileSidebar({ isOpen, onClose }) {
               )}
             </div>
 
-            {/* ============================== */}
-            {/* NAV LINKS                      */}
-            {/* ============================== */}
+            {/* ================================ */}
+            {/* SCROLLABLE NAV — flex-1          */}
+            {/* ✅ Grows to fill available space */}
+            {/* ================================ */}
             <nav
               className="flex-1 overflow-y-auto
-              px-3 py-3 space-y-0.5"
+              px-3 py-2 space-y-0.5 overscroll-contain"
             >
-              <SectionHeader label="Navigation" />
+              <SectionLabel label="Navigation" />
 
               <NavLink
                 to="/"
@@ -558,10 +523,9 @@ export default function MobileSidebar({ isOpen, onClose }) {
                 active={isActive("/alerts")}
               />
 
-              {/* Logged-in links */}
               {user && (
                 <>
-                  <SectionHeader label="My Account" />
+                  <SectionLabel label="My Account" />
 
                   <NavLink
                     to="/dashboard"
@@ -577,7 +541,6 @@ export default function MobileSidebar({ isOpen, onClose }) {
                     active={isActive("/profile")}
                   />
 
-                  {/* Seller-only */}
                   {(isSeller || isAdmin) && (
                     <>
                       <NavLink
@@ -595,10 +558,9 @@ export default function MobileSidebar({ isOpen, onClose }) {
                     </>
                   )}
 
-                  {/* Admin-only */}
                   {isAdmin && (
                     <>
-                      <SectionHeader label="Admin" />
+                      <SectionLabel label="Admin" />
                       <NavLink
                         to="/admin"
                         label="Admin Panel"
@@ -610,8 +572,7 @@ export default function MobileSidebar({ isOpen, onClose }) {
                 </>
               )}
 
-              {/* Company links */}
-              <SectionHeader label="Company" />
+              <SectionLabel label="Company" />
 
               <NavLink
                 to="/teams"
@@ -635,20 +596,28 @@ export default function MobileSidebar({ isOpen, onClose }) {
               />
             </nav>
 
-            {/* ============================== */}
-            {/* FOOTER                         */}
-            {/* ============================== */}
+            {/* ================================ */}
+            {/* FOOTER — flex-shrink-0           */}
+            {/* ✅ Always visible at bottom      */}
+            {/* ✅ Safe area padding for iPhone  */}
+            {/* ================================ */}
             <div
-              className="flex-shrink-0 px-3 py-4
-              border-t border-gray-100 space-y-2"
+              className="flex-shrink-0 px-3 py-3
+              border-t border-gray-100 bg-white
+              pb-[max(0.75rem,env(safe-area-inset-bottom))]"
             >
               {user ? (
-                <NavLink
-                  label="Sign Out"
-                  icon={<Icons.Logout />}
-                  active={false}
+                <button
                   onClick={handleLogout}
-                />
+                  className="w-full flex items-center gap-3
+                    px-4 py-3 rounded-2xl text-sm font-semibold
+                    text-red-500 hover:bg-red-50
+                    transition-all duration-150
+                    active:scale-[0.98] touch-manipulation"
+                >
+                  <Icons.Logout />
+                  <span>Sign Out</span>
+                </button>
               ) : (
                 <NavLink
                   to="/login"
@@ -660,9 +629,9 @@ export default function MobileSidebar({ isOpen, onClose }) {
 
               <p
                 className="text-center text-[9px]
-                text-gray-300 font-medium pb-1"
+                text-gray-300 font-medium pt-2"
               >
-                KOB Marketplace © {new Date().getFullYear()}
+                KOB © {new Date().getFullYear()}
               </p>
             </div>
           </motion.aside>

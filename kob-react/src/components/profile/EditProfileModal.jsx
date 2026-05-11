@@ -1,22 +1,23 @@
 /**
  * EditProfileModal.jsx
  *
- * - Consumes ProfileContext (no duplicate reads)
- * - Uses services/profile.js (safe writes)
- * - Optimistic UI update (instant feedback)
- * - Backward compatible with existing Firestore docs
+ * MOBILE FIXES:
+ * ✅ Modal body scrollable — max-h-[80vh] overflow-y-auto
+ * ✅ Save/Cancel buttons fixed at bottom — always visible
+ * ✅ Bottom nav clearance — pb-safe
+ * ✅ Slides up from bottom on mobile (natural UX)
+ * ✅ Avatar section compact — no excess padding
+ * ✅ Cloudinary upload via env-based service
  */
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useProfile } from "../../contexts/ProfileContext";
-import { updateProfile, uploadAvatar } from "../../services/profile";
+import { updateProfile } from "../../services/profile";
+import AvatarUpload from "./AvatarUpload";
 import SuccessModal from "./SuccessModal";
 
-// ================================
-// Country codes
-// ================================
-const CODES = [
+const COUNTRY_CODES = [
   { code: "+234", flag: "🇳🇬", name: "NG" },
   { code: "+227", flag: "🇳🇪", name: "NE" },
   { code: "+233", flag: "🇬🇭", name: "GH" },
@@ -33,11 +34,14 @@ const LOCATIONS = [
   "Mani",
   "Malumfashi",
   "Jibia",
+  "Kaita",
+  "Baure",
+  "Charanchi",
   "Other",
 ];
 
 // ================================
-// Field component
+// Form field component
 // ================================
 function Field({
   label,
@@ -59,6 +63,7 @@ function Field({
         {label}
         {required && <span className="text-red-400 ml-0.5">*</span>}
       </label>
+
       {type === "textarea" ? (
         <textarea
           value={value || ""}
@@ -92,6 +97,7 @@ function Field({
             }`}
         />
       )}
+
       <div className="flex justify-between mt-1">
         {error ? (
           <p className="text-[10px] text-red-500">{error}</p>
@@ -111,130 +117,6 @@ function Field({
 }
 
 // ================================
-// Avatar section
-// ================================
-function AvatarSection({ profile, uid, onUpdate }) {
-  const [uploading, setUploading] = useState(false);
-  const [preview, setPreview] = useState(null);
-  const fileRef = useRef();
-
-  const initials =
-    profile?.displayName
-      ?.split(" ")
-      ?.map((n) => n[0])
-      ?.join("")
-      ?.toUpperCase()
-      ?.slice(0, 2) || "?";
-
-  async function handleFile(e) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onloadend = () => setPreview(reader.result);
-    reader.readAsDataURL(file);
-    setUploading(true);
-    try {
-      const url = await uploadAvatar(file, uid);
-      onUpdate(url);
-      setPreview(null);
-    } catch (err) {
-      alert(err.message);
-      setPreview(null);
-    } finally {
-      setUploading(false);
-    }
-  }
-
-  return (
-    <div className="flex flex-col items-center pb-4">
-      <div className="relative">
-        <div
-          className="w-24 h-24 rounded-3xl overflow-hidden
-          border-4 border-white shadow-xl bg-[#4B3621]
-          flex items-center justify-center"
-        >
-          {preview || profile?.photoURL ? (
-            <img
-              src={preview || profile.photoURL}
-              alt="Avatar"
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <span className="text-white text-2xl font-bold">{initials}</span>
-          )}
-          {uploading && (
-            <div
-              className="absolute inset-0 bg-black/50
-              flex items-center justify-center"
-            >
-              <svg
-                className="animate-spin w-6 h-6 text-white"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                />
-              </svg>
-            </div>
-          )}
-        </div>
-        <button
-          type="button"
-          onClick={() => fileRef.current?.click()}
-          disabled={uploading}
-          className="absolute -bottom-1 -right-1 w-8 h-8
-            bg-[#4B3621] text-white rounded-xl
-            flex items-center justify-center shadow-lg
-            border-2 border-white hover:bg-[#362818]
-            transition-colors disabled:opacity-50"
-        >
-          <svg
-            className="w-3.5 h-3.5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2
-              2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0
-              0118.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0
-              01-2-2V9z"
-            />
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
-            />
-          </svg>
-        </button>
-        <input
-          ref={fileRef}
-          type="file"
-          accept="image/jpeg,image/png,image/webp"
-          onChange={handleFile}
-          className="hidden"
-        />
-      </div>
-      <p className="text-[10px] text-gray-400 mt-2">Tap icon to change photo</p>
-    </div>
-  );
-}
-
-// ================================
 // Main Modal
 // ================================
 export default function EditProfileModal({ show, onClose }) {
@@ -246,21 +128,36 @@ export default function EditProfileModal({ show, onClose }) {
   const [errors, setErrors] = useState({});
   const [showSuccess, setSuccess] = useState(false);
 
-  // Pre-fill form from ProfileContext
+  // Pre-fill from ProfileContext
   useEffect(() => {
     if (!profile || !show) return;
+
+    // Detect country code from stored number
+    const raw = profile.phone || profile.whatsappNumber || "";
+    let detectedCode = "+234";
+    let detectedNumber = raw;
+
+    COUNTRY_CODES.forEach((c) => {
+      const clean = c.code.replace("+", "");
+      if (raw.startsWith(clean)) {
+        detectedCode = c.code;
+        detectedNumber = raw.slice(clean.length);
+      }
+    });
+
+    setCode(detectedCode);
     setForm({
       displayName: profile.displayName || "",
       businessName: profile.businessName || "",
       bio: profile.bio || "",
       location: profile.location || "",
       fullAddress: profile.fullAddress || "",
-      phone: profile.phone || "",
-      whatsappNumber: profile.whatsappNumber || "",
+      phone: detectedNumber,
+      whatsappNumber: detectedNumber,
       photoURL: profile.photoURL || "",
     });
     setErrors({});
-  }, [profile, show]);
+  }, [profile?.uid, show]);
 
   function set(key) {
     return (val) => {
@@ -288,23 +185,18 @@ export default function EditProfileModal({ show, onClose }) {
 
     setSaving(true);
     try {
-      // Format phone numbers
-      const clean = (n) => (n ? `${countryCode}${n.replace(/^0/, "")}` : "");
+      const clean = (n) => (n ? `${countryCode}${n.replace(/^0+/, "")}` : "");
 
       const payload = {
         ...form,
         phone: form.phone ? clean(form.phone) : profile?.phone || "",
-        whatsappNumber: form.whatsappNumber
-          ? clean(form.whatsappNumber)
+        whatsappNumber: form.phone
+          ? clean(form.phone)
           : profile?.whatsappNumber || "",
       };
 
-      // Write to Firestore safely
       await updateProfile(profile.uid, payload);
-
-      // Optimistic update — instant UI refresh
       updateLocalProfile(payload);
-
       setSuccess(true);
     } catch (err) {
       setErrors({ general: err.message });
@@ -320,7 +212,6 @@ export default function EditProfileModal({ show, onClose }) {
 
   return (
     <>
-      {/* Success modal on top */}
       <SuccessModal
         show={showSuccess}
         onClose={handleSuccessClose}
@@ -330,34 +221,47 @@ export default function EditProfileModal({ show, onClose }) {
 
       <AnimatePresence>
         {show && !showSuccess && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-50 flex items-end
-              md:items-center justify-center
-              bg-black/60 backdrop-blur-sm"
-            onClick={onClose}
-          >
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-50
+                bg-black/60 backdrop-blur-sm"
+              onClick={onClose}
+            />
+
+            {/* ✅ MOBILE-FIRST MODAL
+                - Slides up from bottom
+                - Fixed max height with scrollable body
+                - Footer always visible
+            */}
             <motion.div
               initial={{ y: "100%", opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: "100%", opacity: 0 }}
               transition={{
                 type: "spring",
-                stiffness: 300,
-                damping: 30,
+                stiffness: 280,
+                damping: 28,
               }}
+              className="fixed bottom-0 left-0 right-0 z-50
+                bg-white rounded-t-3xl shadow-2xl
+                flex flex-col
+                md:relative md:bottom-auto md:left-auto
+                md:right-auto md:rounded-3xl
+                md:max-w-lg md:mx-auto md:my-auto
+                md:inset-0 md:m-auto"
+              style={{ maxHeight: "90vh" }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white w-full max-w-lg
-                rounded-t-3xl md:rounded-3xl shadow-2xl
-                max-h-[92vh] flex flex-col"
             >
-              {/* Header */}
+              {/* ---- HEADER (fixed) ---- */}
               <div
-                className="flex items-center justify-between
-                px-6 py-5 border-b border-gray-100 flex-shrink-0"
+                className="flex items-center
+                justify-between px-5 py-4 border-b
+                border-gray-100 flex-shrink-0"
               >
                 <div>
                   <h2
@@ -374,7 +278,8 @@ export default function EditProfileModal({ show, onClose }) {
                   onClick={onClose}
                   className="w-9 h-9 flex items-center
                     justify-center rounded-xl bg-gray-100
-                    text-gray-500 hover:bg-gray-200 transition"
+                    text-gray-500 hover:bg-gray-200
+                    transition-colors touch-manipulation"
                 >
                   <svg
                     className="w-4 h-4"
@@ -392,20 +297,32 @@ export default function EditProfileModal({ show, onClose }) {
                 </button>
               </div>
 
-              {/* Scrollable body */}
+              {/* ---- SCROLLABLE BODY ---- */}
+              {/* ✅ KEY FIX: overflow-y-auto makes body scroll */}
+              {/* Save button stays fixed at bottom */}
               <div
                 className="flex-1 overflow-y-auto
-                px-6 py-5 space-y-5"
+                px-5 py-4 space-y-5
+                overscroll-contain"
               >
-                {/* Avatar */}
-                <AvatarSection
-                  profile={{ ...profile, ...form }}
-                  uid={profile?.uid}
-                  onUpdate={(url) => {
-                    set("photoURL")(url);
-                    updateLocalProfile({ photoURL: url });
-                  }}
-                />
+                {/* Avatar — compact on mobile */}
+                <div className="flex justify-center py-2">
+                  <div className="flex flex-col items-center gap-2">
+                    <AvatarUpload
+                      photoURL={form.photoURL}
+                      displayName={form.displayName}
+                      uid={profile?.uid}
+                      size="lg"
+                      onSuccess={(url) => {
+                        set("photoURL")(url);
+                        updateLocalProfile({ photoURL: url });
+                      }}
+                    />
+                    <p className="text-[10px] text-gray-400">
+                      Tap icon to change photo
+                    </p>
+                  </div>
+                </div>
 
                 {/* General error */}
                 {errors.general && (
@@ -452,7 +369,7 @@ export default function EditProfileModal({ show, onClose }) {
                   maxLength={200}
                 />
 
-                {/* Location */}
+                {/* Region */}
                 <div>
                   <label
                     className="block text-[10px] font-bold
@@ -477,7 +394,7 @@ export default function EditProfileModal({ show, onClose }) {
                   </select>
                 </div>
 
-                {/* Full Address */}
+                {/* Shop Address */}
                 <Field
                   label="Shop Address"
                   value={form.fullAddress}
@@ -487,7 +404,7 @@ export default function EditProfileModal({ show, onClose }) {
                   hint="Shown to buyers on your listings"
                 />
 
-                {/* Phone */}
+                {/* Phone / WhatsApp */}
                 <div>
                   <label
                     className="block text-[10px] font-bold
@@ -502,9 +419,10 @@ export default function EditProfileModal({ show, onClose }) {
                       className="px-3 py-3 border-2 border-gray-200
                         rounded-xl text-sm outline-none
                         focus:border-[#4B3621] transition-colors
-                        bg-white cursor-pointer flex-shrink-0"
+                        bg-white cursor-pointer flex-shrink-0
+                        w-28"
                     >
-                      {CODES.map((c) => (
+                      {COUNTRY_CODES.map((c) => (
                         <option key={c.code} value={c.code}>
                           {c.flag} {c.code}
                         </option>
@@ -516,7 +434,7 @@ export default function EditProfileModal({ show, onClose }) {
                       onChange={(e) => {
                         const v = e.target.value.replace(/\D/g, "");
                         set("phone")(v);
-                        set("whatsappNumber")(v); // sync both
+                        set("whatsappNumber")(v);
                       }}
                       placeholder="8012345678"
                       maxLength={11}
@@ -530,12 +448,18 @@ export default function EditProfileModal({ show, onClose }) {
                     Same number used for WhatsApp contact
                   </p>
                 </div>
+
+                {/* Bottom spacing — prevents content hiding behind footer */}
+                <div className="h-2" />
               </div>
 
-              {/* Footer */}
+              {/* ---- FOOTER (always visible) ---- */}
+              {/* ✅ KEY FIX: flex-shrink-0 keeps footer fixed */}
               <div
-                className="flex gap-3 px-6 py-5
-                border-t border-gray-100 flex-shrink-0 bg-white"
+                className="flex gap-3 px-5 py-4
+                border-t border-gray-100 flex-shrink-0
+                bg-white
+                pb-[max(1rem,env(safe-area-inset-bottom))]"
               >
                 <button
                   onClick={onClose}
@@ -543,7 +467,8 @@ export default function EditProfileModal({ show, onClose }) {
                   className="flex-1 py-3.5 border-2
                     border-gray-200 text-gray-500 rounded-2xl
                     text-sm font-semibold hover:border-gray-300
-                    transition-all disabled:opacity-50"
+                    transition-all disabled:opacity-50
+                    touch-manipulation"
                 >
                   Cancel
                 </button>
@@ -555,7 +480,8 @@ export default function EditProfileModal({ show, onClose }) {
                     hover:bg-[#362818] transition-colors shadow-sm
                     active:scale-[0.98] disabled:opacity-50
                     disabled:cursor-not-allowed
-                    flex items-center justify-center gap-2"
+                    flex items-center justify-center gap-2
+                    touch-manipulation"
                 >
                   {saving ? (
                     <>
@@ -586,7 +512,7 @@ export default function EditProfileModal({ show, onClose }) {
                 </button>
               </div>
             </motion.div>
-          </motion.div>
+          </>
         )}
       </AnimatePresence>
     </>
