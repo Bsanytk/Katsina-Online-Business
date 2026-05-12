@@ -155,11 +155,25 @@ function AppContent() {
         </Suspense>
       </main>
 
-      {/* Footer — hidden on mobile */}
-      <footer className="hidden lg:block">
-        <Footer />
-      </footer>
+      {/* Footer — show on mobile with hikima*/}
 
+<footer
+  className="
+    block
+    border-t border-gray-200/70
+    bg-[#FAFAF8]
+  "
+>
+  <div
+    className="
+      lg:block
+      pb-[90px]
+      lg:pb-0
+    "
+  >
+    <Footer />
+  </div>
+</footer>
       {/* SupportWidget — hidden on mobile to avoid icon overlap */}
       <div className="hidden lg:block">
         <SupportWidget />
