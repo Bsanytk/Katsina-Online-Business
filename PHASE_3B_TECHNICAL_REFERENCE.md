@@ -273,7 +273,7 @@ import { useTranslation } from '../../hooks/useTranslation'
 const t = useTranslation()
 const contactPhone = t('common.contact_phone') || '07089454544'
 const contactWhatsApp = t('common.contact_whatsapp_link') || 'https://wa.me/2347089454544'
-const contactEmail = t('common.contact_email') || 'bsanidatatech@gmail.com'
+const contactEmail = t('common.contact_email') || 'katsinaonlinebusiness@gmail.com'
 
 // Updated: FAQs from translations
 const faqs = [

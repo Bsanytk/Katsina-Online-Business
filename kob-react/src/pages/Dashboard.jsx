@@ -326,7 +326,7 @@ function SellerDashboard() {
       label: "Inventory",
       icon: <LayoutGrid className="w-3.5 h-3.5" />,
     },
-    { id: "profile", label: "Profile", icon: <User className="w-3.5 h-3.5" /> },
+
     {
       id: "messages",
       label: "Messages",

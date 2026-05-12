@@ -43,15 +43,15 @@ module.exports = {
       // Merged all spacing here to avoid duplication errors
       spacing: {
         safe: "env(safe-area-inset-bottom)",
-        xs: "0.25rem",
-        sm: "0.5rem",
-        md: "1rem",
-        lg: "1.5rem",
-        xl: "2rem",
-        "2xl": "3rem",
-        "3xl": "4rem",
-      },
 
+        xs: "0.2rem",
+        sm: "0.4rem",
+        md: "0.8rem",
+        lg: "1.2rem",
+        xl: "1.6rem",
+        "2xl": "2.4rem",
+        "3xl": "3.2rem",
+      },
       // 3. TYPOGRAPHY
       fontFamily: {
         sans: [
@@ -68,9 +68,9 @@ module.exports = {
       fontSize: {
         xs: ["0.75rem", { lineHeight: "1rem", letterSpacing: "0.75px" }],
         sm: ["0.875rem", { lineHeight: "1.25rem", letterSpacing: "0.5px" }],
-        base: ["1rem", { lineHeight: "1.5rem", letterSpacing: "0px" }],
-        lg: ["1.125rem", { lineHeight: "1.75rem", letterSpacing: "-0.25px" }],
-        xl: ["1.25rem", { lineHeight: "1.75rem", letterSpacing: "-0.25px" }],
+        base: ["0.95rem", { lineHeight: "1.4rem", letterSpacing: "0px" }],
+        lg: ["1.05rem", { lineHeight: "1.75rem", letterSpacing: "-0.25px" }],
+        xl: ["1.15rem", { lineHeight: "1.75rem", letterSpacing: "-0.25px" }],
         "2xl": ["1.5rem", { lineHeight: "2rem", letterSpacing: "-0.5px" }],
         "3xl": [
           "1.875rem",
@@ -132,7 +132,10 @@ module.exports = {
         "slide-down": "slide-down 200ms ease-out",
         "pulse-subtle": "pulse-subtle 3s ease-in-out infinite",
       },
-      maxWidth: { container: "1100px" },
+      maxWidth: {
+        container: "1200px",
+        mobile: "95%",
+      },
     },
   },
   plugins: [],

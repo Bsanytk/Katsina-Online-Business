@@ -37,7 +37,7 @@
 
 ## 📧 Contact Information
 
-- [ ] Email uses: `t('common.contact_email')` → `bsanidatatech@gmail.com`
+- [ ] Email uses: `t('common.contact_email')` → `katsinaonlinebusiness@gmail.com`
 - [ ] Phone uses: `t('common.contact_phone')` → `07089454544`
 - [ ] WhatsApp link uses: `t('common.contact_whatsapp_link')` → `https://wa.me/2347089454544`
 - [ ] No placeholder values like `support@kob.example`

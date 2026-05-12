@@ -157,7 +157,7 @@ function handleToggleDraft() {
 // Contact Info from Translations
 const contactPhone = t('common.contact_phone') || '07089454544'
 const contactWhatsApp = t('common.contact_whatsapp_link') || 'https://wa.me/2347089454544'
-const contactEmail = t('common.contact_email') || 'bsanidatatech@gmail.com'
+const contactEmail = t('common.contact_email') || 'katsinaonlinebusiness@gmail.com'
 
 // Quick Action Buttons
 <a href={contactWhatsApp} target="_blank" rel="noopener noreferrer">
