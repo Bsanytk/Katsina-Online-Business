@@ -653,187 +653,92 @@ export default function Profile() {
           <Skeleton />
         ) : (
           <>
-            "w-3 h-3
-                          text-[#D4AF37]"
+            {/* ================================ */}
+            {/* ================================ */}
+            {/* HERO CARD — Avatar Overlap Fix   */}
+            {/* ================================ */}
+            <div
+              className="bg-white rounded-3xl shadow-sm
+  border border-gray-100 overflow-visible"
+            >
+              {/* ✅ Brown banner */}
+              <div
+                className="h-28 md:h-36
+    bg-gradient-to-br from-[#2C1F0E]
+    via-[#4B3621] to-[#6B4C31]
+    rounded-t-3xl relative overflow-hidden"
+              >
+                {/* Decorative blobs */}
+                <div
+                  className="absolute -top-8 -right-8 w-40 h-40
+      bg-[#D4AF37]/10 rounded-full blur-3xl
+      pointer-events-none"
+                />
+                <div
+                  className="absolute -bottom-4 -left-4 w-24 h-24
+      bg-white/5 rounded-full blur-xl
+      pointer-events-none"
+                />
+              </div>
+
+              {/* ✅ AVATAR — lifted above banner */}
+              {/* -mt-12 raises avatar over the brown strip */}
+              {/* z-10 ensures it layers above the banner  */}
+              <div className="px-5 md:px-7 pb-6">
+                <div
+                  className="flex items-end justify-between
+      -mt-12 mb-4"
+                >
+                  {/* Avatar with layered border effect */}
+                  <div className="relative z-10 flex-shrink-0">
+                    <div
+                      className="w-20 h-20 md:w-24 md:h-24
+          rounded-2xl overflow-hidden
+          border-4 border-white
+          shadow-xl shadow-black/20
+          bg-[#4B3621]"
+                    >
+                      {profile?.photoURL ? (
+                        <img
+                          src={profile.photoURL}
+                          alt={profile?.displayName || "Avatar"}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div
+                          className="w-full h-full flex items-center
+              justify-center text-white text-2xl font-black"
+                        >
+                          {(profile?.displayName || user?.email || "?")
+                            .charAt(0)
+                            .toUpperCase()}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* ✅ Verified + KOB Express badges — top right */}
+                  <div
+                    className="flex flex-wrap gap-2 justify-end
+        pb-1 flex-1 ml-3"
+                  >
+                    {profile?.isVerified && (
+                      <span
+                        className="inline-flex items-center gap-1.5
+            px-3 py-1.5
+            bg-[#D4AF37]/15
+            border border-[#D4AF37]/30
+            rounded-xl
+            text-xs font-bold text-[#4B3621]"
+                      >
+                        <svg
+                          className="w-3.5 h-3.5 text-[#D4AF37]"
                           fill="currentColor"
                           viewBox="0 0 20 20"
                         >
                           <path
                             fillRule="evenodd"
-                            d="M6.267 3.455a3.066 3.066 0
-                            001.745-.723 3.066 3.066 0 013.976 0
-                            3.066 3.066 0 001.745.723 3.066 3.066 0
-                            012.812 2.812c.051.643.304 1.254.723
-                            1.745a3.066 3.066 0 010 3.976 3.066
-                            3.066 0 00-.723 1.745 3.066 3.066 0
-                            01-2.812 2.812 3.066 3.066 0 00-1.745.723
-                            3.066 3.066 0 01-3.976 0 3.066 3.066 0
-                            00-1.745-.723 3.066 3.066 0 01-2.812-2.812
-                            3.066 3.066 0 00-.723-1.745 3.066 3.066 0
-                            010-3.976 3.066 3.066 0 00.723-1.745 3.066
-                            3.066 0 012.812-2.812zm7.44 5.252a1 1 0
-                            00-1.414-1.414L9 10.586 7.707 9.293a1 1
-                            0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                        Verified
-                      </span>
-                    )}
-                    {profile?.kobExpress && (
-                      <span
-                        className="px-2.5 py-1
-                        bg-emerald-50 border border-emerald-100
-                        rounded-xl text-[9px] font-bold
-                        text-emerald-700"
-                      >
-                        🚚 KOB Express
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Name + role */}
-                <h2
-                  className="text-xl font-bold text-[#2C1F0E]
-                  mb-0.5"
-                >
-                  {profile?.displayName || "No Name Set"}
-                </h2>
-
-                {profile?.businessName && (
-                  <p
-                    className="text-xs text-[#D4AF37] font-bold
-                    mb-2"
-                  >
-                    🏪 {profile.businessName}
-                  </p>
-                )}
-
-                <div className="flex flex-wrap gap-2 mb-3">
-                  <span
-                    className={`px-3 py-1 rounded-xl
-                    text-[10px] font-bold uppercase
-                    tracking-wider ${roleLabel.cls}`}
-                  >
-                    {roleLabel.text}
-                  </span>
-                  {profile?.kobNumber && (
-                    <span
-                      className="px-3 py-1 bg-gray-100
-                      text-gray-600 rounded-xl text-[10px]
-                      font-bold"
-                    >
-                      {profile.kobNumber}
-                    </span>
-                  )}
-                </div>
-
-                {/* Bio */}
-                {profile?.bio && (
-                  <p
-                    className="text-xs text-gray-500
-                    leading-relaxed mb-4"
-                  >
-                    {profile.bio}
-                  </p>
-                )}
-
-                {/* Profile Completion */}
-                <div className="mt-2">
-                  <div
-                    className="flex items-center
-                    justify-between mb-1.5"
-                  >
-                    <p
-                      className="text-[9px] font-bold uppercase
-                      tracking-widest text-gray-400"
-                    >
-                      Profile Completion
-                    </p>
-                    <p
-                      className={`text-[10px] font-bold
-                      ${
-                        score >= 80
-                          ? "text-emerald-600"
-                          : score >= 50
-                          ? "text-amber-600"
-                          : "text-red-400"
-                      }`}
-                    >
-                      {score}%
-                    </p>
-                  </div>
-                  <div
-                    className="h-1.5 bg-gray-100 rounded-full
-                    overflow-hidden"
-                  <>
-{/* ================================ */}
-{/* HERO CARD — Avatar Overlap Fix   */}
-{/* ================================ */}
-<div className="bg-white rounded-3xl shadow-sm
-  border border-gray-100 overflow-visible">
-
-  {/* ✅ Brown banner */}
-  <div className="h-28 md:h-36
-    bg-gradient-to-br from-[#2C1F0E]
-    via-[#4B3621] to-[#6B4C31]
-    rounded-t-3xl relative overflow-hidden">
-    {/* Decorative blobs */}
-    <div className="absolute -top-8 -right-8 w-40 h-40
-      bg-[#D4AF37]/10 rounded-full blur-3xl
-      pointer-events-none" />
-    <div className="absolute -bottom-4 -left-4 w-24 h-24
-      bg-white/5 rounded-full blur-xl
-      pointer-events-none" />
-  </div>
-
-  {/* ✅ AVATAR — lifted above banner */}
-  {/* -mt-12 raises avatar over the brown strip */}
-  {/* z-10 ensures it layers above the banner  */}
-  <div className="px-5 md:px-7 pb-6">
-    <div className="flex items-end justify-between
-      -mt-12 mb-4">
-
-      {/* Avatar with layered border effect */}
-      <div className="relative z-10 flex-shrink-0">
-        <div className="w-20 h-20 md:w-24 md:h-24
-          rounded-2xl overflow-hidden
-          border-4 border-white
-          shadow-xl shadow-black/20
-          bg-[#4B3621]">
-          {profile?.photoURL ? (
-            <img
-              src={profile.photoURL}
-              alt={profile?.displayName || 'Avatar'}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center
-              justify-center text-white text-2xl font-black">
-              {(
-                profile?.displayName ||
-                user?.email || '?'
-              ).charAt(0).toUpperCase()}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* ✅ Verified + KOB Express badges — top right */}
-      <div className="flex flex-wrap gap-2 justify-end
-        pb-1 flex-1 ml-3">
-        {profile?.isVerified && (
-          <span className="inline-flex items-center gap-1.5
-            px-3 py-1.5
-            bg-[#D4AF37]/15
-            border border-[#D4AF37]/30
-            rounded-xl
-            text-xs font-bold text-[#4B3621]">
-            <svg className="w-3.5 h-3.5 text-[#D4AF37]"
-              fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd"
-                d="M6.267 3.455a3.066 3.066 0 001.745-.723
+                            d="M6.267 3.455a3.066 3.066 0 001.745-.723
                 3.066 3.066 0 013.976 0 3.066 3.066 0
                 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304
                 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0
@@ -844,99 +749,125 @@ export default function Profile() {
                 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1
                 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0
                 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                clipRule="evenodd" />
-            </svg>
-            Verified
-          </span>
-        )}
-        {profile?.kobExpress && (
-          <span className="px-3 py-1.5
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                        Verified
+                      </span>
+                    )}
+                    {profile?.kobExpress && (
+                      <span
+                        className="px-3 py-1.5
             bg-emerald-50 text-emerald-700
             border border-emerald-100 rounded-xl
-            text-xs font-bold">
-            🚚 KOB Express
-          </span>
-        )}
-      </div>
-    </div>
+            text-xs font-bold"
+                      >
+                        🚚 KOB Express
+                      </span>
+                    )}
+                  </div>
+                </div>
 
-    {/* ✅ Name — proper spacing below avatar */}
-    <div className="mb-3">
-      <h2 className="text-xl md:text-2xl font-bold
-        text-[#2C1F0E] leading-tight mb-0.5">
-        {profile?.displayName || 'No Name Set'}
-      </h2>
+                {/* ✅ Name — proper spacing below avatar */}
+                <div className="mb-3">
+                  <h2
+                    className="text-xl md:text-2xl font-bold
+        text-[#2C1F0E] leading-tight mb-0.5"
+                  >
+                    {profile?.displayName || "No Name Set"}
+                  </h2>
 
-      {/* Business name */}
-      {profile?.businessName && (
-        <p className="text-sm text-[#D4AF37] font-bold mb-2
-          flex items-center gap-1">
-          🏪 {profile.businessName}
-        </p>
-      )}
+                  {/* Business name */}
+                  {profile?.businessName && (
+                    <p
+                      className="text-sm text-[#D4AF37] font-bold mb-2
+          flex items-center gap-1"
+                    >
+                      🏪 {profile.businessName}
+                    </p>
+                  )}
 
-      {/* Role + KOB ID badges */}
-      <div className="flex flex-wrap gap-2 mb-3">
-        <span className={`px-3 py-1 rounded-xl text-xs
+                  {/* Role + KOB ID badges */}
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    <span
+                      className={`px-3 py-1 rounded-xl text-xs
           font-bold uppercase tracking-wide
-          ${roleLabel.cls}`}>
-          {roleLabel.text}
-        </span>
-        {(profile?.kobNumber || user?.kobNumber) && (
-          <span className="px-3 py-1 bg-gray-100
-            text-gray-600 rounded-xl text-xs font-bold">
-            {profile?.kobNumber || user?.kobNumber}
-          </span>
-        )}
-      </div>
+          ${roleLabel.cls}`}
+                    >
+                      {roleLabel.text}
+                    </span>
+                    {(profile?.kobNumber || user?.kobNumber) && (
+                      <span
+                        className="px-3 py-1 bg-gray-100
+            text-gray-600 rounded-xl text-xs font-bold"
+                      >
+                        {profile?.kobNumber || user?.kobNumber}
+                      </span>
+                    )}
+                  </div>
 
-      {/* Bio */}
-      {profile?.bio && (
-        <p className="text-sm text-gray-500 leading-relaxed">
-          {profile.bio}
-        </p>
-      )}
-    </div>
+                  {/* Bio */}
+                  {profile?.bio && (
+                    <p className="text-sm text-gray-500 leading-relaxed">
+                      {profile.bio}
+                    </p>
+                  )}
+                </div>
 
-    {/* ✅ Profile Completion */}
-    <div className="mt-3">
-      <div className="flex items-center
-        justify-between mb-1.5">
-        <p className="text-xs font-bold uppercase
-          tracking-wide text-gray-400">
-          Profile Completion
-        </p>
-        <p className={`text-xs font-bold
-          ${score >= 80 ? 'text-emerald-600'
-            : score >= 50 ? 'text-amber-600'
-            : 'text-red-400'}`}>
-          {score}%
-        </p>
-      </div>
-      <div className="h-2 bg-gray-100 rounded-full
-        overflow-hidden">
-        <div
-          className={`h-full rounded-full transition-all
+                {/* ✅ Profile Completion */}
+                <div className="mt-3">
+                  <div
+                    className="flex items-center
+        justify-between mb-1.5"
+                  >
+                    <p
+                      className="text-xs font-bold uppercase
+          tracking-wide text-gray-400"
+                    >
+                      Profile Completion
+                    </p>
+                    <p
+                      className={`text-xs font-bold
+          ${
+            score >= 80
+              ? "text-emerald-600"
+              : score >= 50
+              ? "text-amber-600"
+              : "text-red-400"
+          }`}
+                    >
+                      {score}%
+                    </p>
+                  </div>
+                  <div
+                    className="h-2 bg-gray-100 rounded-full
+        overflow-hidden"
+                  >
+                    <div
+                      className={`h-full rounded-full transition-all
             duration-700
-            ${score >= 80 ? 'bg-emerald-500'
-              : score >= 50 ? 'bg-amber-400'
-              : 'bg-red-400'}`}
-          style={{ width: `${score}%` }}
-        />
-      </div>
-      {score < 100 && (
-        <button
-          onClick={() => setEdit(true)}
-          className="text-xs text-[#4B3621] font-semibold
-            mt-1.5 hover:underline touch-manipulation">
-          Complete your profile →
-        </button>
-      )}
-    </div>
-  </div>
-</div>
-
-
+            ${
+              score >= 80
+                ? "bg-emerald-500"
+                : score >= 50
+                ? "bg-amber-400"
+                : "bg-red-400"
+            }`}
+                      style={{ width: `${score}%` }}
+                    />
+                  </div>
+                  {score < 100 && (
+                    <button
+                      onClick={() => setEdit(true)}
+                      className="text-xs text-[#4B3621] font-semibold
+            mt-1.5 hover:underline touch-manipulation"
+                    >
+                      Complete your profile →
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
             {/* ================================ */}
             {/* INFO CARD                        */}
             {/* ================================ */}

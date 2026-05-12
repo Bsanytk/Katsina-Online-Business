@@ -28,7 +28,7 @@ const Icons = {
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
-      strokeWidth={1.8}
+      strokeWidth={1.5}
     >
       <path
         strokeLinecap="round"
@@ -45,7 +45,7 @@ const Icons = {
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
-      strokeWidth={1.8}
+      strokeWidth={1.5}
     >
       <path
         strokeLinecap="round"
@@ -65,7 +65,7 @@ const Icons = {
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
-      strokeWidth={1.8}
+      strokeWidth={1.5}
     >
       <path
         strokeLinecap="round"
@@ -83,7 +83,7 @@ const Icons = {
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
-      strokeWidth={1.8}
+      strokeWidth={1.5}
     >
       <path
         strokeLinecap="round"
@@ -99,7 +99,7 @@ const Icons = {
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
-      strokeWidth={1.8}
+      strokeWidth={1.5}
     >
       <path
         strokeLinecap="round"
@@ -115,7 +115,7 @@ const Icons = {
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
-      strokeWidth={1.8}
+      strokeWidth={1.5}
     >
       <path
         strokeLinecap="round"
@@ -134,7 +134,7 @@ const Icons = {
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
-      strokeWidth={1.8}
+      strokeWidth={1.5}
     >
       <path
         strokeLinecap="round"
@@ -151,7 +151,7 @@ const Icons = {
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
-      strokeWidth={1.8}
+      strokeWidth={1.5}
     >
       <path
         strokeLinecap="round"
@@ -169,7 +169,7 @@ const Icons = {
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
-      strokeWidth={2}
+      strokeWidth={1.5}
     >
       <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
     </svg>
@@ -180,7 +180,7 @@ const Icons = {
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
-      strokeWidth={1.8}
+      strokeWidth={1.5}
     >
       <path
         strokeLinecap="round"
@@ -230,7 +230,7 @@ const Icons = {
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
-      strokeWidth={2.5}
+      strokeWidth={1.5}
     >
       <path
         strokeLinecap="round"
@@ -246,8 +246,8 @@ const Icons = {
 // ================================
 function NavLink({ to, icon, label, active, onClick }) {
   const base = `
-    flex items-center gap-3 px-4 py-3 rounded-2xl
-    text-sm font-semibold transition-all duration-150
+    flex items-center gap-3 px-3.5 py-2.5 rounded-2xl
+    text-[13px] font-semibold transition-all duration-150
     active:scale-[0.98] touch-manipulation w-full text-left
   `;
   const activeClass = `bg-[#4B3621] text-white shadow-sm`;
@@ -369,14 +369,14 @@ export default function MobileSidebar({ isOpen, onClose }) {
               damping: 30,
             }}
             className="fixed top-0 right-0 bottom-0 z-50
-              w-[min(320px,88vw)] bg-white shadow-2xl
+              w-[min(280px,88vw)] bg-[#F9F9F9]-2xl
               flex flex-col"
             // ✅ h-full via flex — no content overflow
           >
             {/* ================================ */}
             {/* HEADER — flex-shrink-0           */}
             {/* ================================ */}
-            <div className="flex-shrink-0 bg-[#4B3621] px-5 py-5">
+            <div className="flex-shrink-0 bg-white shadow px-5 py-5">
               {/* Logo + close */}
               <div
                 className="flex items-center
@@ -409,10 +409,10 @@ export default function MobileSidebar({ isOpen, onClose }) {
               {user ? (
                 <div
                   className="flex items-center gap-3
-                  p-3 bg-white/10 rounded-2xl"
+                  p-2.5 bg-white/10 rounded-2xl"
                 >
                   <div
-                    className="w-11 h-11 rounded-xl
+                    className="w-9 h-9 rounded-xl
                     bg-[#D4AF37]/30 border-2 border-[#D4AF37]/40
                     flex items-center justify-center
                     flex-shrink-0 overflow-hidden"

@@ -591,7 +591,6 @@ function SellerDashboard() {
         </div>
       )}
 
-      {activeTab === "profile" && <EditProfileModal />}
       {activeTab === "messages" && <MessagesTab />}
       {activeTab === "sales" && <OrdersTab />}
 
