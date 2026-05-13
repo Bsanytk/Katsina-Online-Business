@@ -22,6 +22,7 @@ const FOOTER_LINKS = {
     },
   ],
   legal: [
+    { to: "/legal", label: "Legal Center" },
     { to: "/terms", label: "Terms of Service" },
     { to: "/privacy", label: "Privacy Policy" },
     { to: "/cookies", label: "Cookie Policy" },
