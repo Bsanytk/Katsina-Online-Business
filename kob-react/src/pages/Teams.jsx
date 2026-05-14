@@ -1,195 +1,233 @@
-import React from "react";
-import { useTranslation } from "../hooks/useTranslation";
-import { Card } from "../components/ui";
-import BackButton from "../components/BackButton";
+/**
+ * Teams.jsx — KOB Professional Team Page
+ */
+
+import React, { useState } from 'react'
+import TeamCard from '../components/team/TeamCard'
+import TeamMemberModal from '../components/team/TeamMemberModal'
+
+// ================================
+// Team Data — scalable structure
+// ================================
+const TEAM = [
+  {
+    id:        1,
+    name:      'Sulaiman Babangida Sani',
+    role:      'Founder & CEO',
+    image:
+      'https://res.cloudinary.com/dn5crslee/image/upload/v1773415750/20260313_161322_oo9ocx.png',
+    whatsapp:  '2347089454544',
+    facebook:  'https://facebook.com',
+    instagram: 'https://instagram.com',
+    email:     'ceo@kobmarketplace.com',
+    bio:       'Visionary behind KOB Marketplace. Dedicated to empowering Katsina businesses through technology and digital commerce.',
+    verified:  true,
+  },
+  {
+    id:        2,
+    name:      'Fatima Aliyu',
+    role:      'Head of Operations',
+    image:     '',
+    whatsapp:  '2348012345678',
+    facebook:  'https://facebook.com',
+    instagram: 'https://instagram.com',
+    email:     'ops@kobmarketplace.com',
+    bio:       'Oversees day-to-day marketplace operations, seller onboarding, and customer experience excellence.',
+    verified:  true,
+  },
+  {
+    id:        3,
+    name:      'Abdullahi Musa',
+    role:      'Lead Developer',
+    image:     '',
+    whatsapp:  '2348023456789',
+    facebook:  'https://facebook.com',
+    instagram: 'https://instagram.com',
+    email:     'dev@kobmarketplace.com',
+    bio:       'Builds and maintains KOB platform infrastructure. Passionate about scalable marketplace technology.',
+    verified:  true,
+  },
+  {
+    id:        4,
+    name:      'Aisha Ibrahim',
+    role:      'Marketing Director',
+    image:     '',
+    whatsapp:  '2348034567890',
+    facebook:  'https://facebook.com',
+    instagram: 'https://instagram.com',
+    email:     'marketing@kobmarketplace.com',
+    bio:       'Drives KOB brand awareness and seller growth across Katsina State through digital and community marketing.',
+    verified:  false,
+  },
+  {
+    id:        5,
+    name:      'Umar Faruk',
+    role:      'Safety & Compliance',
+    image:     '',
+    whatsapp:  '2348045678901',
+    facebook:  'https://facebook.com',
+    instagram: null,
+    email:     'safety@kobmarketplace.com',
+    bio:       'Ensures marketplace integrity, fraud prevention, and community standard compliance.',
+    verified:  true,
+  },
+  {
+    id:        6,
+    name:      'Hafsat Danjuma',
+    role:      'Customer Success',
+    image:     '',
+    whatsapp:  '2348056789012',
+    facebook:  'https://facebook.com',
+    instagram: 'https://instagram.com',
+    email:     'support@kobmarketplace.com',
+    bio:       'Champions buyer and seller satisfaction, resolves disputes, and improves the KOB support experience.',
+    verified:  false,
+  },
+]
+
+const STATS = [
+  { value: '6+',  label: 'Team Members'     },
+  { value: '50+', label: 'Verified Sellers' },
+  { value: '1K+', label: 'Happy Buyers'     },
+  { value: '3+',  label: 'Years Building'   },
+]
 
 export default function Teams() {
-  const t = useTranslation();
-
-  const teamMembers = [
-    {
-      id: 1,
-      name: "Sulaiman Babangida Sani",
-      role: "Founder & CEO",
-      bio: "Digital entrepreneur with 5+ years in e-commerce and startup ecosystem.",
-      avatar: "👨‍💼",
-    },
-    {
-      id: 2,
-      name: "Abdulmutallib Auwal",
-      role: "Head of Operations",
-      bio: "Operations expert ensuring smooth marketplace function and seller success.",
-      avatar: "👨‍💼",
-    },
-    {
-      id: 3,
-      name: "Bello Umar Bello",
-      role: "Senior Advisor",
-      bio: "Full-stack engineer building scalable, modern marketplace technology.",
-      avatar: "👨‍💻",
-    },
-    {
-      id: 4,
-      name: "Salahuddeen Ahmad & Zainab MLadan",
-      role: "Community Manager",
-      bio: "Supporting buyers and sellers, building a thriving marketplace community.",
-      avatar: "👩‍🤝‍👨",
-    },
-  ];
+  const [selectedMember, setSelectedMember] = useState(null)
 
   return (
-    <main className="min-h-screen bg-kob-light">
-      <div className="container py-4">
-        <BackButton />
-      </div>
-      {/* Header Section */}
-      <div className="bg-gradient-to-r from-kob-primary to-kob-gold text-white py-16 md:py-20">
-        <div className="container text-center">
-          <h1 className="text-5xl md:text-6xl font-extrabold mb-4">Our Team</h1>
-          <p className="text-xl md:text-2xl opacity-95 font-light max-w-3xl mx-auto">
-            Passionate individuals working to revolutionize e-commerce in
-            Katsina and beyond.
-          </p>
-        </div>
-      </div>
+    <main className="min-h-screen bg-[#FAFAF8]">
 
-      <div className="container py-16 md:py-24">
-        {/* Mission Section */}
-        <Card variant="elevated" className="p-10 md:p-12 mb-16 rounded-2xl">
-          <h2 className="text-4xl font-bold text-kob-dark mb-6">Our Mission</h2>
-          <p className="text-gray-700 text-lg leading-relaxed mb-6">
-            At Katsina Online Business (KOB), we're committed to empowering
-            local entrepreneurs and connecting buyers and sellers in a secure,
-            transparent digital marketplace. We believe in the potential of
-            small and medium businesses to thrive with the right technology and
-            support.
-          </p>
-          <p className="text-gray-700 text-lg leading-relaxed">
-            Our team is dedicated to building trust, ensuring fair competition,
-            and providing world-class service to all our users.
-          </p>
-        </Card>
+      {/* Modal */}
+      {selectedMember && (
+        <TeamMemberModal
+          member={selectedMember}
+          onClose={() => setSelectedMember(null)}
+        />
+      )}
 
-        {/* Team Grid */}
-        <div className="mb-20">
-          <h3 className="text-3xl font-bold text-kob-dark mb-10 text-center">
-            Meet the Team
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {teamMembers.map((member) => (
-              <Card
-                key={member.id}
-                variant="elevated"
-                className="p-8 rounded-xl text-center card-hover animate-fade-in"
-              >
-                <div className="text-8xl mb-5 inline-block">
-                  {member.avatar}
-                </div>
-                <h3 className="text-xl font-bold text-kob-dark mb-2">
-                  {member.name}
-                </h3>
-                <p className="text-kob-primary font-bold text-base mb-4">
-                  {member.role}
+      {/* ================================ */}
+      {/* HERO                             */}
+      {/* ================================ */}
+      <section className="relative overflow-hidden
+        bg-gradient-to-br from-[#2C1F0E] via-[#4B3621]
+        to-[#6B4C31] py-20 text-white">
+        <div className="absolute -top-16 -right-16 w-72 h-72
+          bg-[#D4AF37]/10 rounded-full blur-3xl
+          pointer-events-none" />
+        <div className="absolute -bottom-16 -left-16 w-72 h-72
+          bg-white/5 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="container relative z-10 max-w-4xl
+          mx-auto px-4 text-center">
+          <div className="inline-flex items-center gap-2 px-4
+            py-1.5 bg-[#D4AF37]/20 border border-[#D4AF37]/30
+            rounded-full mb-5">
+            <span className="w-2 h-2 rounded-full bg-[#D4AF37]
+              animate-pulse" />
+            <span className="text-xs font-bold uppercase
+              tracking-widest text-[#D4AF37]">
+              KOB Core Team
+            </span>
+          </div>
+
+          <h1 className="text-4xl md:text-6xl font-black
+            text-white mb-4 tracking-tight">
+            The People Behind{' '}
+            <span className="text-[#D4AF37]">KOB</span>
+          </h1>
+
+          <p className="text-base text-white/60 max-w-lg
+            mx-auto mb-10 leading-relaxed">
+            A dedicated team of builders, operators, and
+            community advocates transforming commerce in
+            Katsina State.
+          </p>
+
+          {/* Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4
+            gap-4 max-w-xl mx-auto">
+            {STATS.map((s) => (
+              <div key={s.label}
+                className="text-center">
+                <p className="text-3xl font-black text-[#D4AF37]">
+                  {s.value}
                 </p>
-                <p className="text-gray-600 text-base leading-relaxed">
-                  {member.bio}
+                <p className="text-[10px] text-white/40 uppercase
+                  tracking-widest font-semibold mt-0.5">
+                  {s.label}
                 </p>
-              </Card>
+              </div>
             ))}
           </div>
         </div>
+      </section>
 
-        {/* Values Section */}
-        <div className="mb-20">
-          <h3 className="text-3xl font-bold text-kob-dark mb-10 text-center">
-            Our Core Values
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card variant="elevated" className="p-8 rounded-xl card-hover">
-              <div className="text-6xl mb-5 inline-block">🤝</div>
-              <h3 className="text-2xl font-bold text-kob-dark mb-3">
-                Trust & Transparency
-              </h3>
-              <p className="text-gray-600 text-base leading-relaxed">
-                We build trust through transparent operations and fair treatment
-                of all users.
-              </p>
-            </Card>
-            <Card variant="elevated" className="p-8 rounded-xl card-hover">
-              <div className="text-6xl mb-5 inline-block">🚀</div>
-              <h3 className="text-2xl font-bold text-kob-dark mb-3">
-                Innovation
-              </h3>
-              <p className="text-gray-600 text-base leading-relaxed">
-                We continuously innovate to improve the marketplace experience
-                for everyone.
-              </p>
-            </Card>
-            <Card variant="elevated" className="p-8 rounded-xl card-hover">
-              <div className="text-6xl mb-5 inline-block">💪</div>
-              <h3 className="text-2xl font-bold text-kob-dark mb-3">
-                Empowerment
-              </h3>
-              <p className="text-gray-600 text-base leading-relaxed">
-                We empower entrepreneurs with tools and support to succeed
-                online.
-              </p>
-            </Card>
-          </div>
+      {/* ================================ */}
+      {/* TEAM GRID                        */}
+      {/* ================================ */}
+      <section className="container max-w-6xl mx-auto
+        px-4 py-14 pb-24">
+
+        <div className="text-center mb-10">
+          <p className="text-xs font-black uppercase
+            tracking-widest text-[#D4AF37] mb-2">
+            Our Team
+          </p>
+          <h2 className="text-2xl md:text-3xl font-black
+            text-[#2C1F0E]">
+            Builders of KOB
+          </h2>
+          <p className="text-sm text-gray-400 mt-2">
+            Tap any card to learn more and connect.
+          </p>
         </div>
 
-        {/* Recruitment Section */}
-        <div className="bg-gradient-to-br from-kob-primary via-kob-primary-light to-kob-gold text-white rounded-2xl p-12 md:p-16 shadow-lg">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-4xl md:text-5xl font-extrabold mb-6">
-                Join Our Growing Team
-              </h2>
-              <p className="text-lg opacity-95 mb-6 font-light">
-                We're expanding and looking for passionate individuals to join
-                KOB as riders, field agents, and partners.
-              </p>
-              <p className="text-lg opacity-90 font-light">
-                Whether you're looking for flexible work opportunities or want
-                to be part of a revolutionary marketplace, we'd love to hear
-                from you.
-              </p>
-            </div>
-            <div className="flex flex-col gap-5">
-              <div className="bg-white bg-opacity-15 backdrop-blur-sm p-7 rounded-xl border border-white border-opacity-20 hover:bg-opacity-25 transition-all duration-300">
-                <h3 className="text-2xl font-bold mb-3">
-                  🏍️ Riders & Delivery Partners
-                </h3>
-                <p className="text-base opacity-90 mb-5">
-                  Help deliver orders across Katsina and surrounding areas
-                </p>
-                <a
-                  href={t("seller.forms.rider_agent")}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-block px-6 py-3 bg-white text-kob-primary font-bold rounded-lg hover:bg-gray-100 transition-all duration-300 shadow-md hover:shadow-lg"
-                >
-                  Apply Now →
-                </a>
-              </div>
-              <div className="bg-white bg-opacity-15 backdrop-blur-sm p-7 rounded-xl border border-white border-opacity-20 hover:bg-opacity-25 transition-all duration-300">
-                <h3 className="text-2xl font-bold mb-3">🚀 Field Agents</h3>
-                <p className="text-base opacity-90 mb-5">
-                  Support sellers and expand KOB's presence locally
-                </p>
-                <a
-                  href={t("seller.forms.rider_agent")}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-block px-6 py-3 bg-white text-kob-primary font-bold rounded-lg hover:bg-gray-100 transition-all duration-300 shadow-md hover:shadow-lg"
-                >
-                  Apply Now →
-                </a>
-              </div>
-            </div>
+        <div className="grid grid-cols-2 md:grid-cols-3
+          lg:grid-cols-3 gap-4 md:gap-6">
+          {TEAM.map((member) => (
+            <TeamCard
+              key={member.id}
+              member={member}
+              onSelect={setSelectedMember}
+            />
+          ))}
+        </div>
+
+        {/* CTA */}
+        <div className="mt-16 relative overflow-hidden
+          rounded-3xl bg-gradient-to-br from-[#2C1F0E]
+          via-[#4B3621] to-[#6B4C31] p-8 md:p-12
+          text-center text-white">
+          <div className="absolute -top-12 -right-12 w-48 h-48
+            bg-[#D4AF37]/10 rounded-full blur-3xl
+            pointer-events-none" />
+          <div className="relative z-10">
+            <p className="text-xs font-bold uppercase
+              tracking-widest text-[#D4AF37] mb-3">
+              Join the Mission
+            </p>
+            <h3 className="text-2xl font-black text-white mb-3">
+              Want to Join KOB?
+            </h3>
+            <p className="text-sm text-white/60 mb-6
+              max-w-sm mx-auto">
+              We are always looking for passionate people
+              to help build Katsina's leading marketplace.
+            </p>
+            <a
+              href="https://wa.me/2347089454544"
+              target="_blank" rel="noreferrer"
+              className="inline-flex items-center gap-2 px-7
+                py-3 bg-[#D4AF37] text-[#2C1F0E] rounded-xl
+                text-sm font-black hover:bg-[#c49e30]
+                transition-colors shadow-lg"
+            >
+              💬 Chat With Us
+            </a>
           </div>
         </div>
-      </div>
+      </section>
     </main>
-  );
+  )
 }
