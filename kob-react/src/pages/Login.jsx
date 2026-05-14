@@ -299,16 +299,26 @@ export default function Login() {
   const [showForgot, setShowForgot] = useState(false);
   const navigate = useNavigate();
 
+  // Add this to BOTH Login.jsx and Register.jsx
+  // After successful login/register:
+
   async function handleSubmit(e) {
     e.preventDefault();
     setLoading(true);
-    setError(null);
     try {
-      await loginUser(email, password);
-      navigate("/dashboard");
+      await loginUser(email, password); // or registerUser
+
+      // ✅ Smart return — check sessionStorage
+      const returnTo = sessionStorage.getItem("returnTo");
+      if (returnTo) {
+        sessionStorage.removeItem("returnTo");
+        // Use window.location to fully reset history stack
+        window.location.href = returnTo;
+      } else {
+        window.location.href = "/dashboard";
+      }
     } catch (err) {
-      setError(err.message || "Login failed. Please try again.");
-    } finally {
+      setError(err.message);
       setLoading(false);
     }
   }

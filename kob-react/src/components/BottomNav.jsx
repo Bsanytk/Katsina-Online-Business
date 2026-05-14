@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../firebase/auth";
+import { useProfile } from "../contexts/ProfileContext";
 import { collection, query, onSnapshot } from "firebase/firestore";
 import { db } from "../firebase/firebase";
 
 // ================================
 // SVG Icons
 // ================================
-
 const Icons = {
   Home: ({ active }) => (
     <svg
@@ -26,6 +26,7 @@ const Icons = {
       />
     </svg>
   ),
+
   Shop: ({ active }) => (
     <svg
       className="w-5 h-5"
@@ -42,6 +43,7 @@ const Icons = {
       />
     </svg>
   ),
+
   Catalogue: ({ active }) => (
     <svg
       className="w-5 h-5"
@@ -62,6 +64,7 @@ const Icons = {
       />
     </svg>
   ),
+
   Search: ({ active }) => (
     <svg
       className="w-5 h-5"
@@ -77,6 +80,7 @@ const Icons = {
       />
     </svg>
   ),
+
   Alert: ({ active, count = 0 }) => (
     <div className="relative">
       <svg
@@ -108,7 +112,9 @@ const Icons = {
       )}
     </div>
   ),
-  Profile: ({ active }) => (
+
+  // ✅ Profile icon — fallback when no photo
+  ProfileIcon: ({ active }) => (
     <svg
       className="w-5 h-5"
       fill={active ? "currentColor" : "none"}
@@ -124,6 +130,7 @@ const Icons = {
       />
     </svg>
   ),
+
   Plus: () => (
     <svg
       className="w-6 h-6"
@@ -138,7 +145,74 @@ const Icons = {
 };
 
 // ================================
-// Single Nav Item
+// ✅ Profile Avatar — shows photo or icon
+// ================================
+function ProfileAvatar({ profile, active }) {
+  const hasPhoto = Boolean(profile?.photoURL || profile?.profileImage);
+
+  const photoSrc = profile?.photoURL || profile?.profileImage || null;
+
+  const initials = (profile?.displayName || profile?.fullName || "?")
+    .charAt(0)
+    .toUpperCase();
+
+  // Has profile photo
+  if (hasPhoto) {
+    return (
+      <div
+        className={`
+        w-7 h-7 rounded-xl overflow-hidden
+        border-2 transition-all duration-200
+        ${active ? "border-[#4B3621] shadow-sm" : "border-gray-200"}
+      `}
+      >
+        <img
+          src={photoSrc}
+          alt="Profile"
+          className="w-full h-full object-cover"
+          onError={(e) => {
+            // Fallback if image fails to load
+            e.currentTarget.style.display = "none";
+          }}
+        />
+      </div>
+    );
+  }
+
+  // Has name — show initial
+  if (profile?.displayName || profile?.fullName) {
+    return (
+      <div
+        className={`
+        w-7 h-7 rounded-xl flex items-center justify-center
+        text-[11px] font-bold border-2 transition-all duration-200
+        ${
+          active
+            ? "bg-[#4B3621] text-white border-[#4B3621]"
+            : "bg-[#4B3621]/10 text-[#4B3621] border-[#4B3621]/20"
+        }
+      `}
+      >
+        {initials}
+      </div>
+    );
+  }
+
+  // No profile — show default icon
+  return (
+    <span
+      className={`
+      transition-colors duration-200
+      ${active ? "text-[#4B3621]" : "text-gray-400"}
+    `}
+    >
+      <Icons.ProfileIcon active={active} />
+    </span>
+  );
+}
+
+// ================================
+// Nav Item
 // ================================
 function NavItem({ to, icon, label, active, onClick }) {
   const content = (
@@ -161,7 +235,7 @@ function NavItem({ to, icon, label, active, onClick }) {
         >
           {icon}
         </span>
-        {/* Active indicator dot */}
+        {/* Active dot */}
         {active && (
           <span
             className="absolute -bottom-0.5 left-1/2
@@ -218,9 +292,8 @@ function CenterSearchButton({ onClick }) {
       <div
         className="w-12 h-12 -mt-5 bg-[#4B3621]
         rounded-2xl flex items-center justify-center
-        shadow-xl shadow-[#4B3621]/30
-        border-4 border-white transition-all
-        hover:bg-[#362818] active:scale-95"
+        shadow-xl shadow-[#4B3621]/30 border-4 border-white
+        transition-all hover:bg-[#362818] active:scale-95"
       >
         <span className="text-white">
           <Icons.Search active={false} />
@@ -241,30 +314,49 @@ function CenterSearchButton({ onClick }) {
 // ================================
 export default function BottomNav() {
   const { user } = useAuth();
-  const location = useLocation();
+  const location = useNavigate();
   const navigate = useNavigate();
+  const path = useLocation().pathname;
+
+  // ✅ useProfile — no extra Firestore reads
+  const { profile } = useProfile();
+
   const [alertCount, setAlertCount] = useState(0);
-  const path = location.pathname;
-  //Real-time notification listener
+
+  // ================================
+  // ✅ FIXED: Real-time alert count
+  // ================================
   useEffect(() => {
     const q = query(collection(db, "broadcasts"));
-    const unsubscribe = onSnapshot(q, (onSnapshot) => {
-      setAlertCount(Snapshot.docs.length);
-    });
+
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        // ✅ 'snapshot' lowercase — was bug before
+        setAlertCount(snapshot.docs.length);
+      },
+      (err) => {
+        // Non-critical — silent fail
+        console.warn("[BottomNav] Alerts:", err.message);
+        setAlertCount(0);
+      }
+    );
+
     return () => unsubscribe();
   }, []);
 
-  // Hide on admin + login + register pages
+  // Hide on these pages
   if (path.startsWith("/admin") || path === "/login" || path === "/register")
     return null;
 
   const isActive = (route) =>
     route === "/" ? path === "/" : path.startsWith(route);
 
-  // Search handler
+  // ================================
+  // Search
+  // ================================
   function handleSearch() {
     navigate("/marketplace");
-    // Small delay then focus search input if present
     setTimeout(() => {
       const input = document.querySelector(
         'input[placeholder*="Search"], input[placeholder*="search"]'
@@ -273,18 +365,47 @@ export default function BottomNav() {
     }, 300);
   }
 
-  // Profile handler — depends on user state
+  // ================================
+  // ✅ Profile → /profile for all logged-in
+  // ================================
   function handleProfile() {
     if (!user) {
       navigate("/login");
-    } else if (user.role === "seller") {
-      navigate("/dashboard");
-    } else if (user.role === "admin") {
-      navigate("/admin");
     } else {
-      navigate("/dashboard");
+      navigate("/profile");
     }
   }
+
+  // ================================
+  // Profile nav item — reused in both navs
+  // ================================
+  const profileNavItem = (
+    <NavItem
+      label="Profile"
+      active={isActive("/profile")}
+      onClick={handleProfile}
+      icon={
+        <div
+          className={`
+          relative flex items-center justify-center
+          w-8 h-8 rounded-xl transition-all duration-200
+          ${isActive("/profile") ? "bg-[#4B3621]/10" : ""}
+        `}
+        >
+          {/* ✅ ProfileAvatar — shows photo or initials */}
+          <ProfileAvatar profile={profile} active={isActive("/profile")} />
+          {/* Active dot */}
+          {isActive("/profile") && (
+            <span
+              className="absolute -bottom-0.5 left-1/2
+              -translate-x-1/2 w-1 h-1 rounded-full
+              bg-[#4B3621]"
+            />
+          )}
+        </div>
+      }
+    />
+  );
 
   // ================================
   // SELLER NAV
@@ -335,16 +456,10 @@ export default function BottomNav() {
             }
           />
 
-          {/* Profile → Dashboard */}
-          <NavItem
-            label="Profile"
-            active={isActive("/dashboard")}
-            icon={<Icons.Profile active={isActive("/dashboard")} />}
-            onClick={handleProfile}
-          />
+          {/* ✅ Profile with photo */}
+          {profileNavItem}
         </div>
 
-        {/* iOS safe area */}
         <div
           className="h-[env(safe-area-inset-bottom)]
           bg-white/95"
@@ -399,28 +514,10 @@ export default function BottomNav() {
           icon={<Icons.Alert active={isActive("/alerts")} count={alertCount} />}
         />
 
-        {/* Profile */}
-        <NavItem
-          label="Profile"
-          active={
-            isActive("/dashboard") ||
-            isActive("/login") ||
-            isActive("/register")
-          }
-          icon={
-            <Icons.Profile
-              active={
-                isActive("/dashboard") ||
-                isActive("/login") ||
-                isActive("/register")
-              }
-            />
-          }
-          onClick={handleProfile}
-        />
+        {/* ✅ Profile with photo */}
+        {profileNavItem}
       </div>
 
-      {/* iOS safe area */}
       <div
         className="h-[env(safe-area-inset-bottom)]
         bg-white/95"

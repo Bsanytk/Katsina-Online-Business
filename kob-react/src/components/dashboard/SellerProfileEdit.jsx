@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../../firebase/auth";
-import { getUserProfile, updateUserProfile } from "../../services/users";
+import { useProfile } from "../contexts/ProfileContext";
 import { Card, Input, Alert, Button } from "../ui";
 import Loading from "../Loading";
 
@@ -29,7 +29,7 @@ const DEFAULT_AVATAR =
 // Main Component
 // ================================
 export default function SellerProfileEdit() {
-  const { user } = useAuth();
+  const { profile, updateLocalProfile } = useProfile();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);

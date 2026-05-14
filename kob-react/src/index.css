@@ -38,7 +38,8 @@
     scroll-behavior: smooth;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    font-size: 16px;
+    font-size: 95%;
+  -webkit-text-size-adjust: 100%;
   }
 
   body {
@@ -51,6 +52,10 @@
     font-weight: 400;        /* Regular — not bold by default */
     letter-spacing: -0.01em; /* Slightly tighter — more professional */
   }
+
+  * {
+  -webkit-tap-highlight-color: transparent;
+}
 
   #root {
     @apply flex flex-col min-h-screen;
