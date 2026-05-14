@@ -4,7 +4,8 @@
 
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { teamAvatar, fallbackAvatar } from '../../services/cloudinary'
+import { avatarUrl as teamAvatar, fallbackAvatar } from '../../services/cloudinary'
+
 
 export default function TeamMemberModal({ member, onClose }) {
   const [imgError, setImgError] = useState(false)
