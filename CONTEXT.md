@@ -25,7 +25,7 @@ These details must be consistently used across all customer-facing areas:
 
 | Channel | Value |
 |---------|-------|
-| **Email** | `katsinaonlinebusiness@gmail.com` |
+| **Email** | `info@katsinaonlinebusiness.com.ng` |
 | **Phone/WhatsApp** | `07089454544` |
 | **WhatsApp Link** | `https://wa.me/2347089454544` |
 | **Support Priority** | WhatsApp → Email → Help Center |
@@ -316,7 +316,7 @@ A: Use the LanguageSwitcher component. Switch to each language and verify all te
 
 ## 📞 Questions?
 
-Contact: `katsinaonlinebusiness@gmail.com` or WhatsApp `07089454544`
+Contact: `info@katsinaonlinebusiness.com.ng` or WhatsApp `07089454544`
 
 ---
 

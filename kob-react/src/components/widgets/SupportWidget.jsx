@@ -32,7 +32,7 @@ export default function SupportWidget() {
   const contactWhatsApp =
     t("common.contact_whatsapp_link") || "https://wa.me/2347089454544";
   const contactEmail =
-    t("common.contact_email") || "katsinaonlinebusiness@gmail.com";
+    t("common.contact_email") || "info@katsinaonlinebusiness.com.ng";
 
   // FAQs from translations or fallback to hardcoded
   const faqs = [

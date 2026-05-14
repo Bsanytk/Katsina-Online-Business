@@ -6,7 +6,6 @@
  * ✅ Removed: getUserProfile useEffect, isVerified useState
  * ✅ profile?.isVerified replaces local verification fetch
  * ✅ All seller fields from profile prop — safe optional chaining
- * ✅ Zero Firestore reads inside this component
  */
 
 import React, { useState, useEffect } from "react";

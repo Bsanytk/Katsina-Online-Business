@@ -81,7 +81,7 @@ All business information is properly centralized and used everywhere:
 
 ### Official Details (Centralized in Locales):
 - **Business Name:** Katsina Online Business (KOB)
-- **Email:** katsinaonlinebusiness@gmail.com
+- **Email:** info@katsinaonlinebusiness.com.ng
 - **Phone:** 07089454544
 - **WhatsApp Link:** https://wa.me/2347089454544
 

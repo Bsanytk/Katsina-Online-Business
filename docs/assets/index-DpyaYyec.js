@@ -16185,7 +16185,7 @@ const EA = (r, e) => {
     password: "Password",
     phone: "Phone",
     message: "Message",
-    contact_email: "katsinaonlinebusiness@gmail.com",
+    contact_email: "info@katsinaonlinebusiness.com.ng",
     contact_phone: "07089454544",
     contact_whatsapp_link: "https://wa.me/2347089454544",
   },
@@ -35584,7 +35584,7 @@ function tj() {
     [y, b] = Y.useState(null),
     E = r("common.contact_phone") || "07089454544",
     N = r("common.contact_whatsapp_link") || "https://wa.me/2347089454544",
-    O = r("common.contact_email") || "katsinaonlinebusiness@gmail.com",
+    O = r("common.contact_email") || "info@katsinaonlinebusiness.com.ng",
     P = [
       {
         id: 1,
