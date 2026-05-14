@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import React, { Suspense, lazy, useEffect, useState } from "react";
 import { Routes, Route } from "react-router-dom";
 
