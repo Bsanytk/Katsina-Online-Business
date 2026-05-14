@@ -17,7 +17,8 @@ import {
 } from "./firebase/auth";
 
 import { ProfileProvider } from "./contexts/ProfileContext";
-import { AlertProvider } from "./components/ui/AlertProvider"; 
+import AlertProvider from "./components/ui/AlertProvider";
+
 
 import "./i18n";
 
