@@ -125,6 +125,8 @@ const SellerShop = lazy(() =>
 const NotFound = lazy(() =>
   import("./pages/NotFound")
 );
+const Legal = lazy(() => import("./pages/Legal")); // Idan kana da wannan file din
+
 
 // ========================================
 // Notification Toast
@@ -593,10 +595,12 @@ export default function App() {
   return (
     <AuthProvider>
       <ProfileProvider>
-       <AlertProvider> 
-        <AppContent />
+        <AlertProvider> 
+          <AppContent />
+        </AlertProvider> 
       </ProfileProvider>
-      </AlertProvider> 
     </AuthProvider>
   );
 }
+
+
