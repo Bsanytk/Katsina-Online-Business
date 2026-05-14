@@ -454,7 +454,11 @@ function AppContent() {
               path="/alerts"
               element={<Alerts />}
             />
-
+            <Route
+              path="/legal"
+              element={<Legal />}
+            />
+            
             {/* ========================================
                 Authentication
             ======================================== */}
@@ -589,8 +593,10 @@ export default function App() {
   return (
     <AuthProvider>
       <ProfileProvider>
+       <AlertProvider> 
         <AppContent />
       </ProfileProvider>
+      </AlertProvider> 
     </AuthProvider>
   );
 }
