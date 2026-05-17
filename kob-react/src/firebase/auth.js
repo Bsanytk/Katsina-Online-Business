@@ -90,7 +90,18 @@ export function AuthProvider({ children }) {
 
   return React.createElement(
     AuthContext.Provider,
-    { value: { user, loading, error } },
+    {
+      value: {
+        user,
+        loading,
+        error,
+        loginUser,
+        registerUser,
+        logoutUser,
+        resetPassword,
+        getCurrentUser,
+      },
+    },
     children
   );
 }

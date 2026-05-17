@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { loginUser, resetPassword } from "../firebase/auth";
+import { useAuth } from "../firebase/auth";
 import { useNavigate, Link } from "react-router-dom";
 import BackButton from "../components/BackButton";
 import { motion, AnimatePresence } from "framer-motion";
@@ -298,7 +298,7 @@ export default function Login() {
   const [showPass, setShowPass] = useState(false);
   const [showForgot, setShowForgot] = useState(false);
   const navigate = useNavigate();
-
+  const { loginUser, resetPassword } = useAuth();
   // Add this to BOTH Login.jsx and Register.jsx
   // After successful login/register:
 
