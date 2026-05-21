@@ -91,7 +91,7 @@ const MailIcon = () => (
 // ================================
 // Forgot Password Modal
 // ================================
-function ForgotPasswordModal({ onClose }) {
+function ForgotPasswordModal({ onClose, resetPassword }) {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -330,8 +330,11 @@ export default function Login() {
     >
       {/* Forgot Password Modal */}
       {showForgot && (
-        <ForgotPasswordModal onClose={() => setShowForgot(false)} />
-      )}
+        <ForgotPasswordModal
+        onClose={() => setShowForgot(false)}
+        resetPassword={resetPassword}
+      />
+   )}
 
       <div className="absolute top-4 left-4">
         <BackButton />
