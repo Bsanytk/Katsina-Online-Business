@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { registerUser } from "../firebase/auth";
+// ✅ AN GYARA: An yi import na registerUser
+import { registerUser } from "../firebase/auth"; 
 import { useNavigate, Link } from "react-router-dom";
 import BackButton from "../components/BackButton";
 import { motion } from "framer-motion";
@@ -65,7 +66,7 @@ const CheckIcon = () => (
 export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirm] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [role, setRole] = useState("buyer");
   const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -75,20 +76,33 @@ export default function Register() {
   const [showConfirm, setShowConfirm] = useState(false);
   const navigate = useNavigate();
 
-  // Add this to BOTH Login.jsx and Register.jsx
-  // After successful login/register:
-
   async function handleSubmit(e) {
     e.preventDefault();
-    setLoading(true);
-    try {
-      await loginUser(email, password); // or registerUser
+    setError(null);
+    setPolicyError(false);
 
-      // ✅ Smart return — check sessionStorage
+    // 1. Tabbatar sun yarda da sharuddan amfani da KOB
+    if (!agreed) {
+      setPolicyError(true);
+      return;
+    }
+
+    // 2. Tabbatar Password guda biyu sun yi daidai
+    if (password !== confirmPassword) {
+      setError("Passwords do not match. Please check again.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // ✅ AN GYARA: Anyi amfani da registerUser maimakon loginUser gami da tura 'role'
+      await registerUser(email, password, role);
+
+      // ✅ Smart return — kamar yadda kake so don kiyaye tarihi
       const returnTo = sessionStorage.getItem("returnTo");
       if (returnTo) {
         sessionStorage.removeItem("returnTo");
-        // Use window.location to fully reset history stack
         window.location.href = returnTo;
       } else {
         window.location.href = "/dashboard";
@@ -112,7 +126,7 @@ export default function Register() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="w-full max-w-md"
+        className="w-full max-w-md relative z-10"
       >
         <div
           className="bg-white rounded-3xl shadow-sm
@@ -219,7 +233,7 @@ export default function Register() {
                   <input
                     type={showConfirm ? "text" : "password"}
                     value={confirmPassword}
-                    onChange={(e) => setConfirm(e.target.value)}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="••••••••"
                     required
                     disabled={loading}
@@ -383,7 +397,7 @@ export default function Register() {
                 </div>
               </div>
 
-              {/* ✅ Terms & Policy Checkbox */}
+              {/* Terms & Policy Checkbox */}
               <div
                 className={`
                 p-3.5 rounded-2xl border-2 transition-all
@@ -400,7 +414,6 @@ export default function Register() {
                   className="flex items-start gap-3
                   cursor-pointer select-none"
                 >
-                  {/* Custom checkbox */}
                   <div
                     onClick={() => {
                       setAgreed(!agreed);
@@ -464,17 +477,17 @@ export default function Register() {
               {/* Submit */}
               <button
                 type="submit"
-                disabled={loading || !agreed}
                 className={`
                   w-full flex items-center justify-center
                   gap-2 py-3.5 rounded-2xl font-semibold
                   text-sm transition-all active:scale-[0.98]
                   ${
-                    !agreed
-                      ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                    loading
+                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                       : "bg-[#4B3621] text-white hover:bg-[#362818] shadow-sm"
                   }
                 `}
+                disabled={loading}
               >
                 {loading ? (
                   <>
@@ -530,7 +543,7 @@ export default function Register() {
           </div>
         </div>
 
-        {/* What happens next */}
+                                    {/* What happens next */}
         <div
           className="mt-4 bg-white rounded-2xl border
           border-gray-100 p-4 shadow-sm"

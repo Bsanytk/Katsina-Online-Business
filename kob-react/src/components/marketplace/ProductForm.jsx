@@ -6,9 +6,17 @@
  * ✅ Removed: getUserProfile useEffect, isVerified useState
  * ✅ profile?.isVerified replaces local verification fetch
  * ✅ All seller fields from profile prop — safe optional chaining
+ *
+ * OPTIMIZED (Weak Network):
+ * ✅ browser-image-compression before upload
+ * ✅ Safe fallback if compression fails
+ * ✅ compressing state — disables all inputs during upload
+ * ✅ Network alert shown during processing
+ * ✅ Duplicate submission protection
  */
 
 import React, { useState, useEffect } from "react";
+import imageCompression from "browser-image-compression";
 import { Alert } from "../ui";
 import Loading from "../Loading";
 import { useAuth } from "../../firebase/auth";
@@ -60,6 +68,9 @@ export default function ProductForm({
 
   const [images, setImages] = useState([]);
   const [validationErrors, setValidationErrors] = useState({});
+
+  // ✅ NEW — compression/upload state for weak network UX
+  const [compressing, setCompressing] = useState(false);
 
   // ================================
   // Populate form from initialData or profile
@@ -143,9 +154,15 @@ export default function ProductForm({
   // ================================
   // Submit
   // ✅ Uses profile prop — no getUserProfile call
+  // ✅ Image compression before upload (weak network safe)
+  // ✅ Duplicate submission protected via loading || compressing
   // ================================
   async function handleSubmit(e) {
     e.preventDefault();
+
+    // ✅ Duplicate submission protection
+    if (loading || compressing) return;
+
     if (!user?.uid) {
       alert("You must be logged in.");
       return;
@@ -165,14 +182,38 @@ export default function ProductForm({
     try {
       const uploadedUrls = [];
 
+      // ✅ Start compression/upload state
+      setCompressing(true);
+
       for (const imgObj of images) {
         if (imgObj.file) {
-          const url = await uploadImage(imgObj.file);
+          // ✅ Try compression — fallback to original if it fails
+          let fileToUpload = imgObj.file;
+
+          try {
+            fileToUpload = await imageCompression(imgObj.file, {
+              maxSizeMB: 0.4,
+              maxWidthOrHeight: 1024,
+              useWebWorker: true,
+            });
+          } catch (compressErr) {
+            // ✅ Safe fallback — upload continues with original file
+            console.warn(
+              "Compression failed, using original file:",
+              compressErr
+            );
+            fileToUpload = imgObj.file;
+          }
+
+          const url = await uploadImage(fileToUpload);
           uploadedUrls.push(url);
         } else if (imgObj.isExisting) {
           uploadedUrls.push(imgObj.preview);
         }
       }
+
+      // ✅ Reset compression state after uploads complete
+      setCompressing(false);
 
       if (uploadedUrls.length === 0 && !formData.isDraft) {
         alert("Please upload at least one image for a live listing.");
@@ -200,6 +241,8 @@ export default function ProductForm({
 
       await onSubmit(submissionData);
     } catch (err) {
+      // ✅ Always reset compressing on error — no stuck loading state
+      setCompressing(false);
       alert(`Error: ${err.message}`);
     }
   }
@@ -318,9 +361,11 @@ export default function ProductForm({
         <button
           type="button"
           onClick={() => setFormData((p) => ({ ...p, isDraft: !p.isDraft }))}
+          disabled={loading || compressing}
           className={`flex items-center gap-2 px-4 py-2
             rounded-xl text-xs font-semibold border-2
             transition-all duration-200
+            disabled:opacity-50 disabled:cursor-not-allowed
             ${
               formData.isDraft
                 ? "bg-amber-50 border-amber-200 text-amber-700"
@@ -343,9 +388,16 @@ export default function ProductForm({
         </button>
       </div>
 
-      {error && (
+      {/* ✅ Network optimization alert + error alert */}
+      {(error || compressing) && (
         <div className="px-6 pt-4">
-          <Alert type="error">{error}</Alert>
+          {compressing && (
+            <Alert type="info">
+              ⚡ Optimizing and uploading product images for weak network.
+              Please wait...
+            </Alert>
+          )}
+          {error && <Alert type="error">{error}</Alert>}
         </div>
       )}
 
@@ -365,8 +417,10 @@ export default function ProductForm({
               value={formData.title}
               onChange={handleChange}
               placeholder="e.g. Quality Roba Shoes"
+              disabled={loading || compressing}
               className={`w-full px-4 py-2.5 rounded-xl border-2
                 text-sm outline-none transition-all
+                disabled:opacity-60 disabled:cursor-not-allowed
                 ${
                   validationErrors.title
                     ? "border-red-300 bg-red-50"
@@ -416,8 +470,10 @@ export default function ProductForm({
             onChange={handleChange}
             rows={4}
             placeholder="Describe size, color, quality, condition..."
+            disabled={loading || compressing}
             className={`w-full px-4 py-3 rounded-xl border-2
               text-sm outline-none transition-all resize-none
+              disabled:opacity-60 disabled:cursor-not-allowed
               ${
                 validationErrors.description
                   ? "border-red-300 bg-red-50"
@@ -461,8 +517,10 @@ export default function ProductForm({
               value={formData.price}
               onChange={handleChange}
               placeholder="e.g. 5000"
+              disabled={loading || compressing}
               className={`w-full px-4 py-2.5 rounded-xl border-2
                 text-sm outline-none transition-all
+                disabled:opacity-60 disabled:cursor-not-allowed
                 ${
                   validationErrors.price
                     ? "border-red-300 bg-red-50"
@@ -500,7 +558,7 @@ export default function ProductForm({
 
         {/* Row 3: WhatsApp + Category */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* ✅ WhatsApp from profile prop */}
+        {/* ✅ WhatsApp from profile prop */}
           <div>
             <label
               className="block text-xs font-semibold
@@ -532,9 +590,11 @@ export default function ProductForm({
               name="category"
               value={formData.category}
               onChange={handleChange}
+              disabled={loading || compressing}
               className={`w-full px-4 py-2.5 rounded-xl border-2
                 text-sm outline-none transition-all
                 appearance-none cursor-pointer bg-white
+                disabled:opacity-60 disabled:cursor-not-allowed
                 ${
                   validationErrors.category
                     ? "border-red-300 bg-red-50"
@@ -586,6 +646,7 @@ export default function ProductForm({
                 className={`flex items-center gap-3 p-4
                   rounded-xl border-2 cursor-pointer
                   transition-all duration-200
+                  ${loading || compressing ? "opacity-60 cursor-not-allowed" : ""}
                   ${
                     formData.deliveryOption === opt.value
                       ? opt.color === "emerald"
@@ -600,6 +661,7 @@ export default function ProductForm({
                   value={opt.value}
                   checked={formData.deliveryOption === opt.value}
                   onChange={handleChange}
+                  disabled={loading || compressing}
                   className="sr-only"
                 />
                 <span className="text-xl">{opt.icon}</span>
@@ -621,11 +683,8 @@ export default function ProductForm({
             uppercase tracking-widest text-gray-500 mb-2"
           >
             Product Images
-            <span
-              className="text-gray-400 ml-1 normal-case
-              font-normal"
-            >
-              (max 1)
+            <span className="text-gray-400 ml-1 normal-case font-normal">
+              (max 2)
             </span>
           </label>
 
@@ -633,9 +692,8 @@ export default function ProductForm({
             {images.map((img) => (
               <div
                 key={img.id}
-                className="relative
-                aspect-square rounded-xl overflow-hidden
-                border-2 border-gray-100"
+                className="relative aspect-square rounded-xl
+                overflow-hidden border-2 border-gray-100"
               >
                 <img
                   src={img.preview}
@@ -645,23 +703,29 @@ export default function ProductForm({
                 <button
                   type="button"
                   onClick={() => handleImageRemove(img)}
+                  disabled={loading || compressing}
                   className="absolute top-2 right-2 w-6 h-6
                     bg-red-500 text-white rounded-full
                     flex items-center justify-center
-                    hover:bg-red-600 transition-colors"
+                    hover:bg-red-600 transition-colors
+                    disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
               </div>
             ))}
 
-            {images.length < 1 && (
+            {images.length < 2 && (
               <label
-                className="aspect-square rounded-xl
+                className={`aspect-square rounded-xl
                 border-2 border-dashed border-gray-300
                 flex flex-col items-center justify-center
-                cursor-pointer hover:border-[#4B3621]
-                hover:bg-[#4B3621]/5 transition-all group"
+                transition-all group
+                ${
+                  loading || compressing
+                    ? "opacity-50 cursor-not-allowed"
+                    : "cursor-pointer hover:border-[#4B3621] hover:bg-[#4B3621]/5"
+                }`}
               >
                 <ImagePlus
                   className="w-7 h-7 text-gray-300
@@ -678,55 +742,62 @@ export default function ProductForm({
                   accept="image/*"
                   multiple
                   onChange={handleImageAdd}
+                  disabled={loading || compressing}
                   className="hidden"
                 />
               </label>
             )}
           </div>
 
-          {uploadingImage && (
+          {/* Uploading indicator */}
+          {(uploadingImage || compressing) && (
             <div className="flex items-center gap-2 mt-2">
               <div
                 className="w-4 h-4 border-2
                 border-[#4B3621] border-t-transparent
                 rounded-full animate-spin"
               />
-              <p className="text-xs text-gray-400">Uploading image...</p>
+              <p className="text-xs text-gray-400">
+                {compressing
+                  ? "Compressing image for faster upload..."
+                  : "Uploading image..."}
+              </p>
             </div>
           )}
         </div>
 
-        {/* Submit buttons */}
+        {/* Submit + Cancel buttons */}
         <div className="flex gap-3 pt-2">
           <button
             type="button"
             onClick={onCancel}
-            disabled={loading}
+            disabled={loading || compressing}
             className="flex-1 py-3 border-2 border-gray-200
               text-gray-500 rounded-xl text-sm font-semibold
               hover:border-gray-300 transition-all
-              disabled:opacity-50"
+              disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Cancel
           </button>
+
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || compressing}
             className="flex-1 py-3 bg-[#4B3621] text-white
               rounded-xl text-sm font-semibold
               hover:bg-[#362818] transition-colors shadow-sm
-              active:scale-[0.98] disabled:opacity-50
-              disabled:cursor-not-allowed
+              active:scale-[0.98]
+              disabled:opacity-50 disabled:cursor-not-allowed
               flex items-center justify-center gap-2"
           >
-            {loading ? (
+            {loading || compressing ? (
               <>
                 <div
                   className="w-4 h-4 border-2
                   border-white border-t-transparent
                   rounded-full animate-spin"
                 />
-                Saving...
+                {compressing ? "Optimizing..." : "Saving..."}
               </>
             ) : isEditMode ? (
               "Update Product"
@@ -739,3 +810,4 @@ export default function ProductForm({
     </div>
   );
 }
+          
