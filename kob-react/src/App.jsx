@@ -1,24 +1,12 @@
-import React, {
-  Suspense,
-  lazy,
-  useEffect,
-  useState,
-} from "react";
+import React, { Suspense, lazy, useEffect, useState } from "react";
 
-import {
-  Routes,
-  Route,
-  useLocation,
-} from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 
-import {
-  AuthProvider,
-  useAuth,
-} from "./firebase/auth";
+import { AuthProvider, useAuth } from "./firebase/auth";
 
 import { ProfileProvider } from "./contexts/ProfileContext";
 import AlertProvider from "./components/ui/AlertProvider";
-
+import AppBanner from "./components/pwa/AppBanner";
 
 import "./i18n";
 
@@ -45,10 +33,7 @@ import { PageLoader } from "./components/ui";
 // Services
 // ========================================
 
-import {
-  initFCM,
-  onForegroundMessage,
-} from "./services/fcm";
+import { initFCM, onForegroundMessage } from "./services/fcm";
 
 // ========================================
 // Lazy Loaded Pages
@@ -56,88 +41,48 @@ import {
 
 const Home = lazy(() => import("./pages/Home"));
 
-const Marketplace = lazy(() =>
-  import("./pages/Marketplace")
-);
+const Marketplace = lazy(() => import("./pages/Marketplace"));
 
-const Dashboard = lazy(() =>
-  import("./pages/Dashboard")
-);
+const Dashboard = lazy(() => import("./pages/Dashboard"));
 
-const AdminDashboard = lazy(() =>
-  import("./pages/AdminDashboard")
-);
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 
-const Login = lazy(() =>
-  import("./pages/Login")
-);
+const Login = lazy(() => import("./pages/Login"));
 
-const Register = lazy(() =>
-  import("./pages/Register")
-);
+const Register = lazy(() => import("./pages/Register"));
 
-const Contact = lazy(() =>
-  import("./pages/Contact")
-);
+const Contact = lazy(() => import("./pages/Contact"));
 
-const FAQ = lazy(() =>
-  import("./pages/FAQ")
-);
+const FAQ = lazy(() => import("./pages/FAQ"));
 
-const Help = lazy(() =>
-  import("./pages/Help")
-);
+const Help = lazy(() => import("./pages/Help"));
 
-const Teams = lazy(() =>
-  import("./pages/Teams")
-);
+const Teams = lazy(() => import("./pages/Teams"));
 
-const Testimonials = lazy(() =>
-  import("./pages/Testimonials")
-);
+const Testimonials = lazy(() => import("./pages/Testimonials"));
 
-const Terms = lazy(() =>
-  import("./pages/Terms")
-);
+const Terms = lazy(() => import("./pages/Terms"));
 
-const Privacy = lazy(() =>
-  import("./pages/Privacy")
-);
+const Privacy = lazy(() => import("./pages/Privacy"));
 
-const CookiePolicy = lazy(() =>
-  import("./pages/CookiePolicy")
-);
+const CookiePolicy = lazy(() => import("./pages/CookiePolicy"));
 
-const Alerts = lazy(() =>
-  import("./pages/Alerts")
-);
+const Alerts = lazy(() => import("./pages/Alerts"));
 
-const Profile = lazy(() =>
-  import("./pages/Profile")
-);
+const Profile = lazy(() => import("./pages/Profile"));
 
-const ProductDetail = lazy(() =>
-  import("./pages/ProductDetail")
-);
+const ProductDetail = lazy(() => import("./pages/ProductDetail"));
 
-const SellerShop = lazy(() =>
-  import("./pages/SellerShop")
-);
+const SellerShop = lazy(() => import("./pages/SellerShop"));
 
-const NotFound = lazy(() =>
-  import("./pages/NotFound")
-);
+const NotFound = lazy(() => import("./pages/NotFound"));
 const Legal = lazy(() => import("./pages/Legal")); // Idan kana da wannan file din
-
 
 // ========================================
 // Notification Toast
 // ========================================
 
-function NotificationToast({
-  notification,
-  onClose,
-}) {
+function NotificationToast({ notification, onClose }) {
   useEffect(() => {
     if (!notification) return;
 
@@ -215,14 +160,11 @@ function AppContent() {
 
   const location = useLocation();
 
-  const [notification, setNotification] =
-    useState(null);
+  const [notification, setNotification] = useState(null);
 
-  const [showBottomNav, setShowBottomNav] =
-    useState(true);
+  const [showBottomNav, setShowBottomNav] = useState(true);
 
-  const [lastScrollY, setLastScrollY] =
-    useState(0);
+  const [lastScrollY, setLastScrollY] = useState(0);
 
   // ========================================
   // Firebase Cloud Messaging
@@ -236,27 +178,20 @@ function AppContent() {
     let unsubscribe;
 
     const setupListener = async () => {
-      unsubscribe =
-        await onForegroundMessage(
-          (payload) => {
-            const { title, body } =
-              payload?.notification || {};
+      unsubscribe = await onForegroundMessage((payload) => {
+        const { title, body } = payload?.notification || {};
 
-            setNotification({
-              title,
-              body,
-            });
-          }
-        );
+        setNotification({
+          title,
+          body,
+        });
+      });
     };
 
     setupListener();
 
     return () => {
-      if (
-        typeof unsubscribe ===
-        "function"
-      ) {
+      if (typeof unsubscribe === "function") {
         unsubscribe();
       }
     };
@@ -268,8 +203,7 @@ function AppContent() {
 
   useEffect(() => {
     const handleScroll = () => {
-      const currentScrollY =
-        window.scrollY;
+      const currentScrollY = window.scrollY;
 
       // Show while scrolling upward
 
@@ -278,30 +212,19 @@ function AppContent() {
       }
 
       // Hide while scrolling downward
-
-      else if (
-        currentScrollY > lastScrollY &&
-        currentScrollY > 80
-      ) {
+      else if (currentScrollY > lastScrollY && currentScrollY > 80) {
         setShowBottomNav(false);
       }
 
       setLastScrollY(currentScrollY);
     };
 
-    window.addEventListener(
-      "scroll",
-      handleScroll,
-      {
-        passive: true,
-      }
-    );
+    window.addEventListener("scroll", handleScroll, {
+      passive: true,
+    });
 
     return () => {
-      window.removeEventListener(
-        "scroll",
-        handleScroll
-      );
+      window.removeEventListener("scroll", handleScroll);
     };
   }, [lastScrollY]);
 
@@ -309,16 +232,17 @@ function AppContent() {
   // Bottom Navigation Visibility Rules
   // ========================================
 
-  const hideBottomNavRoutes = [
+  const hideBottomNavRoutes = ["/profile", "/login", "/register"];
+
+  const hideBannerRoutes = [
     "/profile",
     "/login",
     "/register",
+    "/dashboard",
+    "/admin",
   ];
 
-  const shouldHideBottomNav =
-    hideBottomNavRoutes.includes(
-      location.pathname
-    );
+  const shouldHideBottomNav = hideBottomNavRoutes.includes(location.pathname);
 
   // ========================================
   // Initial Loader
@@ -326,10 +250,7 @@ function AppContent() {
 
   if (loading) {
     return (
-      <PageLoader
-        message="Initializing KOB Infrastructure..."
-        show={true}
-      />
+      <PageLoader message="Initializing KOB Infrastructure..." show={true} />
     );
   }
 
@@ -345,7 +266,7 @@ function AppContent() {
         text-[#2C1F0E]
         text-[95%]
         overflow-x-hidden
-        pb-20 lg:pb-0
+        pb-[84px] lg:pb-0
       "
     >
       {/* ========================================
@@ -354,10 +275,11 @@ function AppContent() {
 
       <NotificationToast
         notification={notification}
-        onClose={() =>
-          setNotification(null)
-        }
+        onClose={() => setNotification(null)}
       />
+
+      {/*PWA Smart Banner */}
+      <AppBanner />
 
       {/* ========================================
           Top Navigation
@@ -373,118 +295,56 @@ function AppContent() {
         className={`
           flex-grow
           transition-all duration-300
-          ${
-            shouldHideBottomNav
-              ? "pb-4"
-              : "pb-[68px]"
-          }
+          ${shouldHideBottomNav ? "pb-6" : "pb-[88px]"}
           lg:pb-0
         `}
       >
-        <Suspense
-          fallback={
-            <PageLoader
-              message="Loading..."
-              show={true}
-            />
-          }
-        >
+        <Suspense fallback={<PageLoader message="Loading..." show={true} />}>
           <Routes>
             {/* ========================================
                 Public Routes
             ======================================== */}
 
-            <Route
-              path="/"
-              element={<Home />}
-            />
+            <Route path="/" element={<Home />} />
 
-            <Route
-              path="/marketplace"
-              element={<Marketplace />}
-            />
+            <Route path="/marketplace" element={<Marketplace />} />
 
-            <Route
-              path="/product/:productId"
-              element={<ProductDetail />}
-            />
+            <Route path="/product/:productId" element={<ProductDetail />} />
 
-            <Route
-              path="/shop/:sellerId"
-              element={<SellerShop />}
-            />
+            <Route path="/shop/:sellerId" element={<SellerShop />} />
 
-            <Route
-              path="/contact"
-              element={<Contact />}
-            />
+            <Route path="/contact" element={<Contact />} />
 
-            <Route
-              path="/faq"
-              element={<FAQ />}
-            />
+            <Route path="/faq" element={<FAQ />} />
 
-            <Route
-              path="/help"
-              element={<Help />}
-            />
+            <Route path="/help" element={<Help />} />
 
-            <Route
-              path="/teams"
-              element={<Teams />}
-            />
+            <Route path="/teams" element={<Teams />} />
 
-            <Route
-              path="/testimonials"
-              element={<Testimonials />}
-            />
+            <Route path="/testimonials" element={<Testimonials />} />
 
-            <Route
-              path="/terms"
-              element={<Terms />}
-            />
+            <Route path="/terms" element={<Terms />} />
 
-            <Route
-              path="/privacy"
-              element={<Privacy />}
-            />
+            <Route path="/privacy" element={<Privacy />} />
 
-            <Route
-              path="/cookies"
-              element={<CookiePolicy />}
-            />
+            <Route path="/cookies" element={<CookiePolicy />} />
 
-            <Route
-              path="/alerts"
-              element={<Alerts />}
-            />
-            <Route
-              path="/legal"
-              element={<Legal />}
-            />
-            
+            <Route path="/alerts" element={<Alerts />} />
+            <Route path="/legal" element={<Legal />} />
+
             {/* ========================================
                 Authentication
             ======================================== */}
 
-            <Route
-              path="/login"
-              element={<Login />}
-            />
+            <Route path="/login" element={<Login />} />
 
-            <Route
-              path="/register"
-              element={<Register />}
-            />
+            <Route path="/register" element={<Register />} />
 
             {/* ========================================
                 Profile
             ======================================== */}
 
-            <Route
-              path="/profile"
-              element={<Profile />}
-            />
+            <Route path="/profile" element={<Profile />} />
 
             {/* ========================================
                 Protected Dashboard
@@ -516,10 +376,7 @@ function AppContent() {
                 404
             ======================================== */}
 
-            <Route
-              path="*"
-              element={<NotFound />}
-            />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
       </main>
@@ -563,7 +420,7 @@ function AppContent() {
           lg:hidden
           fixed bottom-0 left-0 right-0
           z-40
-          transition-all duration-300 ease-out
+          transition-all duration-500 ease-out
           ${
             shouldHideBottomNav
               ? "translate-y-full opacity-0 pointer-events-none"
@@ -597,9 +454,9 @@ export default function App() {
   return (
     <AuthProvider>
       <ProfileProvider>
-        <AlertProvider> 
+        <AlertProvider>
           <AppContent />
-        </AlertProvider> 
+        </AlertProvider>
       </ProfileProvider>
     </AuthProvider>
   );

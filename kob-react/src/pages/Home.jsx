@@ -5,6 +5,8 @@ import { useTranslation } from "../hooks/useTranslation";
 import ProductCard from "../components/ProductCard";
 import Loading from "../components/Loading";
 import TestimonialsSection from "../components/TestimonialsSection";
+import WelcomeSection from "../components/pwa/WelcomeSection";
+import QuickStartCard from "../components/pwa/QuickStartCard";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../firebase/auth";
 
@@ -424,6 +426,8 @@ export default function Home() {
           </motion.div>
         </div>
       </section>
+      <WelcomeSection />
+      <QuickStartCard />
 
       {/* ================================ */}
       {/* STATS BAR                        */}
