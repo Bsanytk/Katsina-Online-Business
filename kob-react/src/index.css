@@ -5,12 +5,12 @@
 /* ================================
    KOB BRAND TOKENS
    ================================ */
-:root {
-  --kob-primary:       #8C3F37;
+:root { 
+  --kob-primary:       #4b2e21;
   --kob-primary-light: #6B5241;
   --kob-primary-dark:  #362818;
   --kob-gold:          #D4AF37;
-  --kob-gold-light:    #F4CB9D;
+  --kob-gold-light:    #E8C94F;
   --kob-dark:          #2C1F0E;
   --kob-light:         #FAFAF8;
   --kob-success:       #10B981;
@@ -38,8 +38,7 @@
     scroll-behavior: smooth;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    font-size: 95%;
-  -webkit-text-size-adjust: 100%;
+    font-size: 16px;
   }
 
   body {
@@ -52,10 +51,6 @@
     font-weight: 400;        /* Regular — not bold by default */
     letter-spacing: -0.01em; /* Slightly tighter — more professional */
   }
-
-  * {
-  -webkit-tap-highlight-color: transparent;
-}
 
   #root {
     @apply flex flex-col min-h-screen;
