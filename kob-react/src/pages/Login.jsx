@@ -287,6 +287,14 @@ function ForgotPasswordModal({ onClose, resetPassword }) {
   );
 }
 
+
+// ================================
+// fcmToken
+// ================================
+import("../services/fcm").then(({ initFCM }) => {
+  initFCM(firebaseUser.uid);
+});
+
 // ================================
 // Login Page
 // ================================

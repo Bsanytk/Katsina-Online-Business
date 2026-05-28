@@ -16,6 +16,7 @@ import {
   getDoc,
   writeBatch,
   addDoc,
+  arrayUnion,
   serverTimestamp,
 } from "firebase/firestore";
 import { db } from "../firebase/firebase";

@@ -19,8 +19,9 @@ export default defineConfig(({ mode }) => {
         ],
 
         manifest: {
+          id: "/",
           name: "Katsina Online Business",
-          short_name: "KOB",
+          short_name: "KOB Marketplace",
           description:
             "KOB Marketplace - Buy and Sell Online in Katsina",
 
@@ -36,13 +37,13 @@ export default defineConfig(({ mode }) => {
 
           icons: [
             {
-              src: "logo192.png",
+              src: "/logo192.png",
               sizes: "192x192",
               type: "image/png",
               purpose: "any maskable",
             },
             {
-              src: "logo512.png",
+              src: "/logo512.png",
               sizes: "512x512",
               type: "image/png",
               purpose: "any maskable",

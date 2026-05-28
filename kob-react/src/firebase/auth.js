@@ -37,6 +37,7 @@ export function AuthProvider({ children }) {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       try {
         if (firebaseUser) {
+          initFCM(firebaseUser.uid);
           const ref = doc(db, "users", firebaseUser.uid);
           const snap = await getDoc(ref);
 
@@ -132,49 +133,6 @@ async function generateKobIdAtomic() {
   }
 }
 
-// ================================
-// Save FCM Token
-// ================================
-async function saveFCMToken(uid) {
-  try {
-    const messaging = await getMessagingInstance();
-    if (!messaging) return;
-
-    const permission = await Notification.requestPermission();
-    if (permission !== "granted") return;
-
-    const registration = await navigator.serviceWorker.register(
-      "/firebase-messaging-sw.js",
-      { scope: "/" }
-    );
-
-    const token = await getToken(messaging, {
-      vapidKey: VAPID_KEY,
-      serviceWorkerRegistration: registration,
-    });
-
-    if (token && uid) {
-      const ref = doc(db, "users", uid);
-      await setDoc(
-        ref,
-        {
-          fcmToken: arrayUnion(token),
-          fcmUpdatedAt: new Date().toISOString(),
-        },
-        { merge: true }
-      );
-
-      if (import.meta.env.DEV) {
-        console.log("[FCM] Token saved:", token.slice(0, 20) + "...");
-      }
-    }
-  } catch (err) {
-    // FCM is optional — never block auth flow
-    if (import.meta.env.DEV) {
-      console.warn("[FCM] Token save failed:", err.message);
-    }
-  }
-}
 
 // ================================
 // Register User
@@ -219,7 +177,9 @@ export async function registerUser(email, password, role = "buyer") {
     });
 
     // Step 5: Request FCM token (non-blocking)
-    saveFCMToken(firebaseUser.uid);
+    import("../services/fcm").then(({ initFCM }) => {
+      initFCM(firebaseUser.uid);
+    });
 
     return result;
   } catch (err) {

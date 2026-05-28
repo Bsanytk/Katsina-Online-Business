@@ -1,7 +1,7 @@
 {
     "name": "Katsina Online Business",
-    "short_name": "KOB",
-    "description": "KOB Marketplace - Buy and Sell Online in Katsina",
+    "short_name": "KOB Marketplace",
+    "description": "KOB Marketplace - Buy and Sell Online in Katsina and beyond",
     "start_url": "/",
     "display": "standalone",
     "orientation": "portrait",

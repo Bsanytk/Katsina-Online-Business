@@ -543,7 +543,7 @@ export default function Register() {
           </div>
         </div>
 
-                                    {/* What happens next */}
+       {/* What happens next */}
         <div
           className="mt-4 bg-white rounded-2xl border
           border-gray-100 p-4 shadow-sm"
@@ -590,3 +590,9 @@ export default function Register() {
     </main>
   );
 }
+// ================================
+// fcmToken
+// ================================
+import("../services/fcm").then(({ initFCM }) => {
+  initFCM(firebaseUser.uid);
+});
