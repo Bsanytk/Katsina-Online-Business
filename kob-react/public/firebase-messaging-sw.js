@@ -1,90 +1,153 @@
 /**
+ * KOB Firebase Messaging Service Worker
+ * Production Ready — Zero Error Version
+ * File: /public/firebase-messaging-sw.js
+ */
 
-* KOB Firebase Messaging Service Worker
-* Handles background push notifications
-  */
+// ======================================
+// Firebase SDKs
+// ======================================
+importScripts(
+  "https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"
+);
 
-// Firebase scripts
-importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js');
+importScripts(
+  "https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js"
+);
 
-/**
+// ======================================
+// Firebase Config
+// IMPORTANT:
+// Frontend Firebase config is NOT secret.
+// Safe to expose in service worker.
+// ======================================
+firebase.initializeApp({
+  apiKey: "AIzaSyCrJDGQbbMxHkZU9fmO1jmT-1mnN3o6P6k",
+  authDomain: "kob-community.firebaseapp.com",
+  projectId: "kob-community",
+  storageBucket: "kob-community.appspot.com",
+  messagingSenderId: "245778888984",
+  appId: "1:245778888984:web:cc819e57545b7df338066d",
+});
 
-* Firebase Config (Production-ready)
-* Uses environment fallback OR injected values
-  */
-  const firebaseConfig = {
-  apiKey: self.FIREBASE_API_KEY || "AIzaSyCrJDGQbbMxHkZU9fmO1jmT-1mnN3o6P6k",
-  authDomain: self.FIREBASE_AUTH_DOMAIN || "kob-community.firebaseapp.com",
-  projectId: self.FIREBASE_PROJECT_ID || "kob-community",
-  storageBucket: self.FIREBASE_STORAGE_BUCKET || "kob-community.firebasestorage.app",
-  messagingSenderId: self.FIREBASE_MESSAGING_SENDER_ID || "245778888984",
-  appId: self.FIREBASE_APP_ID || "1:245778888984:web:cc819e57545b7df338066d",
-  measurementId: self.FIREBASE_MEASUREMENT_ID || "G-D7SGY77FPM"
-  };
-
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
-
-// Messaging instance
+// ======================================
+// Messaging Instance
+// ======================================
 const messaging = firebase.messaging();
 
-/**
+// ======================================
+// Background Notifications
+// ======================================
+messaging.onBackgroundMessage((payload) => {
+  console.log(
+    "[KOB FCM] Background message received:",
+    payload
+  );
 
-* Background Notification Handler
-  */
-  messaging.onBackgroundMessage((payload) => {
   const notification = payload.notification || {};
+  const data = payload.data || {};
 
-const title = notification.title || "KOB Marketplace";
-const body = notification.body || "You have a new notification";
+  const title =
+    notification.title || "KOB Marketplace";
 
-self.registration.showNotification(title, {
-body,
-icon: notification.icon ||
-"https://res.cloudinary.com/dn5crslee/image/upload/v1768211566/20260108_135034_qj155b.png",
-badge: "/badge.png",
-data: payload.data || {},
-vibrate: [200, 100, 200],
-actions: [
-{ action: "open", title: "Open KOB" },
-{ action: "dismiss", title: "Dismiss" }
-]
+  const options = {
+    body:
+      notification.body ||
+      "You have a new notification",
+
+    icon:
+      notification.icon ||
+      'https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1779908958/logo512_e9kaph.png',
+
+    badge:
+      "https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1779962074/badge_wc8kk5.png",
+
+    image: notification.image || undefined,
+
+    data: {
+      url: data.url || "/",
+    },
+
+    vibrate: [200, 100, 200],
+
+    requireInteraction: false,
+
+    renotify: true,
+
+    tag: "kob-notification",
+
+    actions: [
+      {
+        action: "open",
+        title: "Open KOB",
+      },
+      {
+        action: "dismiss",
+        title: "Dismiss",
+      },
+    ],
+  };
+
+  self.registration.showNotification(
+    title,
+    options
+  );
 });
-});
 
-/**
+// ======================================
+// Notification Click
+// ======================================
+self.addEventListener(
+  "notificationclick",
+  (event) => {
+    event.notification.close();
 
-* Notification Click Handler
-  */
-  self.addEventListener("notificationclick", (event) => {
-  event.notification.close();
+    // Dismiss button
+    if (event.action === "dismiss") {
+      return;
+    }
 
-if (event.action === "dismiss") return;
+    const targetUrl =
+      event.notification.data?.url || "/";
 
-const url = event.notification.data?.url || "/";
+    event.waitUntil(
+      clients
+        .matchAll({
+          type: "window",
+          includeUncontrolled: true,
+        })
+        .then((clientList) => {
+          // Focus existing tab
+          for (const client of clientList) {
+            if ("focus" in client) {
+              client.navigate(targetUrl);
+              return client.focus();
+            }
+          }
 
-event.waitUntil(
-clients.matchAll({ type: "window", includeUncontrolled: true })
-.then((clientList) => {
-for (const client of clientList) {
-if (client.url === url && "focus" in client) {
-return client.focus();
-}
-}
-if (clients.openWindow) return clients.openWindow(url);
-})
+          // Open new tab
+          if (clients.openWindow) {
+            return clients.openWindow(targetUrl);
+          }
+        })
+    );
+  }
 );
-});
 
-/**
-
-* Service Worker Lifecycle
-  */
-  self.addEventListener("install", () => {
+// ======================================
+// Service Worker Install
+// ======================================
+self.addEventListener("install", () => {
+  console.log("[KOB FCM] Service Worker Installed");
   self.skipWaiting();
-  });
-
-self.addEventListener("activate", (event) => {
-event.waitUntil(clients.claim());
 });
+
+// ======================================
+// Service Worker Activate
+// ======================================
+self.addEventListener("activate", (event) => {
+  console.log("[KOB FCM] Service Worker Activated");
+
+  event.waitUntil(clients.claim());
+});
+

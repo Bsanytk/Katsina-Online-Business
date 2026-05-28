@@ -158,7 +158,7 @@ async function saveFCMToken(uid) {
       await setDoc(
         ref,
         {
-          fcmToken: token,
+          fcmToken: arrayUnion(token),
           fcmUpdatedAt: new Date().toISOString(),
         },
         { merge: true }

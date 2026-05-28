@@ -162,7 +162,7 @@ export async function updateOrderStatus(orderId, status) {
 export async function saveFCMToken(uid, token) {
   const ref = doc(db, "users", uid);
   await updateDoc(ref, {
-    fcmToken: token,
+    fcmToken: arrayUnion(token),
     fcmUpdatedAt: serverTimestamp(),
   });
 }

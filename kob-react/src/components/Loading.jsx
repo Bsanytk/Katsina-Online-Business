@@ -29,8 +29,7 @@ export default function Loading({
     >
       {/* KOB Logo */}
       <img
-        src="https://res.cloudinary.com/dn5crslee/image/upload/v1768211566/20260108_135034_qj155b.png"
-        alt="KOB"
+        src='https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1779908958/logo512_e9kaph.png'        alt="KOB"
         className={`${s.logo} object-contain`}
       />
 
