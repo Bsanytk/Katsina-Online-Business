@@ -24,18 +24,15 @@ import {
   browserLocalPersistence,
 } from 'firebase/auth'
 import {
-  getFirestore,
-  enableIndexedDbPersistence,
-  CACHE_SIZE_UNLIMITED,
   initializeFirestore,
-} from 'firebase/firestore'
+  persistentLocalCache,
+  persistentMultipleTabManager,
+} from 'firebase/firestore' // GYARA: Mun cire tsofaffin imports mun kawo na zamani
 import { getMessaging, isSupported } from 'firebase/messaging'
 
 // ================================
 // 1. Normalize storage bucket
 // ================================
-// Some Firebase console snippets use `.firebasestorage.app`
-// We normalize to `.appspot.com` for consistency
 const rawBucket =
   import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || ''
 
@@ -97,7 +94,6 @@ if (import.meta.env.DEV) {
 // ================================
 // 4. Initialize Firebase App
 // ================================
-// Prevent re-initialization on hot reload (Vite HMR)
 const app = getApps().length === 0
   ? initializeApp(firebaseConfig)
   : getApp()
@@ -107,7 +103,6 @@ const app = getApps().length === 0
 // ================================
 const auth = getAuth(app)
 
-// Keep user logged in across browser refreshes
 if (typeof window !== 'undefined') {
   setPersistence(auth, browserLocalPersistence).catch((err) => {
     if (import.meta.env.DEV) {
@@ -120,43 +115,18 @@ if (typeof window !== 'undefined') {
 }
 
 // ================================
-// 6. Firestore — with offline cache
+// 6. Firestore — GYARA: Sabon tsarin Multi-Tab Cache
 // ================================
-// initializeFirestore gives us more control than getFirestore
+// Wannan sabon tsarin zai magance error din Firestore akai-akai a console
 const db = initializeFirestore(app, {
-  // Unlimited cache — good for marketplace with many products
-  cacheSizeBytes: CACHE_SIZE_UNLIMITED,
+  localCache: persistentLocalCache({
+    tabManager: persistentMultipleTabManager(), // Yana bawa kowane tab damar aiki tare lokaci guda
+  }),
 })
-
-// Enable offline persistence — users see data without internet
-// Silently fails on multiple tabs (expected behavior)
-if (typeof window !== 'undefined') {
-  enableIndexedDbPersistence(db).catch((err) => {
-    if (err.code === 'failed-precondition') {
-      // Multiple tabs open — only one tab can use persistence
-      if (import.meta.env.DEV) {
-        console.warn(
-          '[KOB Firebase] Firestore persistence unavailable: ' +
-          'Multiple tabs open.'
-        )
-      }
-    } else if (err.code === 'unimplemented') {
-      // Browser does not support persistence
-      if (import.meta.env.DEV) {
-        console.warn(
-          '[KOB Firebase] Firestore persistence not supported ' +
-          'in this browser.'
-        )
-      }
-    }
-  })
-}
 
 // ================================
 // 7. Firebase Cloud Messaging
 // ================================
-// FCM only works in browsers that support service workers
-// isSupported() is async — we initialize lazily
 let messaging = null
 
 async function getMessagingInstance() {
@@ -184,7 +154,6 @@ async function getMessagingInstance() {
 // 8. Health check (DEV only)
 // ================================
 if (import.meta.env.DEV) {
-  // Verify app initialized correctly
   const initializedApp = getApps()[0]
   if (initializedApp) {
     console.log(
@@ -193,7 +162,6 @@ if (import.meta.env.DEV) {
     )
   }
 
-  // Check FCM support asynchronously
   isSupported().then((supported) => {
     console.log(
       '[KOB Firebase] FCM supported:',
@@ -209,6 +177,6 @@ export {
   app,
   auth,
   db,
-  getMessagingInstance, // Use this to get messaging instance
-  firebaseConfig,       // Used by firebase-messaging-sw.js generator
+  getMessagingInstance,
+  firebaseConfig,
 }
