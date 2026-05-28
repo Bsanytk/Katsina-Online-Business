@@ -57,10 +57,10 @@ messaging.onBackgroundMessage((payload) => {
 
     icon:
       notification.icon ||
-      'https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1779908958/logo512_e9kaph.png',
+      'https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1779990660/logo512_yci0g2.png',
 
     badge:
-      "https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1779962074/badge_wc8kk5.png",
+      "https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1779990125/badge_xfmnyy.png",
 
     image: notification.image || undefined,
 

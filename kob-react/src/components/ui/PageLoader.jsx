@@ -95,7 +95,7 @@ export default function PageLoader({
             flex items-center justify-center overflow-hidden"
           >
             <img
-              src='https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1779908958/logo512_e9kaph.png'              alt="KOB Logo"
+              src='https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1779990660/logo512_yci0g2.png'              alt="KOB Logo"
               className="w-16 h-16 object-contain"
             />
           </div>

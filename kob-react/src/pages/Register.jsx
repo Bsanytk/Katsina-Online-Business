@@ -6,7 +6,7 @@ import BackButton from "../components/BackButton";
 import { motion } from "framer-motion";
 
 const KOB_LOGO =
-  "https://res.cloudinary.com/dn5crslee/image/upload/v1768211566/20260108_135034_qj155b.png";
+  'https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1779990660/logo512_yci0g2.png';
 
 // SVG Icons
 const EyeIcon = () => (
