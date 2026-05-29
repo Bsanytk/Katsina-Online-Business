@@ -14,14 +14,7 @@ import {
   runTransaction,
   serverTimestamp,
 } from "firebase/firestore";
-import { auth, db, getMessagingInstance } from "./firebase";
-import { getToken } from "firebase/messaging";
-
-// ================================
-// VAPID Key
-// ================================
-const VAPID_KEY =
-  "BCcBEKvO7CFus97TuRLNwxf-xHN_fdShOb_FHAz3c5PXJhy4_ap9UJBqrMjjjolgHvsv99t0OhMSNNRVciArP9c";
+import { auth, db } from "./firebase";
 
 // ================================
 // Auth Context
@@ -37,7 +30,11 @@ export function AuthProvider({ children }) {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       try {
         if (firebaseUser) {
-          initFCM(firebaseUser.uid);
+          // AN GYARA: An dauko initFCM ta hanyar Dynamic Import cikin kariya
+          import("../services/fcm")
+            .then(({ initFCM }) => initFCM(firebaseUser.uid))
+            .catch((e) => console.log("FCM Background Init Deferred:", e.message));
+
           const ref = doc(db, "users", firebaseUser.uid);
           const snap = await getDoc(ref);
 
@@ -133,7 +130,6 @@ async function generateKobIdAtomic() {
   }
 }
 
-
 // ================================
 // Register User
 // ================================
@@ -150,7 +146,6 @@ export async function registerUser(email, password, role = "buyer") {
     try {
       await sendEmailVerification(firebaseUser);
     } catch (verifyErr) {
-      // Non-blocking — log but continue
       console.warn("Email verification send failed:", verifyErr.message);
     }
 
@@ -176,11 +171,7 @@ export async function registerUser(email, password, role = "buyer") {
       whatsappNumber: null,
     });
 
-    // Step 5: Request FCM token (non-blocking)
-    import("../services/fcm").then(({ initFCM }) => {
-      initFCM(firebaseUser.uid);
-    });
-
+    // AN GYARA: Mun cire tsohon kiran fcmToken na nan tunda shafin Register.jsx yana da dabarar kula da shi yanzu.
     return result;
   } catch (err) {
     throw new Error(formatAuthError(err.code));
@@ -192,9 +183,8 @@ export async function registerUser(email, password, role = "buyer") {
 // ================================
 export async function loginUser(email, password) {
   try {
-    const result = await signInWithEmailAndPassword(auth, email, password);
-    // Request FCM token on login (non-blocking)
-    saveFCMToken(result.user.uid);
+    const result = await signInWithEmailAndPassword(auth, auth.email || email, password);
+    // AN GYARA: An cire saveFCMToken() wanda ke haddasa error saboda babu asalin function din a nan.
     return result;
   } catch (err) {
     throw new Error(formatAuthError(err.code));
