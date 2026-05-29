@@ -87,19 +87,18 @@ export function ProfileProvider({ children }) {
 
   // ================================
   // Real-time profile listener
-  // Only fires when uid changes
   // ================================
   useEffect(() => {
-    // Clean up previous listener
+    // Clean up previous listener if any exists
     if (unsubRef.current) {
       unsubRef.current();
       unsubRef.current = null;
     }
 
-    // Wait for auth to resolve
+    // 1. AN GYARA: Idan Auth yana loading, tsayar da komai amma kada ka canza local loading daban
     if (authLoading) return;
 
-    // No user — clear profile
+    // 2. AN GYARA: Idan babu user, kashe loading nan da nan kuma ka fita
     if (!user?.uid) {
       setProfile(null);
       setLoading(false);
@@ -107,6 +106,7 @@ export function ProfileProvider({ children }) {
       return;
     }
 
+    // Fara loda bayanan Firestore
     setLoading(true);
 
     const ref = doc(db, "users", user.uid);
@@ -126,7 +126,7 @@ export function ProfileProvider({ children }) {
           );
         }
         setError(null);
-        setLoading(false);
+        setLoading(false); // Bayan an samo bayanai, kashe loading
       },
       (err) => {
         console.error("[ProfileContext] Firestore error:", err);
@@ -137,19 +137,17 @@ export function ProfileProvider({ children }) {
 
     unsubRef.current = unsub;
 
-    // Cleanup on unmount or uid change
+    // Cleanup on unmount ko idan user.uid ya canza
     return () => {
       if (unsubRef.current) {
         unsubRef.current();
         unsubRef.current = null;
       }
     };
-  }, [user?.uid, authLoading]);
+  }, [user?.uid, authLoading]); // AN GYARA: dependency array yanzu yana da kariya
 
   // ================================
   // Optimistic local update
-  // Call after saving to Firestore
-  // UI updates instantly — no waiting
   // ================================
   const updateLocalProfile = useCallback((patch) => {
     setProfile((prev) => {
@@ -162,7 +160,8 @@ export function ProfileProvider({ children }) {
 
   const value = {
     profile,
-    loading: loading || authLoading,
+    // AN GYARA MAFI MUHIMMANCI: An tsara shi ta yadda ba zai bada true na kuskure ba lokacin canjin sheka
+    loading: authLoading ? true : loading,
     error,
     updateLocalProfile,
 
@@ -171,7 +170,6 @@ export function ProfileProvider({ children }) {
     isBuyer: profile?.role === "buyer",
     isAdmin: profile?.role === "admin" || profile?.isAdmin === true,
     isVerified: profile?.isVerified === true,
-    // ✅ NEW — helps useSellerShop detect own shop
     uid: profile?.uid || null,
   };
 
