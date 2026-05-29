@@ -96,10 +96,21 @@ export default function Register() {
     setLoading(true);
 
     try {
-      // ✅ AN GYARA: Anyi amfani da registerUser maimakon loginUser gami da tura 'role'
-      await registerUser(email, password, role);
+      // ✅ Anyi amfani da registerUser gami da daukar sakamakon asusu zuwa ga userCredential
+      const userCredential = await registerUser(email, password, role);
 
-      // ✅ Smart return — kamar yadda kake so don kiyaye tarihi
+      // 3. GYARA: Kira fcmToken cikin kariya bayan an yi nasarar gina account
+      if (userCredential && userCredential.user) {
+        try {
+          const { initFCM } = await import("../services/fcm");
+          await initFCM(userCredential.user.uid);
+        } catch (fcmErr) {
+          console.error("[KOB FCM Register] Token generation failed:", fcmErr);
+          // Ba za mu hana mai amfani shiga dashboard ba koda FCM ya sami matsala
+        }
+      }
+
+      // 4. Smart return — kiyaye tarihi
       const returnTo = sessionStorage.getItem("returnTo");
       if (returnTo) {
         sessionStorage.removeItem("returnTo");
@@ -543,7 +554,7 @@ export default function Register() {
           </div>
         </div>
 
-       {/* What happens next */}
+         {/* What happens next */}
         <div
           className="mt-4 bg-white rounded-2xl border
           border-gray-100 p-4 shadow-sm"
@@ -590,9 +601,3 @@ export default function Register() {
     </main>
   );
 }
-// ================================
-// fcmToken
-// ================================
-import("../services/fcm").then(({ initFCM }) => {
-  initFCM(firebaseUser.uid);
-});
