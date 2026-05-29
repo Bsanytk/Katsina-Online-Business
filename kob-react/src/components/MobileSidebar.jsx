@@ -19,7 +19,7 @@ import { useAuth, logoutUser }            from '../firebase/auth'
 import { useProfile }                     from '../contexts/ProfileContext'
 
 const KOB_LOGO =
-"'https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1779990660/logo512_yci0g2.png'"
+"https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1779990660/logo512_yci0g2.png"
 // ================================
 // SVG Icons — Heroicons style
 // consistent strokeWidth={1.8}
