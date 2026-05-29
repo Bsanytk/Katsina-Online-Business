@@ -38,10 +38,18 @@ export async function initFCM(userId) {
       return null;
     }
 
-    const registration = await navigator.serviceWorker.register(
-      "/firebase-messaging-sw.js"
-    );
+    // AN GYARA: Muna duba idan akwai service worker da aka riga aka yi rajista, don gudun sake yin ta akai-akai
+    let registration;
+    const regs = await navigator.serviceWorker.getRegistrations();
+    const existingReg = regs.find((r) => r.active && r.active.scriptURL.includes("firebase-messaging-sw.js"));
 
+    if (existingReg) {
+      registration = existingReg;
+    } else {
+      registration = await navigator.serviceWorker.register("/firebase-messaging-sw.js");
+    }
+
+    // Dauko token daga Firebase
     const token = await getToken(messaging, {
       vapidKey: VAPID_KEY,
       serviceWorkerRegistration: registration,
@@ -52,6 +60,10 @@ export async function initFCM(userId) {
       return null;
     }
 
+    // AN GYARA (Babban Amfani): Adana token din a localStorage domin ka daina samun null a Console
+    localStorage.setItem("fcmToken", token);
+
+    // Adana token din a Firestore
     await setDoc(
       doc(db, "users", userId),
       {
@@ -61,7 +73,7 @@ export async function initFCM(userId) {
       { merge: true }
     );
 
-    console.log("[FCM] Token saved successfully");
+    console.log("[FCM] Token saved successfully to Firestore & localStorage");
 
     return token;
   } catch (err) {
@@ -84,7 +96,6 @@ export async function onForegroundMessage(callback) {
 
     return onMessage(messaging, (payload) => {
       console.log("[FCM] Foreground message:", payload);
-
       if (callback) callback(payload);
     });
   } catch (err) {

@@ -1,20 +1,6 @@
 /**
  * firebase.js — KOB Marketplace
  * Firebase initialization — backbone of the entire app
- *
- * Services initialized:
- * - Firebase Auth    (authentication)
- * - Firestore DB     (database)
- * - Firebase Messaging (FCM push notifications)
- *
- * Environment variables required (.env):
- * VITE_FIREBASE_API_KEY
- * VITE_FIREBASE_AUTH_DOMAIN
- * VITE_FIREBASE_PROJECT_ID
- * VITE_FIREBASE_STORAGE_BUCKET
- * VITE_FIREBASE_MESSAGING_SENDER_ID
- * VITE_FIREBASE_APP_ID
- * VITE_FIREBASE_VAPID_KEY  (FCM only)
  */
 
 import { initializeApp, getApps, getApp } from 'firebase/app'
@@ -27,15 +13,14 @@ import {
   initializeFirestore,
   persistentLocalCache,
   persistentMultipleTabManager,
-} from 'firebase/firestore' // GYARA: Mun cire tsofaffin imports mun kawo na zamani
+  getFirestore, // AN ƘARA: Don kare sake initialize din Firestore
+} from 'firebase/firestore' 
 import { getMessaging, isSupported } from 'firebase/messaging'
 
 // ================================
 // 1. Normalize storage bucket
 // ================================
-const rawBucket =
-  import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || ''
-
+const rawBucket = import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || ''
 const storageBucket = rawBucket.includes('.firebasestorage.app')
   ? rawBucket.replace('.firebasestorage.app', '.appspot.com')
   : rawBucket
@@ -65,38 +50,14 @@ if (import.meta.env.DEV) {
   ]
 
   required.forEach(([key, val]) => {
-    if (!val) {
-      console.warn(
-        `[KOB Firebase] ⚠️ Missing env var: ${key}`
-      )
-    }
-  })
-
-  if (
-    firebaseConfig.storageBucket &&
-    !firebaseConfig.storageBucket.endsWith('.appspot.com')
-  ) {
-    console.warn(
-      '[KOB Firebase] ⚠️ Unrecognized storageBucket format:',
-      firebaseConfig.storageBucket
-    )
-  }
-
-  console.log('[KOB Firebase] ✅ Config loaded:', {
-    projectId: firebaseConfig.projectId,
-    apiKey:    firebaseConfig.apiKey
-      ? '✓ present'
-      : '✗ missing',
-    authDomain: firebaseConfig.authDomain,
+    if (!val) console.warn(`[KOB Firebase] ⚠️ Missing env var: ${key}`)
   })
 }
 
 // ================================
 // 4. Initialize Firebase App
 // ================================
-const app = getApps().length === 0
-  ? initializeApp(firebaseConfig)
-  : getApp()
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp()
 
 // ================================
 // 5. Firebase Auth
@@ -106,23 +67,34 @@ const auth = getAuth(app)
 if (typeof window !== 'undefined') {
   setPersistence(auth, browserLocalPersistence).catch((err) => {
     if (import.meta.env.DEV) {
-      console.warn(
-        '[KOB Firebase] Auth persistence failed:',
-        err.message
-      )
+      console.warn('[KOB Firebase] Auth persistence failed:', err.message)
     }
   })
 }
 
 // ================================
-// 6. Firestore — GYARA: Sabon tsarin Multi-Tab Cache
+// 6. Firestore — AN GYARA KARIYA DA SAKE INITIALIZE
 // ================================
-// Wannan sabon tsarin zai magance error din Firestore akai-akai a console
-const db = initializeFirestore(app, {
-  localCache: persistentLocalCache({
-    tabManager: persistentMultipleTabManager(), // Yana bawa kowane tab damar aiki tare lokaci guda
-  }),
-})
+let db;
+if (getApps().length === 0) {
+  // Idan app din sabo ne, muna initialize dinsa da Multi-Tab cache
+  db = initializeFirestore(app, {
+    localCache: persistentLocalCache({
+      tabManager: persistentMultipleTabManager(),
+    }),
+  })
+} else {
+  try {
+    // Idan kuma an riga an yi, muna dauko tsohon ne kawai don gudun kawo dogon loading
+    db = getFirestore(app)
+  } catch (e) {
+    db = initializeFirestore(app, {
+      localCache: persistentLocalCache({
+        tabManager: persistentMultipleTabManager(),
+      }),
+    })
+  }
+}
 
 // ================================
 // 7. Firebase Cloud Messaging
@@ -141,38 +113,13 @@ async function getMessagingInstance() {
     return null
   } catch (err) {
     if (import.meta.env.DEV) {
-      console.warn(
-        '[KOB Firebase] FCM not available:',
-        err.message
-      )
+      console.warn('[KOB Firebase] FCM not available:', err.message)
     }
     return null
   }
 }
 
-// ================================
-// 8. Health check (DEV only)
-// ================================
-if (import.meta.env.DEV) {
-  const initializedApp = getApps()[0]
-  if (initializedApp) {
-    console.log(
-      '[KOB Firebase] ✅ App initialized:',
-      initializedApp.name
-    )
-  }
-
-  isSupported().then((supported) => {
-    console.log(
-      '[KOB Firebase] FCM supported:',
-      supported ? '✅ Yes' : '❌ No'
-    )
-  })
-}
-
-// ===============================
 // Exports
-// ===============================
 export {
   app,
   auth,

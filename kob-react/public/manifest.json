@@ -1,24 +1,42 @@
 {
-    "name": "Katsina Online Business",
-    "short_name": "KOB Marketplace",
-    "description": "KOB Marketplace - Buy and Sell Online in Katsina and beyond",
-    "start_url": "/",
-    "display": "standalone",
-    "orientation": "portrait",
-    "theme_color": "#2C1F0E",
-    "background_color": "#ffffff",
-    "icons": [
-      {
-        "src": "/logo192.png",
-        "sizes": "192x192",
-        "type": "image/png",
-        "purpose": "any maskable"
-      },
-      {
-        "src": "/logo512.png",
-        "sizes": "512x512",
-        "type": "image/png",
-        "purpose": "any maskable"
-      }
-    ]
-  }
+  "name": "Katsina Online Business",
+  "short_name": "KOB Marketplace",
+  "description": "KOB Marketplace - Buy and Sell Online in Katsina and beyond",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#2C1F0E",
+  "background_color": "#ffffff",
+  "icons": [
+    {
+      "src": "/logo192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/mobile-screenshot.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "KOB Marketplace on Mobile"
+    },
+    {
+      "src": "/desktop-screenshot.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "KOB Marketplace on Desktop"
+    }
+  ]
+}
+
+

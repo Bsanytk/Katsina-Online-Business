@@ -5,27 +5,24 @@
  */
 
 // ======================================
-// Firebase SDKs
+// Firebase SDKs (Compat Version)
 // ======================================
 importScripts(
   "https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"
 );
-
 importScripts(
   "https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js"
 );
 
 // ======================================
-// Firebase Config
-// IMPORTANT:
-// Frontend Firebase config is NOT secret.
-// Safe to expose in service worker.
+// Firebase Config — AN GYARA WANNAN SASHE
+// Dole ne ya yi daidai daram da bayanan da ke cikin .env na dandalinka
 // ======================================
 firebase.initializeApp({
-  apiKey: "AIzaSyCrJDGQbbMxHkZU9fmO1jmT-1mnN3o6P6k",
-  authDomain: "kob-community.firebaseapp.com",
-  projectId: "kob-community",
-  storageBucket: "kob-community.appspot.com",
+  apiKey: "AIzaSyCrJDGQbbMxHkZU9fmO1jmT-1mnN3o6P6k", // Tabbatar wannan shi ne na KOB Marketplace
+  authDomain: "kob-marketplace.firebaseapp.com",     // Idan ka canza domain, sanya madaidacin a nan
+  projectId: "kob-marketplace",                     // Sunan sabon project dinka
+  storageBucket: "kob-marketplace.appspot.com",
   messagingSenderId: "245778888984",
   appId: "1:245778888984:web:cc819e57545b7df338066d",
 });
@@ -39,115 +36,75 @@ const messaging = firebase.messaging();
 // Background Notifications
 // ======================================
 messaging.onBackgroundMessage((payload) => {
-  console.log(
-    "[KOB FCM] Background message received:",
-    payload
-  );
+  console.log("[KOB FCM] Background message received:", payload);
 
   const notification = payload.notification || {};
   const data = payload.data || {};
 
-  const title =
-    notification.title || "KOB Marketplace";
+  const title = notification.title || "KOB Marketplace";
 
   const options = {
-    body:
-      notification.body ||
-      "You have a new notification",
-
-    icon:
-      notification.icon ||
-      'https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1779990660/logo512_yci0g2.png',
-
-    badge:
-      "https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1779990125/badge_xfmnyy.png",
-
+    body: notification.body || "Notificatin from KOB Marketplace.",
+    icon: notification.icon || 'https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1779990660/logo512_yci0g2.png',
+    badge: "https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1780056061/badge192_hlibzw.png",
     image: notification.image || undefined,
-
     data: {
       url: data.url || "/",
     },
-
     vibrate: [200, 100, 200],
-
     requireInteraction: false,
-
     renotify: true,
-
     tag: "kob-notification",
-
     actions: [
-      {
-        action: "open",
-        title: "Open KOB",
-      },
-      {
-        action: "dismiss",
-        title: "Dismiss",
-      },
+      { action: "open", title: "Buɗe KOB" },
+      { action: "dismiss", title: "Kore shi" },
     ],
   };
 
-  self.registration.showNotification(
-    title,
-    options
-  );
+  self.registration.showNotification(title, options);
 });
 
 // ======================================
 // Notification Click
 // ======================================
-self.addEventListener(
-  "notificationclick",
-  (event) => {
-    event.notification.close();
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
 
-    // Dismiss button
-    if (event.action === "dismiss") {
-      return;
-    }
-
-    const targetUrl =
-      event.notification.data?.url || "/";
-
-    event.waitUntil(
-      clients
-        .matchAll({
-          type: "window",
-          includeUncontrolled: true,
-        })
-        .then((clientList) => {
-          // Focus existing tab
-          for (const client of clientList) {
-            if ("focus" in client) {
-              client.navigate(targetUrl);
-              return client.focus();
-            }
-          }
-
-          // Open new tab
-          if (clients.openWindow) {
-            return clients.openWindow(targetUrl);
-          }
-        })
-    );
+  if (event.action === "dismiss") {
+    return;
   }
-);
+
+  const targetUrl = event.notification.data?.url || "/";
+
+  event.waitUntil(
+    clients
+      .matchAll({
+        type: "window",
+        includeUncontrolled: true,
+      })
+      .then((clientList) => {
+        for (const client of clientList) {
+          if (client.url === targetUrl && "focus" in client) {
+            return client.focus();
+          }
+        }
+        if (clients.openWindow) {
+          return clients.openWindow(targetUrl);
+        }
+      })
+  );
+});
 
 // ======================================
-// Service Worker Install
+// Service Worker Lifecycles
 // ======================================
 self.addEventListener("install", () => {
   console.log("[KOB FCM] Service Worker Installed");
   self.skipWaiting();
 });
 
-// ======================================
-// Service Worker Activate
-// ======================================
 self.addEventListener("activate", (event) => {
   console.log("[KOB FCM] Service Worker Activated");
-
   event.waitUntil(clients.claim());
 });
 
