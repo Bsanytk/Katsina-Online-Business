@@ -287,14 +287,6 @@ function ForgotPasswordModal({ onClose, resetPassword }) {
   );
 }
 
-
-// ================================
-// fcmToken
-// ================================
-import("../services/fcm").then(({ initFCM }) => {
-  initFCM(firebaseUser.uid);
-});
-
 // ================================
 // Login Page
 // ================================
@@ -307,20 +299,30 @@ export default function Login() {
   const [showForgot, setShowForgot] = useState(false);
   const navigate = useNavigate();
   const { loginUser, resetPassword } = useAuth();
-  // Add this to BOTH Login.jsx and Register.jsx
-  // After successful login/register:
 
   async function handleSubmit(e) {
     e.preventDefault();
     setLoading(true);
+    setError(null);
     try {
-      await loginUser(email, password); // or registerUser
+      // 1. Shiga da asusun mai amfani
+      const userCredential = await loginUser(email, password);
+      
+      // 2. GYARA: Kira fcmToken a nan bayan an yi nasara, ta hanyar daukar UID daga userCredential
+      if (userCredential && userCredential.user) {
+        try {
+          const { initFCM } = await import("../services/fcm");
+          await initFCM(userCredential.user.uid);
+        } catch (fcmErr) {
+          console.error("[KOB FCM] Token initialization failed:", fcmErr);
+          // Mun sanya try/catch a nan domin ko da sanarwa ta gaza, kada ta hana mutum shiga dashboard dinsa
+        }
+      }
 
-      // ✅ Smart return — check sessionStorage
+      // 3. Smart return — duba sessionStorage ko akwai shafin da ya dawo da shi
       const returnTo = sessionStorage.getItem("returnTo");
       if (returnTo) {
         sessionStorage.removeItem("returnTo");
-        // Use window.location to fully reset history stack
         window.location.href = returnTo;
       } else {
         window.location.href = "/dashboard";
@@ -339,10 +341,10 @@ export default function Login() {
       {/* Forgot Password Modal */}
       {showForgot && (
         <ForgotPasswordModal
-        onClose={() => setShowForgot(false)}
-        resetPassword={resetPassword}
-      />
-   )}
+          onClose={() => setShowForgot(false)}
+          resetPassword={resetPassword}
+        />
+      )}
 
       <div className="absolute top-4 left-4">
         <BackButton />
@@ -439,7 +441,6 @@ export default function Login() {
                   >
                     Password
                   </label>
-                  {/* ✅ Forgot Password trigger */}
                   <button
                     type="button"
                     onClick={() => setShowForgot(true)}
