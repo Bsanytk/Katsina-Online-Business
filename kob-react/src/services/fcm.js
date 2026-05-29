@@ -19,8 +19,8 @@ export async function initFCM(userId) {
       return null;
     }
 
-    if (!("Notification" in window)) {
-      console.warn("[FCM] Notifications not supported");
+    if (!("Notification" in window) || !("serviceWorker" in navigator)) {
+      console.warn("[FCM] Notifications or Service Workers not supported by this browser");
       return null;
     }
 
@@ -38,32 +38,33 @@ export async function initFCM(userId) {
       return null;
     }
 
-    // AN GYARA: Muna duba idan akwai service worker da aka riga aka yi rajista, don gudun sake yin ta akai-akai
-    let registration;
-    const regs = await navigator.serviceWorker.getRegistrations();
-    const existingReg = regs.find((r) => r.active && r.active.scriptURL.includes("firebase-messaging-sw.js"));
+    // Register the Service Worker safely
+    console.log("[FCM] Registering KOB messaging service worker...");
+    await navigator.serviceWorker.register("/firebase-messaging-sw.js");
+    
+    // Explicitly wait until the registration is fully active to avoid infinite pending states
+    const registration = await navigator.serviceWorker.ready;
 
-    if (existingReg) {
-      registration = existingReg;
-    } else {
-      registration = await navigator.serviceWorker.register("/firebase-messaging-sw.js");
+    if (!registration) {
+      console.warn("[FCM] Active Service Worker registration could not be verified");
+      return null;
     }
 
-    // Dauko token daga Firebase
+    // Retrieve token safely from Firebase Messaging backend
     const token = await getToken(messaging, {
       vapidKey: VAPID_KEY,
       serviceWorkerRegistration: registration,
     });
 
     if (!token) {
-      console.warn("[FCM] Token generation failed");
+      console.warn("[FCM] Token generation failed or returned empty");
       return null;
     }
 
-    // AN GYARA (Babban Amfani): Adana token din a localStorage domin ka daina samun null a Console
+    // Save token locally to preserve state across re-renders
     localStorage.setItem("fcmToken", token);
 
-    // Adana token din a Firestore
+    // Persist token structure inside Firestore users collection
     await setDoc(
       doc(db, "users", userId),
       {
