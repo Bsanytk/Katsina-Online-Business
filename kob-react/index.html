@@ -2,15 +2,101 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" href='https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1779990125/badge_xfmnyy.png' />
-    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Katsina Online Business(KOB)</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Montserrat:wght@700;900&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
-    <link rel="manifest" href="/manifest.json" crossorigin="anonymous">
-  <meta name="theme-color" content="#2C1F0E" />
+
+    <!-- ============================================
+         PRIMARY META
+    ============================================ -->
+    <title>KOB Marketplace</title>
+    <meta
+      name="description"
+      content="KOB Marketplace is Katsina's trusted digital marketplace. Buy and sell products, connect with verified local businesses, and enjoy fast delivery across Katsina State and beyond."
+    />
+    <meta name="keywords" content="KOB, Katsina Online Business, marketplace, buy sell Katsina, Nigerian marketplace, KOB Express Delivery" />
+    <meta name="author" content="Katsina Online Business" />
+    <meta name="robots" content="index, follow" />
+
+    <!-- ============================================
+         OPEN GRAPH — Facebook, WhatsApp, LinkedIn, Telegram
+         IMPORTANT: Replace YOUR_DOMAIN with your actual
+         production domain e.g. katsinaonlinebusiness.com.ng
+         Social crawlers require ABSOLUTE URLs — relative
+         paths like /logo512.png will NOT render previews.
+    ============================================ -->
+    <meta property="og:type"        content="website" />
+    <meta property="og:site_name"   content="KOB Marketplace" />
+    <meta property="og:title"       content="KOB Marketplace — Buy & Sell in Katsina and Beyond" />
+    <meta
+      property="og:description"
+      content="Katsina's most trusted digital marketplace. Shop from verified local sellers, discover quality products, and enjoy KOB Express Delivery — fast, reliable, and built for Northern Nigeria."
+    />
+    <meta property="og:url"         content="https://katsinaonlinebusiness.com.ng" />
+    <meta property="og:image"       content="https://katsinaonlinebusiness.com.ng/logo512.png" />
+    <meta property="og:image:alt"   content="KOB Marketplace — Katsina Online Business" />
+    <meta property="og:image:width"  content="512" />
+    <meta property="og:image:height" content="512" />
+    <meta property="og:locale"      content="en_NG" />
+
+    <!-- ============================================
+         TWITTER / X CARD
+         summary_large_image = big banner preview on X
+         Uses desktop-screenshot.png for maximum visual
+         impact on X timeline — wider format looks better
+         than a square icon in large card mode.
+    ============================================ -->
+    <meta name="twitter:card"        content="summary_large_image" />
+    <meta name="twitter:site"        content="@KOBMarketplace" />
+    <meta name="twitter:creator"     content="@KOBMarketplace" />
+    <meta name="twitter:title"       content="KOB Marketplace — Buy & Sell in Katsina" />
+    <meta
+      name="twitter:description"
+      content="Katsina's most trusted digital marketplace. Shop from verified local sellers, discover quality products, and enjoy KOB Express Delivery — fast, reliable, and built for Northern Nigeria."
+    />
+    <meta name="twitter:image"       content="https://katsinaonlinebusiness.com.ng/desktop-screenshot.png" />
+    <meta name="twitter:image:alt"   content="KOB Marketplace — Katsina Online Business" />
+
+    <!-- ============================================
+         FAVICON & ICONS
+    ============================================ -->
+    <link
+      rel="icon"
+      type="image/png"
+      href="https://res.cloudinary.com/dn5crslee/image/upload/w_32,h_32,c_scale,r_max/v1779990660/logo512_yci0g2.png"
+    />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    <!-- ============================================
+         PWA
+    ============================================ -->
+    <link rel="manifest" href="/manifest.json" crossorigin="anonymous" />
+    <meta name="theme-color" content="#2C1F0E" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="KOB Marketplace" />
+
+    <!-- ============================================
+         GOOGLE FONTS — MERGED & OPTIMIZED
+         BEFORE (your original — 2 separate requests,
+         Montserrat loaded twice):
+           Inter: 400,600,800
+           Montserrat: 700,900  ← request 1
+           Montserrat: 400,700,900 ← request 2 (duplicate!)
+
+         AFTER (single request — all weights combined):
+           Inter: 400,600,800
+           Montserrat: 400,700,900
+         One HTTP request instead of two.
+         display=swap prevents render-blocking.
+    ============================================ -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Montserrat:wght@400;700;900&display=swap"
+      rel="stylesheet"
+    />
   </head>
+
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
