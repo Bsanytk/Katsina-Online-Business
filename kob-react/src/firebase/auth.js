@@ -107,11 +107,13 @@ export function AuthProvider({ children }) {
   }, []);
 
   // ✅ All auth functions in context value
-  // loginUser, registerUser, logoutUser, resetPassword
-  // are defined as named exports below AND included here
-  return (
-    <AuthContext.Provider
-      value={{
+  // Using React.createElement instead of JSX — auth.js is a .js file,
+  // not .jsx. JSX in .js files crashes Rollup/Vite build on Vercel.
+  // React.createElement is 100% equivalent — no JSX transform needed.
+  return React.createElement(
+    AuthContext.Provider,
+    {
+      value: {
         user,
         loading,
         error,
@@ -120,10 +122,9 @@ export function AuthProvider({ children }) {
         logoutUser,
         resetPassword,
         getCurrentUser,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
+      },
+    },
+    children
   );
 }
 
