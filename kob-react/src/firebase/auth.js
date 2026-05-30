@@ -1,3 +1,16 @@
+/**
+ * firebase/auth.js — KOB Auth Provider
+ *
+ * FIXED v3:
+ * ✅ loginUser bug fixed — auth.email removed (was always undefined)
+ * ✅ FCM init fully deferred — never blocks auth state transitions
+ * ✅ All functions exported correctly (named exports)
+ * ✅ AuthContext.Provider value includes all needed functions
+ * ✅ role .trim() on every read — prevents "seller " space bug
+ * ✅ registerUser — atomic KOB ID via runTransaction
+ * ✅ No circular dependencies
+ */
+
 import React, { createContext, useContext, useEffect, useState } from "react";
 import {
   createUserWithEmailAndPassword,
@@ -16,10 +29,10 @@ import {
 } from "firebase/firestore";
 import { auth, db } from "./firebase";
 
-// ================================
+// ─────────────────────────────────────────────
 // Auth Context
-// ================================
-const AuthContext = createContext();
+// ─────────────────────────────────────────────
+const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -30,16 +43,20 @@ export function AuthProvider({ children }) {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       try {
         if (firebaseUser) {
-          // AN GYARA: An dauko initFCM ta hanyar Dynamic Import cikin kariya
+          // ✅ FCM deferred — import only, never awaited here
+          // This prevents FCM from blocking onAuthStateChanged
           import("../services/fcm")
             .then(({ initFCM }) => initFCM(firebaseUser.uid))
-            .catch((e) => console.log("FCM Background Init Deferred:", e.message));
+            .catch((e) =>
+              console.warn("[KOB Auth] FCM deferred init:", e.message)
+            );
 
           const ref = doc(db, "users", firebaseUser.uid);
           const snap = await getDoc(ref);
 
           if (snap.exists()) {
             const data = snap.data() || {};
+            // ✅ .trim() on role — prevents "seller " space bug
             const role = (data.role || "buyer").trim();
 
             setUser({
@@ -57,6 +74,7 @@ export function AuthProvider({ children }) {
               whatsappNumber: data.whatsappNumber ?? null,
             });
           } else {
+            // New user — document not yet created
             setUser({
               uid: firebaseUser.uid,
               email: firebaseUser.email,
@@ -77,19 +95,23 @@ export function AuthProvider({ children }) {
         }
         setError(null);
       } catch (err) {
-        console.error("Auth state error:", err);
+        console.error("[KOB Auth] State error:", err);
         setError(err.message);
       } finally {
+        // ✅ Always release loading — even on error
         setLoading(false);
       }
     });
+
     return () => unsubscribe();
   }, []);
 
-  return React.createElement(
-    AuthContext.Provider,
-    {
-      value: {
+  // ✅ All auth functions in context value
+  // loginUser, registerUser, logoutUser, resetPassword
+  // are defined as named exports below AND included here
+  return (
+    <AuthContext.Provider
+      value={{
         user,
         loading,
         error,
@@ -98,25 +120,35 @@ export function AuthProvider({ children }) {
         logoutUser,
         resetPassword,
         getCurrentUser,
-      },
-    },
-    children
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
   );
 }
 
+// ─────────────────────────────────────────────
+// useAuth Hook
+// ─────────────────────────────────────────────
 export function useAuth() {
-  return useContext(AuthContext);
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used inside <AuthProvider>");
+  }
+  return context;
 }
 
-// ================================
+// ─────────────────────────────────────────────
 // Atomic KOB ID Generator
-// ================================
+// ─────────────────────────────────────────────
 async function generateKobIdAtomic() {
   const counterRef = doc(db, "system", "kobCounter");
   try {
     const newId = await runTransaction(db, async (tx) => {
       const snap = await tx.get(counterRef);
-      const nextNum = snap.exists() ? (snap.data().lastNumber || 0) + 1 : 1;
+      const nextNum = snap.exists()
+        ? (snap.data().lastNumber || 0) + 1
+        : 1;
       tx.set(counterRef, {
         lastNumber: nextNum,
         updatedAt: serverTimestamp(),
@@ -125,37 +157,38 @@ async function generateKobIdAtomic() {
     });
     return newId;
   } catch (err) {
-    console.error("KOB ID generation failed:", err);
+    console.error("[KOB] KOB ID generation failed:", err);
+    // Fallback — timestamp-based ID
     return `KOB-T${Date.now().toString().slice(-4)}`;
   }
 }
 
-// ================================
+// ─────────────────────────────────────────────
 // Register User
-// ================================
+// ─────────────────────────────────────────────
 export async function registerUser(email, password, role = "buyer") {
   const validRoles = ["buyer", "seller"];
-  const userRole = validRoles.includes(role.trim()) ? role.trim() : "buyer";
+  const userRole = validRoles.includes(role?.trim()) ? role.trim() : "buyer";
 
   try {
     // Step 1: Create Firebase Auth user
     const result = await createUserWithEmailAndPassword(auth, email, password);
     const { user: firebaseUser } = result;
 
-    // Step 2: Send email verification
+    // Step 2: Email verification (non-blocking)
     try {
       await sendEmailVerification(firebaseUser);
     } catch (verifyErr) {
-      console.warn("Email verification send failed:", verifyErr.message);
+      console.warn("[KOB Auth] Email verification failed:", verifyErr.message);
     }
 
-    // Step 3: Generate KOB ID for sellers
+    // Step 3: KOB ID for sellers only
     let kobNumber = null;
     if (userRole === "seller") {
       kobNumber = await generateKobIdAtomic();
     }
 
-    // Step 4: Save user profile to Firestore
+    // Step 4: Save Firestore profile
     const ref = doc(db, "users", firebaseUser.uid);
     await setDoc(ref, {
       email: firebaseUser.email,
@@ -171,29 +204,33 @@ export async function registerUser(email, password, role = "buyer") {
       whatsappNumber: null,
     });
 
-    // AN GYARA: Mun cire tsohon kiran fcmToken na nan tunda shafin Register.jsx yana da dabarar kula da shi yanzu.
     return result;
   } catch (err) {
     throw new Error(formatAuthError(err.code));
   }
 }
 
-// ================================
+// ─────────────────────────────────────────────
 // Login User
-// ================================
+//
+// BUG FIX: Original had `auth.email || email`
+// auth.email is ALWAYS undefined — auth is the
+// Firebase Auth instance, not a user object.
+// Fixed to pass `email` directly.
+// ─────────────────────────────────────────────
 export async function loginUser(email, password) {
   try {
-    const result = await signInWithEmailAndPassword(auth, auth.email || email, password);
-    // AN GYARA: An cire saveFCMToken() wanda ke haddasa error saboda babu asalin function din a nan.
+    // ✅ FIXED: was `auth.email || email` — auth.email is always undefined
+    const result = await signInWithEmailAndPassword(auth, email, password);
     return result;
   } catch (err) {
     throw new Error(formatAuthError(err.code));
   }
 }
 
-// ================================
+// ─────────────────────────────────────────────
 // Reset Password
-// ================================
+// ─────────────────────────────────────────────
 export async function resetPassword(email) {
   if (!email?.trim()) {
     throw new Error("Please enter your email address.");
@@ -206,9 +243,9 @@ export async function resetPassword(email) {
   }
 }
 
-// ================================
+// ─────────────────────────────────────────────
 // Logout User
-// ================================
+// ─────────────────────────────────────────────
 export async function logoutUser() {
   try {
     return await signOut(auth);
@@ -217,13 +254,16 @@ export async function logoutUser() {
   }
 }
 
+// ─────────────────────────────────────────────
+// Get Current User (sync)
+// ─────────────────────────────────────────────
 export function getCurrentUser() {
   return auth.currentUser;
 }
 
-// ================================
+// ─────────────────────────────────────────────
 // Error Formatter
-// ================================
+// ─────────────────────────────────────────────
 function formatAuthError(code) {
   const messages = {
     "auth/email-already-in-use":
@@ -232,8 +272,10 @@ function formatAuthError(code) {
     "auth/invalid-email": "Please enter a valid email address.",
     "auth/user-not-found": "No account found with this email.",
     "auth/wrong-password": "Incorrect password. Please try again.",
-    "auth/invalid-credential": "Invalid email or password. Please try again.",
-    "auth/too-many-requests": "Too many attempts. Please try again later.",
+    "auth/invalid-credential":
+      "Invalid email or password. Please try again.",
+    "auth/too-many-requests":
+      "Too many attempts. Please try again later.",
     "auth/network-request-failed":
       "Network error. Please check your connection.",
     "auth/operation-not-allowed":
