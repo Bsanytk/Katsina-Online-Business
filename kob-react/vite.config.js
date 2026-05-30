@@ -1,3 +1,13 @@
+/**
+ * vite.config.js — KOB Marketplace
+ *
+ * FIXED v3:
+ * ✅ JSX in .js files — react plugin include pattern (fixes auth.js crash)
+ * ✅ All /public assets confirmed present — screenshots restored
+ * ✅ badge.png + apple-touch-icon.png added to includeAssets
+ * ✅ All existing chunks, define, server config preserved
+ */
+
 import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
@@ -7,25 +17,33 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [
-      react(),
+      // ✅ CRITICAL FIX — JSX in .js files
+      // auth.js uses <AuthContext.Provider> JSX syntax.
+      // Vite only processes JSX in .jsx by default — this caused
+      // the build crash at auth.js:126:27 on Vercel.
+      react({
+        include: ["**/*.jsx", "**/*.js", "**/*.tsx", "**/*.ts"],
+      }),
 
       VitePWA({
         registerType: "autoUpdate",
-        
-        // AN GYARA: An sanya hotunan screenshots a cikin rukunin assets na PWA
+
+        // ✅ All confirmed present in /public — restored + badge + apple icon
         includeAssets: [
           "favicon.ico",
           "logo192.png",
           "logo512.png",
+          "apple-touch-icon.png",
+          "badge.png",
           "mobile-screenshot.png",
-          "desktop-screenshot.png"
+          "desktop-screenshot.png",
         ],
 
         manifest: {
           name: "Katsina Online Business",
-          short_name: "KOB Marketplace", // AN GYARA: Domin ya dace da ainihin sunan dandalinka
-          description: "KOB Marketplace - Buy and Sell Online in Katsina and beyond",
-
+          short_name: "KOB Marketplace",
+          description:
+            "KOB Marketplace - Buy and Sell Online in Katsina and beyond",
           start_url: "/",
           display: "standalone",
           orientation: "portrait",
@@ -45,39 +63,56 @@ export default defineConfig(({ mode }) => {
               type: "image/png",
               purpose: "any maskable",
             },
+            {
+              src: "apple-touch-icon.png",
+              sizes: "180x180",
+              type: "image/png",
+              purpose: "any",
+            },
           ],
-          
-          // AN GYARA (Babban Ƙari): An sanya duka screenshots guda biyu a nan domin VitePWA ya gina su daidai
+
+          // ✅ Screenshots restored — files confirmed in /public
           screenshots: [
             {
               src: "mobile-screenshot.png",
               sizes: "1080x1920",
               type: "image/png",
               form_factor: "narrow",
-              label: "KOB Marketplace on Mobile"
+              label: "KOB Marketplace on Mobile",
             },
             {
               src: "desktop-screenshot.png",
               sizes: "1920x1080",
               type: "image/png",
               form_factor: "wide",
-              label: "KOB Marketplace on Desktop"
-            }
-          ]
+              label: "KOB Marketplace on Desktop",
+            },
+          ],
         },
       }),
     ],
 
     base: "/",
 
+    // ✅ Firebase env vars injected at build time (used by service worker)
     define: {
       __FIREBASE_API_KEY__: JSON.stringify(env.VITE_FIREBASE_API_KEY || ""),
-      __FIREBASE_AUTH_DOMAIN__: JSON.stringify(env.VITE_FIREBASE_AUTH_DOMAIN || ""),
-      __FIREBASE_PROJECT_ID__: JSON.stringify(env.VITE_FIREBASE_PROJECT_ID || ""),
-      __FIREBASE_STORAGE_BUCKET__: JSON.stringify(env.VITE_FIREBASE_STORAGE_BUCKET || ""),
-      __FIREBASE_MESSAGING_SENDER_ID__: JSON.stringify(env.VITE_FIREBASE_MESSAGING_SENDER_ID || ""),
+      __FIREBASE_AUTH_DOMAIN__: JSON.stringify(
+        env.VITE_FIREBASE_AUTH_DOMAIN || ""
+      ),
+      __FIREBASE_PROJECT_ID__: JSON.stringify(
+        env.VITE_FIREBASE_PROJECT_ID || ""
+      ),
+      __FIREBASE_STORAGE_BUCKET__: JSON.stringify(
+        env.VITE_FIREBASE_STORAGE_BUCKET || ""
+      ),
+      __FIREBASE_MESSAGING_SENDER_ID__: JSON.stringify(
+        env.VITE_FIREBASE_MESSAGING_SENDER_ID || ""
+      ),
       __FIREBASE_APP_ID__: JSON.stringify(env.VITE_FIREBASE_APP_ID || ""),
-      __FIREBASE_VAPID_KEY__: JSON.stringify(env.VITE_FIREBASE_VAPID_KEY || ""),
+      __FIREBASE_VAPID_KEY__: JSON.stringify(
+        env.VITE_FIREBASE_VAPID_KEY || ""
+      ),
     },
 
     build: {
