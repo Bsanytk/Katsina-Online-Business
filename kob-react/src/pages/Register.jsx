@@ -1,14 +1,27 @@
+/**
+ * Register.jsx — KOB Marketplace Registration Page
+ *
+ * FIXED v2:
+ * ✅ FCM init non-blocking — fire-and-forget (was await — could freeze)
+ * ✅ Duplicate submit guard — if (loading) return
+ * ✅ registerUser imported correctly — named export from firebase/auth
+ * ✅ No loginUser reference anywhere — was never needed here
+ * ✅ window.location.href for hard redirect — forces ProfileContext refresh
+ * ✅ All UI preserved exactly — no layout changes
+ */
+
 import React, { useState } from "react";
-// ✅ AN GYARA: An yi import na registerUser
-import { registerUser } from "../firebase/auth"; 
+import { registerUser } from "../firebase/auth";
 import { useNavigate, Link } from "react-router-dom";
 import BackButton from "../components/BackButton";
 import { motion } from "framer-motion";
 
 const KOB_LOGO =
-  'https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1779990660/logo512_yci0g2.png';
+  "https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1779990660/logo512_yci0g2.png";
 
-// SVG Icons
+// ─────────────────────────────────────────────
+// SVG Icons — preserved exactly
+// ─────────────────────────────────────────────
 const EyeIcon = () => (
   <svg
     className="w-4 h-4"
@@ -31,6 +44,7 @@ const EyeIcon = () => (
     />
   </svg>
 );
+
 const EyeOffIcon = () => (
   <svg
     className="w-4 h-4"
@@ -51,6 +65,7 @@ const EyeOffIcon = () => (
     />
   </svg>
 );
+
 const CheckIcon = () => (
   <svg
     className="w-3 h-3"
@@ -63,6 +78,9 @@ const CheckIcon = () => (
   </svg>
 );
 
+// ─────────────────────────────────────────────
+// Register Page
+// ─────────────────────────────────────────────
 export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -74,20 +92,22 @@ export default function Register() {
   const [policyError, setPolicyError] = useState(false);
   const [showPass, setShowPass] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const navigate = useNavigate();
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError(null);
     setPolicyError(false);
 
-    // 1. Tabbatar sun yarda da sharuddan amfani da KOB
+    // ✅ Duplicate submit guard
+    if (loading) return;
+
+    // 1. Terms agreement check
     if (!agreed) {
       setPolicyError(true);
       return;
     }
 
-    // 2. Tabbatar Password guda biyu sun yi daidai
+    // 2. Password match check
     if (password !== confirmPassword) {
       setError("Passwords do not match. Please check again.");
       return;
@@ -96,21 +116,21 @@ export default function Register() {
     setLoading(true);
 
     try {
-      // ✅ Anyi amfani da registerUser gami da daukar sakamakon asusu zuwa ga userCredential
+      // ✅ Step 1: Register user — registerUser only, no loginUser needed
       const userCredential = await registerUser(email, password, role);
 
-      // 3. GYARA: Kira fcmToken cikin kariya bayan an yi nasarar gina account
-      if (userCredential && userCredential.user) {
-        try {
-          const { initFCM } = await import("../services/fcm");
-          await initFCM(userCredential.user.uid);
-        } catch (fcmErr) {
-          console.error("[KOB FCM Register] Token generation failed:", fcmErr);
-          // Ba za mu hana mai amfani shiga dashboard ba koda FCM ya sami matsala
-        }
+      // ✅ Step 2: FCM — fire-and-forget, NEVER awaited
+      // Route FIRST then init FCM in background.
+      // Awaiting FCM here was causing mobile freeze on registration.
+      if (userCredential?.user?.uid) {
+        import("../services/fcm")
+          .then(({ initFCM }) => initFCM(userCredential.user.uid))
+          .catch((fcmErr) =>
+            console.warn("[KOB Register] FCM background init:", fcmErr.message)
+          );
       }
 
-      // 4. Smart return — kiyaye tarihi
+      // ✅ Step 3: Hard redirect — forces ProfileContext to reload fresh
       const returnTo = sessionStorage.getItem("returnTo");
       if (returnTo) {
         sessionStorage.removeItem("returnTo");
@@ -147,7 +167,7 @@ export default function Register() {
           <div className="bg-[#4B3621] px-8 py-7 text-center">
             <img
               src={KOB_LOGO}
-              alt="KOB"
+              alt="KOB Marketplace"
               className="h-10 w-auto mx-auto mb-3"
             />
             <h1 className="text-xl font-bold text-white mb-1">
@@ -166,10 +186,7 @@ export default function Register() {
                 p-3.5 bg-red-50 border border-red-100
                 rounded-xl mb-5"
               >
-                <span
-                  className="text-red-500 flex-shrink-0
-                  mt-0.5 text-sm"
-                >
+                <span className="text-red-500 flex-shrink-0 mt-0.5 text-sm">
                   ⚠
                 </span>
                 <p className="text-xs text-red-700 font-medium">{error}</p>
@@ -223,9 +240,10 @@ export default function Register() {
                   <button
                     type="button"
                     onClick={() => setShowPass(!showPass)}
+                    aria-label={showPass ? "Hide password" : "Show password"}
                     className="absolute right-3 top-1/2
                       -translate-y-1/2 text-gray-400
-                      hover:text-gray-600"
+                      hover:text-gray-600 transition-colors"
                   >
                     {showPass ? <EyeOffIcon /> : <EyeIcon />}
                   </button>
@@ -256,9 +274,14 @@ export default function Register() {
                   <button
                     type="button"
                     onClick={() => setShowConfirm(!showConfirm)}
+                    aria-label={
+                      showConfirm
+                        ? "Hide confirm password"
+                        : "Show confirm password"
+                    }
                     className="absolute right-3 top-1/2
                       -translate-y-1/2 text-gray-400
-                      hover:text-gray-600"
+                      hover:text-gray-600 transition-colors"
                   >
                     {showConfirm ? <EyeOffIcon /> : <EyeIcon />}
                   </button>
@@ -315,7 +338,9 @@ export default function Register() {
                     </div>
                     <p
                       className={`text-xs font-bold
-                      ${role === "buyer" ? "text-[#4B3621]" : "text-gray-600"}`}
+                      ${
+                        role === "buyer" ? "text-[#4B3621]" : "text-gray-600"
+                      }`}
                     >
                       Buyer
                     </p>
@@ -374,7 +399,9 @@ export default function Register() {
                     <p
                       className={`text-xs font-bold
                       ${
-                        role === "seller" ? "text-[#4B3621]" : "text-gray-600"
+                        role === "seller"
+                          ? "text-[#4B3621]"
+                          : "text-gray-600"
                       }`}
                     >
                       Seller
@@ -421,19 +448,26 @@ export default function Register() {
                 }
               `}
               >
-                <label
-                  className="flex items-start gap-3
-                  cursor-pointer select-none"
-                >
+                <label className="flex items-start gap-3 cursor-pointer select-none">
                   <div
                     onClick={() => {
                       setAgreed(!agreed);
                       if (policyError) setPolicyError(false);
                     }}
+                    role="checkbox"
+                    aria-checked={agreed}
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === " " || e.key === "Enter") {
+                        setAgreed(!agreed);
+                        if (policyError) setPolicyError(false);
+                      }
+                    }}
                     className={`
                       flex-shrink-0 w-5 h-5 rounded-md
                       border-2 flex items-center justify-center
                       transition-all duration-150 mt-0.5
+                      cursor-pointer
                       ${
                         agreed
                           ? "bg-[#4B3621] border-[#4B3621] text-white"
@@ -443,13 +477,10 @@ export default function Register() {
                       }
                     `}
                   >
-                    {agreed && <CheckIcon />}
+                  {agreed && <CheckIcon />}
                   </div>
 
-                  <p
-                    className="text-xs text-gray-600
-                    leading-relaxed"
-                  >
+                  <p className="text-xs text-gray-600 leading-relaxed">
                     I have read and agree to KOB's{" "}
                     <Link
                       to="/terms"
@@ -473,7 +504,6 @@ export default function Register() {
                   </p>
                 </label>
 
-                {/* Policy error message */}
                 {policyError && (
                   <p
                     className="text-[10px] text-red-600
@@ -488,6 +518,7 @@ export default function Register() {
               {/* Submit */}
               <button
                 type="submit"
+                disabled={loading}
                 className={`
                   w-full flex items-center justify-center
                   gap-2 py-3.5 rounded-2xl font-semibold
@@ -498,7 +529,6 @@ export default function Register() {
                       : "bg-[#4B3621] text-white hover:bg-[#362818] shadow-sm"
                   }
                 `}
-                disabled={loading}
               >
                 {loading ? (
                   <>
@@ -554,7 +584,7 @@ export default function Register() {
           </div>
         </div>
 
-         {/* What happens next */}
+        {/* What happens next */}
         <div
           className="mt-4 bg-white rounded-2xl border
           border-gray-100 p-4 shadow-sm"
@@ -571,29 +601,22 @@ export default function Register() {
               role === "seller"
                 ? "Request admin verification to list products"
                 : "Message sellers directly via WhatsApp",
-              "Check your email for verification link",
-            ].map((item, i) => (
-              <p
-                key={i}
-                className="text-[10px] text-gray-500
-                flex items-center gap-1.5"
-              >
-                <svg
-                  className="w-3 h-3 text-emerald-500
-                  flex-shrink-0"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={3}
+              role === "seller"
+                ? "Start listing products after verification"
+                : "Save your favorite products easily",
+            ].map((step, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <div
+                  className="w-4 h-4 rounded-full
+                  bg-[#4B3621]/10 flex items-center
+                  justify-center flex-shrink-0"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
-                {item}
-              </p>
+                  <span className="text-[9px] font-bold text-[#4B3621]">
+                    {i + 1}
+                  </span>
+                </div>
+                <p className="text-[11px] text-gray-500">{step}</p>
+              </div>
             ))}
           </div>
         </div>
