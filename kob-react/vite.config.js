@@ -26,7 +26,7 @@ export default defineConfig(({ mode }) => {
       }),
 
       VitePWA({
-        registerType: "autoUpdate",
+        registerType: "prompt",
 
         // ✅ All confirmed present in /public — restored + badge + apple icon
         includeAssets: [
@@ -38,6 +38,13 @@ export default defineConfig(({ mode }) => {
           "mobile-screenshot.png",
           "desktop-screenshot.png",
         ],
+
+      // ✅ KA SAKA SHI NAN
+      workbox: {
+        cleanupOutdatedCaches: true,
+        skipWaiting: false,
+        clientsClaim: false,
+      },
 
         manifest: {
           name: "Katsina Online Business",
@@ -55,13 +62,13 @@ export default defineConfig(({ mode }) => {
               src: "logo192.png",
               sizes: "192x192",
               type: "image/png",
-              purpose: "any maskable",
+              purpose: "maskable",
             },
             {
               src: "logo512.png",
               sizes: "512x512",
               type: "image/png",
-              purpose: "any maskable",
+              purpose: "maskable",
             },
             {
               src: "apple-touch-icon.png",
