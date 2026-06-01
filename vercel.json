@@ -3,3 +3,10 @@
     { "source": "/(.*)", "destination": "/" }
   ]
 }
+
+{
+  "git": {
+    "deploymentEnabled": false
+  }
+}
+
