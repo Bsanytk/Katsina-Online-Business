@@ -96,15 +96,14 @@ self.addEventListener("notificationclick", (event) => {
 });
 
 // ======================================
-// Service Worker Lifecycles
+// Service Worker Lifecycles (SAFE VERSION)
 // ======================================
 self.addEventListener("install", () => {
-  console.log("[KOB FCM] Service Worker Installed");
-  self.skipWaiting();
+  console.log("[KOB FCM] Service Worker Installed (Safe Mode)");
+  // self.skipWaiting(); // REMOVED: This forces immediate activation, causing reload loops.
 });
 
 self.addEventListener("activate", (event) => {
-  console.log("[KOB FCM] Service Worker Activated");
-  event.waitUntil(clients.claim());
+  console.log("[KOB FCM] Service Worker Activated (Safe Mode)");
+  // event.waitUntil(clients.claim()); // REMOVED: This forces control, causing reload loops.
 });
-
