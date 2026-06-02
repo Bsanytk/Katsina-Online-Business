@@ -43,14 +43,6 @@ export function AuthProvider({ children }) {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       try {
         if (firebaseUser) {
-          // ✅ FCM deferred — import only, never awaited here
-          // This prevents FCM from blocking onAuthStateChanged
-          import("../services/fcm")
-            .then(({ initFCM }) => initFCM(firebaseUser.uid))
-            .catch((e) =>
-              console.warn("[KOB Auth] FCM deferred init:", e.message)
-            );
-
           const ref = doc(db, "users", firebaseUser.uid);
           const snap = await getDoc(ref);
 
