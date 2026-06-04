@@ -251,6 +251,9 @@ export default function Home() {
 {/* ================================ */}
 {/* HERO — Logo-inspired premium      */}
 {/* ================================ */}
+{/* ================================ */}
+{/* HERO — Logo-inspired premium      */}
+{/* ================================ */}
 <section
   className="relative overflow-hidden
   bg-gradient-to-br from-[#1A0F06] via-[#2C1F0E]
@@ -492,39 +495,6 @@ export default function Home() {
   </div>
 </section>
     
-
-        {/* Ticker */}
-        <div
-          className="border-t border-white/10
-          bg-black/20 py-3 overflow-hidden"
-        >
-          <motion.div
-            animate={{ x: ["0%", "-50%"] }}
-            transition={{
-              ease: "linear",
-              duration: 30,
-              repeat: Infinity,
-            }}
-            className="flex whitespace-nowrap gap-16 items-center"
-          >
-            {[1, 2].map((i) => (
-              <span
-                key={i}
-                className="flex items-center gap-16
-                  text-xs font-semibold text-white/40
-                  uppercase tracking-widest"
-              >
-                {TICKER.map((item, idx) => (
-                  <React.Fragment key={idx}>
-                    <span>{item}</span>
-                    <span className="text-[#D4AF37]">★</span>
-                  </React.Fragment>
-                ))}
-              </span>
-            ))}
-          </motion.div>
-        </div>
-      </section>
     
       <QuickStartCard />
 
