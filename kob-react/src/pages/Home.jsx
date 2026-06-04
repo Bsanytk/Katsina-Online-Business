@@ -256,7 +256,7 @@ export default function Home() {
 {/* ================================ */}
 <section
   className="relative overflow-hidden
-  bg-gradient-to-br from-[#1A0F06] via-[#2C1F0E]
+  bg-gradient-to-br from-[#FAFAF8] via-[#2C1F0E]
   to-[#4B3621]"
 >
   {/* Decorative orbs — deeper, richer */}
@@ -306,7 +306,7 @@ export default function Home() {
         <span
           className="
             block text-5xl md:text-7xl font-black
-            text-white
+            text-#FAFAF8
             drop-shadow-[0_2px_20px_rgba(255,255,255,0.06)]
           "
         >
