@@ -5,7 +5,6 @@ import { useTranslation } from "../hooks/useTranslation";
 import ProductCard from "../components/ProductCard";
 import Loading from "../components/Loading";
 import TestimonialsSection from "../components/TestimonialsSection";
-import WelcomeSection from "../components/pwa/WelcomeSection";
 import QuickStartCard from "../components/pwa/QuickStartCard";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../firebase/auth";
@@ -248,151 +247,251 @@ export default function Home() {
         {toast && <Toast message={toast} onClose={() => setToast(null)} />}
       </AnimatePresence>
 
-      {/* ================================ */}
-      {/* HERO                             */}
-      {/* ================================ */}
-      <section
-        className="relative overflow-hidden
-        bg-gradient-to-br from-[#2C1F0E] via-[#4B3621]
-        to-[#6B4C31]"
+
+{/* ================================ */}
+{/* HERO — Logo-inspired premium      */}
+{/* ================================ */}
+<section
+  className="relative overflow-hidden
+  bg-gradient-to-br from-[#1A0F06] via-[#2C1F0E]
+  to-[#4B3621]"
+>
+  {/* Decorative orbs — deeper, richer */}
+  <div className="absolute inset-0 pointer-events-none overflow-hidden">
+    <div
+      className="absolute -top-24 -right-24 w-96 h-96
+      bg-[#D4AF37]/8 rounded-full blur-3xl"
+    />
+    <div
+      className="absolute top-1/2 -left-20 w-64 h-64
+      bg-[#D4AF37]/5 rounded-full blur-3xl"
+    />
+    <div
+      className="absolute bottom-0 left-1/2 -translate-x-1/2
+      w-full h-px bg-gradient-to-r
+      from-transparent via-[#D4AF37]/20 to-transparent"
+    />
+  </div>
+
+  <div className="container relative z-10 pt-10 pb-16 md:pt-14 md:pb-24">
+    <motion.div
+      variants={heroVariants}
+      initial="hidden"
+      animate="visible"
+      className="max-w-2xl mx-auto text-center"
+    >
+      {/* Badge */}
+      <motion.div variants={fadeUp} className="mb-5">
+        <span
+          className="inline-flex items-center gap-2
+          px-4 py-1.5 bg-[#D4AF37]/15
+          border border-[#D4AF37]/25 rounded-full
+          text-[#D4AF37] text-[10px] font-bold
+          uppercase tracking-[0.2em]"
+        >
+          <span className="w-1.5 h-1.5 rounded-full bg-[#D4AF37] animate-pulse" />
+          Katsina's #1 Online Marketplace
+        </span>
+      </motion.div>
+
+      {/* ── HEADING — Logo-inspired ── */}
+      <motion.h1
+        variants={fadeUp}
+        className="leading-tight tracking-tight mb-2"
       >
-        {/* Decorative */}
-        <div
-          className="absolute inset-0 pointer-events-none
-          overflow-hidden"
+        {/* KOB — white, clean, like the logo letterform */}
+        <span
+          className="
+            block text-5xl md:text-7xl font-black
+            text-white
+            drop-shadow-[0_2px_20px_rgba(255,255,255,0.06)]
+          "
         >
-          <div
-            className="absolute -top-24 -right-24 w-96 h-96
-            bg-[#D4AF37]/10 rounded-full blur-3xl"
-          />
-          <div
-            className="absolute top-1/2 -left-20 w-64 h-64
-            bg-white/5 rounded-full blur-3xl"
-          />
-        </div>
+          KOB
+        </span>
 
-        <div
-          className="container relative z-10 pt-8 pb-14
-          md:pt-12 md:pb-20"
+        {/* Marketplace — gold gradient, rising like the arrow */}
+        <span
+          className="block text-3xl md:text-5xl font-black mt-1"
+          style={{
+            background:
+              "linear-gradient(135deg, #F5C842 0%, #D4AF37 45%, #C49020 100%)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            backgroundClip: "text",
+            filter: "drop-shadow(0 4px 24px rgba(212,175,55,0.4))",
+          }}
         >
-          <motion.div
-            variants={heroVariants}
-            initial="hidden"
-            animate="visible"
-            className="max-w-2xl mx-auto text-center"
+          Marketplace
+        </span>
+
+        {/* Gold swoosh arrow — exact logo language */}
+        <span className="flex justify-center mt-3">
+          <svg
+            viewBox="0 0 240 20"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            className="w-52 md:w-72 h-auto"
+            aria-hidden="true"
           >
-            {/* Badge */}
-            <motion.div variants={fadeUp} className="mb-4">
-              <span
-                className="inline-flex items-center gap-2
-                px-4 py-1.5 bg-[#D4AF37]/20
-                border border-[#D4AF37]/30 rounded-full
-                text-[#D4AF37] text-xs font-bold
-                uppercase tracking-widest"
+            <defs>
+              <linearGradient
+                id="swooshGrad"
+                x1="0%"
+                y1="0%"
+                x2="100%"
+                y2="0%"
               >
-                <span
-                  className="w-1.5 h-1.5 rounded-full
-                  bg-[#D4AF37] animate-pulse"
-                />
-                Katsina's #1 Online Marketplace
-              </span>
-            </motion.div>
+                <stop offset="0%"   stopColor="#D4AF37" stopOpacity="0.1" />
+                <stop offset="45%"  stopColor="#F5C842" stopOpacity="1"   />
+                <stop offset="100%" stopColor="#E8A020" stopOpacity="0.85"/>
+              </linearGradient>
+            </defs>
+            {/* Swoosh — same gentle arc as logo arrow */}
+            <path
+              d="M6 16 Q90 3 218 7"
+              stroke="url(#swooshGrad)"
+              strokeWidth="2.8"
+              strokeLinecap="round"
+              fill="none"
+            />
+            {/* Arrowhead */}
+            <path
+              d="M208 2.5 L221 7 L209 12.5"
+              stroke="url(#swooshGrad)"
+              strokeWidth="2.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              fill="none"
+            />
+          </svg>
+        </span>
+      </motion.h1>
 
-            {/* Heading */}
-            <motion.h1
-              variants={fadeUp}
-              className="text-4xl md:text-6xl font-black
-                text-white leading-tight tracking-tight mb-4"
-            >
-              KOB <span className="text-[#D4AF37]">Marketplace</span>
-            </motion.h1>
+      {/* Subtitle */}
+      <motion.p
+        variants={fadeUp}
+        className="text-sm text-white/50 mt-5 mb-8
+          max-w-sm mx-auto leading-relaxed"
+      >
+        Discover authentic products from verified local sellers.
+        Buy, sell, and connect — all in one place.
+      </motion.p>
 
-            <motion.p
-              variants={fadeUp}
-              className="text-sm text-white/60 mb-8
-                max-w-md mx-auto leading-relaxed"
-            >
-              Discover authentic products from verified local sellers. Buy,
-              sell, and connect — all in one place.
-            </motion.p>
+      {/* CTA Buttons */}
+      <motion.div
+        variants={fadeUp}
+        className="flex flex-col sm:flex-row gap-3 justify-center"
+      >
+        <button
+          onClick={() => navigate("/marketplace")}
+          className="flex items-center justify-center
+            gap-2 px-8 py-3.5
+            bg-gradient-to-r from-[#D4AF37] to-[#C49020]
+            text-[#1A0F06] rounded-2xl font-bold text-sm
+            hover:from-[#F5C842] hover:to-[#D4AF37]
+            transition-all shadow-lg shadow-[#D4AF37]/25
+            active:scale-[0.98]"
+        >
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2.5}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+            />
+          </svg>
+          Explore Marketplace
+        </button>
 
-            {/* CTA */}
-            <motion.div
-              variants={fadeUp}
-              className="flex flex-col sm:flex-row gap-3
-                justify-center"
-            >
-              <button
-                onClick={() => navigate("/marketplace")}
-                className="flex items-center justify-center
-                  gap-2 px-7 py-3.5 bg-[#D4AF37]
-                  text-[#2C1F0E] rounded-xl font-bold text-sm
-                  hover:bg-[#c49e30] transition-all shadow-lg
-                  shadow-[#D4AF37]/20 active:scale-[0.98]"
-              >
+        <button
+          onClick={handleStartSelling}
+          className="flex items-center justify-center
+            gap-2 px-8 py-3.5
+            border border-white/15
+            bg-white/5 backdrop-blur-sm
+            text-white rounded-2xl font-semibold text-sm
+            hover:bg-white/10 hover:border-white/25
+            transition-all active:scale-[0.98]"
+        >
+          Start Selling Free
+        </button>
+      </motion.div>
+
+      {/* Trust row */}
+      <motion.div
+        variants={fadeUp}
+        className="flex flex-wrap items-center
+          justify-center gap-5 mt-8"
+      >
+        {["Free to browse", "Verified sellers", "WhatsApp support"].map(
+          (item, i) => (
+            <React.Fragment key={item}>
+              <span className="flex items-center gap-1.5 text-white/35 text-xs">
                 <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
+                  className="w-3 h-3 text-[#D4AF37]"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
                 >
                   <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+                    fillRule="evenodd"
+                    d="M16.707 5.293a1 1 0 010 1.414l-8
+                    8a1 1 0 01-1.414 0l-4-4a1 1 0
+                    011.414-1.414L8 12.586l7.293-7.293a1
+                    1 0 011.414 0z"
+                    clipRule="evenodd"
                   />
                 </svg>
-                Explore Marketplace
-              </button>
-
-              <button
-                onClick={handleStartSelling}
-                className="flex items-center justify-center
-                  gap-2 px-7 py-3.5 border-2 border-white/20
-                  text-white rounded-xl font-semibold text-sm
-                  hover:bg-white/10 transition-all
-                  active:scale-[0.98]"
-              >
-                Start Selling Free
-              </button>
-            </motion.div>
-
-            {/* Trust */}
-            <motion.div
-              variants={fadeUp}
-              className="flex flex-wrap items-center
-                justify-center gap-4 mt-7"
-            >
-              {["Free to browse", "Verified sellers", "WhatsApp support"].map(
-                (item, i) => (
-                  <React.Fragment key={item}>
-                    <span
-                      className="flex items-center gap-1.5
-                    text-white/40 text-xs"
-                    >
-                      <svg
-                        className="w-3 h-3 text-[#D4AF37]"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1
-                        0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8
-                        12.586l7.293-7.293a1 1 0 011.414 0z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                      {item}
-                    </span>
-                    {i < 2 && <span className="w-px h-3 bg-white/20" />}
-                  </React.Fragment>
-                )
+                {item}
+              </span>
+              {i < 2 && (
+                <span className="w-px h-3 bg-white/15" aria-hidden="true" />
               )}
-            </motion.div>
-          </motion.div>
-        </div>
+            </React.Fragment>
+          )
+        )}
+      </motion.div>
+    </motion.div>
+  </div>
+
+  {/* Ticker */}
+  <div className="border-t border-white/8 bg-black/25 py-3 overflow-hidden">
+    <motion.div
+      animate={{ x: ["0%", "-50%"] }}
+      transition={{ ease: "linear", duration: 30, repeat: Infinity }}
+      className="flex whitespace-nowrap gap-16 items-center"
+    >
+      {[1, 2].map((i) => (
+        <span
+          key={i}
+          className="flex items-center gap-16
+            text-[10px] font-bold text-white/30
+            uppercase tracking-[0.18em]"
+        >
+          {TICKER.map((item, idx) => (
+            <React.Fragment key={idx}>
+              <span>{item}</span>
+              <span
+                style={{
+                  color: "#D4AF37",
+                  filter: "drop-shadow(0 0 4px rgba(212,175,55,0.5))",
+                }}
+              >
+                ★
+              </span>
+            </React.Fragment>
+          ))}
+        </span>
+      ))}
+    </motion.div>
+  </div>
+</section>
+    
 
         {/* Ticker */}
         <div
@@ -426,7 +525,7 @@ export default function Home() {
           </motion.div>
         </div>
       </section>
-      <WelcomeSection />
+    
       <QuickStartCard />
 
       {/* ================================ */}
