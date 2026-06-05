@@ -258,15 +258,18 @@ export default function Home() {
             "linear-gradient(155deg, #3d2619 0%, #60412f 45%, #a68b70 80%, #ded7cf 100%)",
         }}
       >
-        {/* Gyararre: Warm gold bloom — Now moved to Left Middle with low transparency */}
+        {/* WANNAN SHINE DIV DIN HASKEN BACKGROUND: */}
+        {/* Warm gold bloom — top right */}
         <div
           aria-hidden="true"
-          className="absolute left-0 top-1/2 -translate-y-1/2 -ml-32 h-[500px] w-[500px] rounded-full blur-[120px] pointer-events-none"
+          className="absolute right-0 top-0 -mr-40 -mt-40 h-[600px] w-[600px] rounded-full blur-[140px] pointer-events-none"
           style={{
-            // An cire farin gaba daya, sannan transparent din yana da matukar santsi (0.08) don kar ya turnuke rubutu
-            background: "radial-gradient(circle at left, rgba(248,184,93,0.08) 0%, transparent 65%)",
+            // 1. An cire farin da ke ciki (An rage #ffffff)
+            // 2. An rage transparent (opacity) din hasken zuwa 0.12 kawai maimakon 0.3
+            background: "radial-gradient(circle, rgba(248,184,93,0.12) 0%, rgba(61,38,25,0) 70%)",
           }}
         />
+        
         
 
         <div
