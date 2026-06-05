@@ -258,30 +258,20 @@ export default function Home() {
             "linear-gradient(155deg, #3d2619 0%, #60412f 45%, #a68b70 80%, #ded7cf 100%)",
         }}
       >
-        {/* Warm gold bloom — top right */}
+        {/* Gyararre: Warm gold bloom — Now moved to Left Middle with low transparency */}
         <div
           aria-hidden="true"
-          className="absolute inset-0 pointer-events-none"
+          className="absolute left-0 top-1/2 -translate-y-1/2 -ml-32 h-[500px] w-[500px] rounded-full blur-[120px] pointer-events-none"
           style={{
-            background:
-              "radial-gradient(ellipse 70% 50% at 70% 0%, rgba(248,184,93,0.10) 0%, transparent 65%)",
+            // An cire farin gaba daya, sannan transparent din yana da matukar santsi (0.08) don kar ya turnuke rubutu
+            background: "radial-gradient(circle at left, rgba(248,184,93,0.08) 0%, transparent 65%)",
           }}
         />
-
-        {/* Subtle left glow */}
-        <div
-          aria-hidden="true"
-          className="absolute top-1/3 -left-16 w-56 h-56 pointer-events-none"
-          style={{
-            background:
-              "radial-gradient(circle, rgba(214,166,102,0.08) 0%, transparent 70%)",
-            filter: "blur(32px)",
-          }}
-        />
+        
 
         <div
           className="container relative z-10"
-          style={{ paddingTop: "3.5rem", paddingBottom: "5rem" }}
+          style={{ paddingTop: "2.5rem", paddingBottom: "3rem" }}
         >
           <motion.div
             variants={heroVariants}
