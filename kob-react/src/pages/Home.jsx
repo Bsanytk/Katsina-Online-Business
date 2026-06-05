@@ -251,11 +251,10 @@ export default function Home() {
       {/* ================================ */}
       {/* HERO                             */}
       {/* ================================ */}
-      <section
+          <section
         className="relative overflow-hidden"
         style={{
-          background:
-            "linear-gradient(155deg, #3d2619 0%, #60412f 45%, #a68b70 80%, #ded7cf 100%)",
+          backgroundColor: "#3d2619",
         }}
       >
         {/* WANNAN SHINE DIV DIN HASKEN BACKGROUND: */}
