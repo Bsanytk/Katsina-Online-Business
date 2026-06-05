@@ -250,154 +250,254 @@ export default function Home() {
 
 {/* ================================ */}
 {/* HERO — Logo-inspired premium      */}
-{/* ================================ */}
-{/* ================================ */}
-{/* HERO — Logo-inspired premium      */}
-{/* ================================ */}
-<section
-  className="relative overflow-hidden
-  bg-gradient-to-br from-[#FAFAF8] via-[#2C1F0E]
-  to-[#4B3621]"
->
-  {/* Decorative orbs — deeper, richer */}
-  <div className="absolute inset-0 pointer-events-none overflow-hidden">
-    <div
-      className="absolute -top-24 -right-24 w-96 h-96
-      bg-[#D4AF37]/8 rounded-full blur-3xl"
-    />
-    <div
-      className="absolute top-1/2 -left-20 w-64 h-64
-      bg-[#D4AF37]/5 rounded-full blur-3xl"
-    />
-    <div
-      className="absolute bottom-0 left-1/2 -translate-x-1/2
-      w-full h-px bg-gradient-to-r
-      from-transparent via-[#D4AF37]/20 to-transparent"
-    />
-  </div>
+{/* ============================================================ */}
+{/* HERO SECTION v2 — Logo-true, Off-white warmth, Light gold    */}
+{/*                                                               */}
+{/* Color system from logo:                                       */}
+{/*   Background: #FAFAF8 off-white + #432B1E warm brown accent  */}
+{/*   K / text:   #FAFAF8 off-white (never pure white)           */}
+{/*   Accents:    #FFBD59 light gold (from logo arrow)           */}
+{/*   Font:       Montserrat (already loaded in index.html)       */}
+{/* ============================================================ */}
 
-  <div className="container relative z-10 pt-10 pb-16 md:pt-14 md:pb-24">
+<section
+  className="relative overflow-hidden"
+  style={{
+    /* Off-white base with warm brown gradient ratsi — */
+    /* NOT pure dark. Soft, premium, easy on the eye.  */
+    background:
+      "linear-gradient(160deg, #3A2318 0%, #432B1E 35%, #5C3820 65%, #FAFAF8 100%)",
+  }}
+>
+  {/* ── Subtle texture layer — adds depth without darkness ── */}
+  <div
+    aria-hidden="true"
+    className="absolute inset-0 pointer-events-none"
+    style={{
+      background:
+        "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(255,189,89,0.07) 0%, transparent 70%)",
+    }}
+  />
+
+  {/* ── Soft off-white bloom at bottom — smooth transition ── */}
+  <div
+    aria-hidden="true"
+    className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none"
+    style={{
+      background:
+        "linear-gradient(to top, #FAFAF8 0%, transparent 100%)",
+    }}
+  />
+
+  {/* ── Gold light leak top-right — like logo glow ── */}
+  <div
+    aria-hidden="true"
+    className="absolute -top-20 -right-20 w-72 h-72 pointer-events-none"
+    style={{
+      background:
+        "radial-gradient(circle, rgba(255,189,89,0.12) 0%, transparent 70%)",
+      filter: "blur(40px)",
+    }}
+  />
+
+  <div
+    className="container relative z-10"
+    style={{ paddingTop: "3.5rem", paddingBottom: "5rem" }}
+  >
     <motion.div
       variants={heroVariants}
       initial="hidden"
       animate="visible"
-      className="max-w-2xl mx-auto text-center"
+      className="max-w-xl mx-auto text-center"
     >
-      {/* Badge */}
-      <motion.div variants={fadeUp} className="mb-5">
+      {/* ── Badge ── */}
+      <motion.div variants={fadeUp} className="mb-6">
         <span
-          className="inline-flex items-center gap-2
-          px-4 py-1.5 bg-[#D4AF37]/15
-          border border-[#D4AF37]/25 rounded-full
-          text-[#D4AF37] text-[10px] font-bold
-          uppercase tracking-[0.2em]"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "0.5rem",
+            padding: "0.375rem 1rem",
+            background: "rgba(255,189,89,0.12)",
+            border: "1px solid rgba(255,189,89,0.25)",
+            borderRadius: "9999px",
+            color: "#FFBD59",
+            fontSize: "0.65rem",
+            fontWeight: 700,
+            fontFamily: "'Montserrat', sans-serif",
+            letterSpacing: "0.18em",
+            textTransform: "uppercase",
+          }}
         >
-          <span className="w-1.5 h-1.5 rounded-full bg-[#D4AF37] animate-pulse" />
+          <span
+            style={{
+              width: "6px",
+              height: "6px",
+              borderRadius: "50%",
+              background: "#FFBD59",
+              boxShadow: "0 0 6px #FFBD59",
+              animation: "pulse 2s infinite",
+            }}
+          />
           Katsina's #1 Online Marketplace
         </span>
       </motion.div>
 
-      {/* ── HEADING — Logo-inspired ── */}
-      <motion.h1
-        variants={fadeUp}
-        className="leading-tight tracking-tight mb-2"
-      >
-        {/* KOB — white, clean, like the logo letterform */}
-        <span
-          className="
-            block text-5xl md:text-7xl font-black
-            text-#FAFAF8
-            drop-shadow-[0_2px_20px_rgba(255,255,255,0.06)]
-          "
+      {/* ── Main Heading ── */}
+      <motion.div variants={fadeUp} className="mb-3">
+
+        {/* "KOB" — off-white #FAFAF8, Montserrat Black */}
+        <h1
+          style={{
+            fontFamily: "'Montserrat', sans-serif",
+            fontWeight: 900,
+            fontSize: "clamp(3rem, 10vw, 5.5rem)",
+            lineHeight: 1,
+            letterSpacing: "-0.02em",
+            color: "#FAFAF8",
+            margin: 0,
+            /* Subtle warm glow so it lifts off the dark bg */
+            textShadow: "0 2px 24px rgba(250,250,248,0.08)",
+          }}
         >
           KOB
-        </span>
+        </h1>
 
-        {/* Marketplace — gold gradient, rising like the arrow */}
-        <span
-          className="block text-3xl md:text-5xl font-black mt-1"
+        {/* "Marketplace" — light gold #FFBD59 gradient, Montserrat */}
+        <h2
           style={{
+            fontFamily: "'Montserrat', sans-serif",
+            fontWeight: 800,
+            fontSize: "clamp(1.5rem, 5vw, 2.75rem)",
+            lineHeight: 1.1,
+            letterSpacing: "0.04em",
+            margin: "0.25rem 0 0 0",
             background:
-              "linear-gradient(135deg, #F5C842 0%, #D4AF37 45%, #C49020 100%)",
+              "linear-gradient(120deg, #FFBD59 0%, #FFD080 50%, #FFBD59 100%)",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
             backgroundClip: "text",
-            filter: "drop-shadow(0 4px 24px rgba(212,175,55,0.4))",
+            filter: "drop-shadow(0 2px 12px rgba(255,189,89,0.3))",
           }}
         >
           Marketplace
-        </span>
+        </h2>
 
         {/* Gold swoosh arrow — exact logo language */}
-        <span className="flex justify-center mt-3">
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            marginTop: "1rem",
+          }}
+        >
           <svg
-            viewBox="0 0 240 20"
+            viewBox="0 0 240 22"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
-            className="w-52 md:w-72 h-auto"
+            style={{ width: "clamp(160px, 40vw, 240px)", height: "auto" }}
             aria-hidden="true"
           >
             <defs>
               <linearGradient
-                id="swooshGrad"
+                id="swooshGold"
                 x1="0%"
                 y1="0%"
                 x2="100%"
                 y2="0%"
               >
-                <stop offset="0%"   stopColor="#D4AF37" stopOpacity="0.1" />
-                <stop offset="45%"  stopColor="#F5C842" stopOpacity="1"   />
-                <stop offset="100%" stopColor="#E8A020" stopOpacity="0.85"/>
+                <stop offset="0%"   stopColor="#FFBD59" stopOpacity="0.08" />
+                <stop offset="40%"  stopColor="#FFBD59" stopOpacity="0.9"  />
+                <stop offset="100%" stopColor="#FFD080" stopOpacity="0.7"  />
               </linearGradient>
             </defs>
-            {/* Swoosh — same gentle arc as logo arrow */}
+            {/* Arc — same angle as logo arrow */}
             <path
-              d="M6 16 Q90 3 218 7"
-              stroke="url(#swooshGrad)"
-              strokeWidth="2.8"
+              d="M8 18 Q90 4 218 8"
+              stroke="url(#swooshGold)"
+              strokeWidth="2.5"
               strokeLinecap="round"
               fill="none"
             />
             {/* Arrowhead */}
             <path
-              d="M208 2.5 L221 7 L209 12.5"
-              stroke="url(#swooshGrad)"
-              strokeWidth="2.8"
+              d="M207 3 L220 8 L208 14"
+              stroke="url(#swooshGold)"
+              strokeWidth="2.5"
               strokeLinecap="round"
               strokeLinejoin="round"
               fill="none"
             />
           </svg>
-        </span>
-      </motion.h1>
+        </div>
+      </motion.div>
 
-      {/* Subtitle */}
+      {/* ── Subtitle — dark enough to read on off-white bloom ── */}
       <motion.p
         variants={fadeUp}
-        className="text-sm text-white/50 mt-5 mb-8
-          max-w-sm mx-auto leading-relaxed"
+        style={{
+          fontFamily: "'Montserrat', sans-serif",
+          fontWeight: 500,
+          fontSize: "0.875rem",
+          color: "rgba(250,250,248,0.55)",
+          lineHeight: 1.7,
+          maxWidth: "28rem",
+          margin: "1.5rem auto 2rem",
+          letterSpacing: "0.01em",
+        }}
       >
         Discover authentic products from verified local sellers.
         Buy, sell, and connect — all in one place.
       </motion.p>
 
-      {/* CTA Buttons */}
+      {/* ── CTA Buttons ── */}
       <motion.div
         variants={fadeUp}
-        className="flex flex-col sm:flex-row gap-3 justify-center"
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "0.75rem",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+        className="sm:flex-row"
       >
+        {/* Primary — light gold fill */}
         <button
           onClick={() => navigate("/marketplace")}
-          className="flex items-center justify-center
-            gap-2 px-8 py-3.5
-            bg-gradient-to-r from-[#D4AF37] to-[#C49020]
-            text-[#1A0F06] rounded-2xl font-bold text-sm
-            hover:from-[#F5C842] hover:to-[#D4AF37]
-            transition-all shadow-lg shadow-[#D4AF37]/25
-            active:scale-[0.98]"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "0.5rem",
+            padding: "0.875rem 2rem",
+            background:
+              "linear-gradient(135deg, #FFBD59 0%, #FFD080 100%)",
+            color: "#2C1A0A",
+            borderRadius: "14px",
+            border: "none",
+            fontFamily: "'Montserrat', sans-serif",
+            fontWeight: 700,
+            fontSize: "0.875rem",
+            letterSpacing: "0.02em",
+            cursor: "pointer",
+            boxShadow:
+              "0 4px 20px rgba(255,189,89,0.25), 0 1px 3px rgba(0,0,0,0.15)",
+            transition: "all 0.2s ease",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = "translateY(-1px)";
+            e.currentTarget.style.boxShadow =
+              "0 8px 28px rgba(255,189,89,0.35), 0 2px 6px rgba(0,0,0,0.15)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = "translateY(0)";
+            e.currentTarget.style.boxShadow =
+              "0 4px 20px rgba(255,189,89,0.25), 0 1px 3px rgba(0,0,0,0.15)";
+          }}
         >
           <svg
-            className="w-4 h-4"
+            style={{ width: "16px", height: "16px" }}
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -412,48 +512,91 @@ export default function Home() {
           Explore Marketplace
         </button>
 
+        {/* Secondary — off-white ghost */}
         <button
           onClick={handleStartSelling}
-          className="flex items-center justify-center
-            gap-2 px-8 py-3.5
-            border border-white/15
-            bg-white/5 backdrop-blur-sm
-            text-white rounded-2xl font-semibold text-sm
-            hover:bg-white/10 hover:border-white/25
-            transition-all active:scale-[0.98]"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "0.5rem",
+            padding: "0.875rem 2rem",
+            background: "rgba(250,250,248,0.06)",
+            color: "#FAFAF8",
+            borderRadius: "14px",
+            border: "1px solid rgba(250,250,248,0.15)",
+            fontFamily: "'Montserrat', sans-serif",
+            fontWeight: 600,
+            fontSize: "0.875rem",
+            letterSpacing: "0.02em",
+            cursor: "pointer",
+            backdropFilter: "blur(8px)",
+            transition: "all 0.2s ease",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = "rgba(250,250,248,0.1)";
+            e.currentTarget.style.borderColor = "rgba(255,189,89,0.3)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = "rgba(250,250,248,0.06)";
+            e.currentTarget.style.borderColor = "rgba(250,250,248,0.15)";
+          }}
         >
           Start Selling Free
         </button>
       </motion.div>
 
-      {/* Trust row */}
+      {/* ── Trust row ── */}
       <motion.div
         variants={fadeUp}
-        className="flex flex-wrap items-center
-          justify-center gap-5 mt-8"
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "1.25rem",
+          marginTop: "2rem",
+        }}
       >
         {["Free to browse", "Verified sellers", "WhatsApp support"].map(
           (item, i) => (
             <React.Fragment key={item}>
-              <span className="flex items-center gap-1.5 text-white/35 text-xs">
+              <span
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.375rem",
+                  color: "rgba(250,250,248,0.35)",
+                  fontSize: "0.7rem",
+                  fontFamily: "'Montserrat', sans-serif",
+                  fontWeight: 500,
+                  letterSpacing: "0.03em",
+                }}
+              >
                 <svg
-                  className="w-3 h-3 text-[#D4AF37]"
+                  style={{ width: "11px", height: "11px", color: "#FFBD59" }}
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
                   <path
                     fillRule="evenodd"
-                    d="M16.707 5.293a1 1 0 010 1.414l-8
-                    8a1 1 0 01-1.414 0l-4-4a1 1 0
-                    011.414-1.414L8 12.586l7.293-7.293a1
-                    1 0 011.414 0z"
+                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0
+                    01-1.414 0l-4-4a1 1 0 011.414-1.414L8
+                    12.586l7.293-7.293a1 1 0 011.414 0z"
                     clipRule="evenodd"
                   />
                 </svg>
                 {item}
               </span>
               {i < 2 && (
-                <span className="w-px h-3 bg-white/15" aria-hidden="true" />
+                <span
+                  aria-hidden="true"
+                  style={{
+                    width: "1px",
+                    height: "12px",
+                    background: "rgba(250,250,248,0.12)",
+                  }}
+                />
               )}
             </React.Fragment>
           )
@@ -462,31 +605,44 @@ export default function Home() {
     </motion.div>
   </div>
 
-  {/* Ticker */}
-  <div className="border-t border-white/8 bg-black/25 py-3 overflow-hidden">
+  {/* ── Ticker ── */}
+  <div
+    style={{
+      borderTop: "1px solid rgba(250,250,248,0.06)",
+      background: "rgba(44,26,10,0.4)",
+      padding: "0.75rem 0",
+      overflow: "hidden",
+    }}
+  >
     <motion.div
       animate={{ x: ["0%", "-50%"] }}
-      transition={{ ease: "linear", duration: 30, repeat: Infinity }}
-      className="flex whitespace-nowrap gap-16 items-center"
+      transition={{ ease: "linear", duration: 32, repeat: Infinity }}
+      style={{
+        display: "flex",
+        whiteSpace: "nowrap",
+        gap: "4rem",
+        alignItems: "center",
+      }}
     >
       {[1, 2].map((i) => (
         <span
           key={i}
-          className="flex items-center gap-16
-            text-[10px] font-bold text-white/30
-            uppercase tracking-[0.18em]"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "4rem",
+            fontSize: "0.6rem",
+            fontWeight: 700,
+            fontFamily: "'Montserrat', sans-serif",
+            color: "rgba(250,250,248,0.25)",
+            letterSpacing: "0.2em",
+            textTransform: "uppercase",
+          }}
         >
           {TICKER.map((item, idx) => (
             <React.Fragment key={idx}>
               <span>{item}</span>
-              <span
-                style={{
-                  color: "#D4AF37",
-                  filter: "drop-shadow(0 0 4px rgba(212,175,55,0.5))",
-                }}
-              >
-                ★
-              </span>
+              <span style={{ color: "#FFBD59", opacity: 0.7 }}>★</span>
             </React.Fragment>
           ))}
         </span>
@@ -494,6 +650,7 @@ export default function Home() {
     </motion.div>
   </div>
 </section>
+
     
     
       <QuickStartCard />
