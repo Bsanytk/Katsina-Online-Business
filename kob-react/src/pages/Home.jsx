@@ -268,15 +268,6 @@ export default function Home() {
           }}
         />
 
-        {/* Cream fade — bottom, transitions into page */}
-        <div
-          aria-hidden="true"
-          className="absolute bottom-0 left-0 right-0 h-28 pointer-events-none"
-          style={{
-            background: "linear-gradient(to top, #ded7cf 0%, transparent 100%)",
-          }}
-        />
-
         {/* Subtle left glow */}
         <div
           aria-hidden="true"
