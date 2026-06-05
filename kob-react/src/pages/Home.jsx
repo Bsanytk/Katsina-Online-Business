@@ -249,48 +249,32 @@ export default function Home() {
 
 
       {/* ================================ */}
-      {/* HERO                             */}
+      {/* HERO SECTION (MODERN COVER EDITION) */}
       {/* ================================ */}
       <section
-        className="relative overflow-hidden"
+        className="relative overflow-hidden mx-auto my-4 rounded-2xl"
         style={{
-          background:
-            "linear-gradient(155deg, #3d2619 0%, #60412f 45%, #a68b70 80%, #ded7cf 100%)",
+          // Flat premium solid color with sharp borders to make it a modern rectangle cover
+          backgroundColor: "#3d2619",
+          maxWidth: "1200px",
+          width: "95%",
+          minHeight: "340px",
+          boxShadow: "0 12px 40px rgba(0,0,0,0.15)",
         }}
       >
-        {/* Warm gold bloom — top right */}
+        {/* Subtle, localized warm amber bloom instead of a huge leaking gradient */}
         <div
           aria-hidden="true"
           className="absolute inset-0 pointer-events-none"
           style={{
             background:
-              "radial-gradient(ellipse 70% 50% at 70% 0%, rgba(248,184,93,0.10) 0%, transparent 65%)",
-          }}
-        />
-
-        {/* Cream fade — bottom, transitions into page */}
-        <div
-          aria-hidden="true"
-          className="absolute bottom-0 left-0 right-0 h-28 pointer-events-none"
-          style={{
-            background: "linear-gradient(to top, #ded7cf 0%, transparent 100%)",
-          }}
-        />
-
-        {/* Subtle left glow */}
-        <div
-          aria-hidden="true"
-          className="absolute top-1/3 -left-16 w-56 h-56 pointer-events-none"
-          style={{
-            background:
-              "radial-gradient(circle, rgba(214,166,102,0.08) 0%, transparent 70%)",
-            filter: "blur(32px)",
+              "radial-gradient(circle at 50% 30%, rgba(248,184,93,0.08) 0%, transparent 70%)",
           }}
         />
 
         <div
-          className="container relative z-10"
-          style={{ paddingTop: "3.5rem", paddingBottom: "5rem" }}
+          className="container relative z-10 mx-auto px-4"
+          style={{ paddingTop: "2.5rem", paddingBottom: "2.5rem" }}
         >
           <motion.div
             variants={heroVariants}
@@ -299,7 +283,7 @@ export default function Home() {
             className="max-w-xl mx-auto text-center"
           >
             {/* Badge */}
-            <motion.div variants={fadeUp} style={{ marginBottom: "1.5rem" }}>
+            <motion.div variants={fadeUp} style={{ marginBottom: "1rem" }}>
               <span
                 style={{
                   display: "inline-flex",
@@ -310,10 +294,10 @@ export default function Home() {
                   border: "1px solid rgba(248,184,93,0.22)",
                   borderRadius: "9999px",
                   color: "#f8b85d",
-                  fontSize: "0.6rem",
+                  fontSize: "0.65rem",
                   fontWeight: 700,
                   fontFamily: "'Montserrat', sans-serif",
-                  letterSpacing: "0.2em",
+                  letterSpacing: "0.15em",
                   textTransform: "uppercase",
                 }}
               >
@@ -331,15 +315,13 @@ export default function Home() {
               </span>
             </motion.div>
 
-            {/* Heading */}
+            {/* Heading Section */}
             <motion.div variants={fadeUp} style={{ marginBottom: "0.5rem" }}>
-
-              {/* KOB — brand cream, Montserrat Black */}
               <h1
                 style={{
                   fontFamily: "'Montserrat', sans-serif",
                   fontWeight: 900,
-                  fontSize: "clamp(3.25rem, 12vw, 6rem)",
+                  fontSize: "clamp(2.5rem, 10vw, 4.5rem)",
                   lineHeight: 1,
                   letterSpacing: "-0.025em",
                   color: "#ded7cf",
@@ -350,69 +332,68 @@ export default function Home() {
                 KOB
               </h1>
 
-              {/* Marketplace — brand amber solid, NO webkit gradient bug */}
               <h2
                 style={{
                   fontFamily: "'Montserrat', sans-serif",
                   fontWeight: 800,
-                  fontSize: "clamp(1.6rem, 5.5vw, 2.9rem)",
-                  lineHeight: 1.15,
-                  letterSpacing: "0.05em",
+                  fontSize: "clamp(1.4rem, 5vw, 2.3rem)",
+                  lineHeight: 1.1,
+                  letterSpacing: "0.03em",
                   color: "#f8b85d",
-                  margin: "0.3rem 0 0 0",
+                  margin: "0.2rem 0 0 0",
                   padding: 0,
                 }}
               >
                 Marketplace
               </h2>
 
-              {/* Gold swoosh — brand amber to sand gold */}
+              {/* Animated Growth Arrow Custom Container */}
               <div
                 style={{
                   display: "flex",
                   justifyContent: "center",
-                  marginTop: "1.1rem",
+                  marginTop: "0.75rem",
                 }}
               >
-                <svg
-                  viewBox="0 0 240 22"
+                <motion.svg
+                  viewBox="0 0 240 40"
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
                   style={{
-                    width: "clamp(150px, 38vw, 230px)",
+                    width: "clamp(140px, 35vw, 200px)",
                     height: "auto",
                   }}
                   aria-hidden="true"
+                  // Framer Motion micro-interactions for modern dynamic popup feeling
+                  initial={{ scale: 0.8, opacity: 0, y: 10 }}
+                  animate={{ scale: 1, opacity: 1, y: 0 }}
+                  transition={{ 
+                    type: "spring", 
+                    stiffness: 100, 
+                    delay: 0.4,
+                    repeat: Infinity,
+                    repeatType: "reverse",
+                    duration: 2.5
+                  }}
                 >
-                  <defs>
-                    <linearGradient
-                      id="swooshBrand"
-                      x1="0%"
-                      y1="0%"
-                      x2="100%"
-                      y2="0%"
-                    >
-                      <stop offset="0%"   stopColor="#f8b85d" stopOpacity="0.05" />
-                      <stop offset="35%"  stopColor="#f8b85d" stopOpacity="0.85" />
-                      <stop offset="100%" stopColor="#d6a666" stopOpacity="0.65" />
-                    </linearGradient>
-                  </defs>
+                  {/* Clean upward swoosh matching our new growth brand direction */}
                   <path
-                    d="M8 18 Q90 4 218 8"
-                    stroke="url(#swooshBrand)"
-                    strokeWidth="2.8"
+                    d="M10 32 C 80 32, 140 28, 220 12"
+                    stroke="#f8b85d"
+                    strokeWidth="3.5"
                     strokeLinecap="round"
                     fill="none"
                   />
+                  {/* Arrowhead pointing firmly UP and RIGHT */}
                   <path
-                    d="M207 3 L220 8 L208 14"
-                    stroke="url(#swooshBrand)"
-                    strokeWidth="2.8"
+                    d="M202 16 L223 10 L215 30"
+                    stroke="#f8b85d"
+                    strokeWidth="3.5"
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     fill="none"
                   />
-                </svg>
+                </motion.svg>
               </div>
             </motion.div>
 
@@ -422,11 +403,11 @@ export default function Home() {
               style={{
                 fontFamily: "'Montserrat', sans-serif",
                 fontWeight: 500,
-                fontSize: "0.875rem",
+                fontSize: "0.85rem",
                 color: "#ceb99e",
-                lineHeight: 1.75,
-                maxWidth: "28rem",
-                margin: "1.5rem auto 2.25rem",
+                lineHeight: 1.6,
+                maxWidth: "26rem",
+                margin: "1rem auto 1.75rem",
                 letterSpacing: "0.01em",
               }}
             >
@@ -451,34 +432,30 @@ export default function Home() {
                   display: "inline-flex",
                   alignItems: "center",
                   gap: "0.5rem",
-                  padding: "0.9rem 2.25rem",
+                  padding: "0.75rem 1.75rem",
                   background: "#f8b85d",
                   color: "#3d2619",
-                  borderRadius: "14px",
+                  borderRadius: "12px",
                   border: "none",
                   fontFamily: "'Montserrat', sans-serif",
                   fontWeight: 700,
-                  fontSize: "0.875rem",
-                  letterSpacing: "0.03em",
+                  fontSize: "0.85rem",
+                  letterSpacing: "0.02em",
                   cursor: "pointer",
-                  boxShadow: "0 4px 20px rgba(248,184,93,0.28)",
+                  boxShadow: "0 4px 15px rgba(248,184,93,0.2)",
                   transition: "all 0.2s ease",
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.background = "#d6a666";
-                  e.currentTarget.style.transform = "translateY(-2px)";
-                  e.currentTarget.style.boxShadow =
-                    "0 8px 28px rgba(248,184,93,0.38)";
+                  e.currentTarget.style.transform = "translateY(-1px)";
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.background = "#f8b85d";
                   e.currentTarget.style.transform = "translateY(0)";
-                  e.currentTarget.style.boxShadow =
-                    "0 4px 20px rgba(248,184,93,0.28)";
                 }}
               >
                 <svg
-                  style={{ width: "16px", height: "16px", flexShrink: 0 }}
+                  style={{ width: "15px", height: "15px", flexShrink: 0 }}
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -499,27 +476,25 @@ export default function Home() {
                   display: "inline-flex",
                   alignItems: "center",
                   gap: "0.5rem",
-                  padding: "0.9rem 2.25rem",
-                  background: "rgba(222,215,207,0.07)",
+                  padding: "0.75rem 1.75rem",
+                  background: "rgba(222,215,207,0.06)",
                   color: "#ded7cf",
-                  borderRadius: "14px",
-                  border: "1px solid rgba(222,215,207,0.18)",
+                  borderRadius: "12px",
+                  border: "1px solid rgba(222,215,207,0.15)",
                   fontFamily: "'Montserrat', sans-serif",
                   fontWeight: 600,
-                  fontSize: "0.875rem",
-                  letterSpacing: "0.03em",
+                  fontSize: "0.85rem",
+                  letterSpacing: "0.02em",
                   cursor: "pointer",
-                  backdropFilter: "blur(8px)",
+                  backdropFilter: "blur(4px)",
                   transition: "all 0.2s ease",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = "rgba(222,215,207,0.13)";
-                  e.currentTarget.style.borderColor = "rgba(248,184,93,0.35)";
+                  e.currentTarget.style.background = "rgba(222,215,207,0.12)";
                   e.currentTarget.style.color = "#f8b85d";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "rgba(222,215,207,0.07)";
-                  e.currentTarget.style.borderColor = "rgba(222,215,207,0.18)";
+                  e.currentTarget.style.background = "rgba(222,215,207,0.06)";
                   e.currentTarget.style.color = "#ded7cf";
                 }}
               >
@@ -535,8 +510,8 @@ export default function Home() {
                 flexWrap: "wrap",
                 alignItems: "center",
                 justifyContent: "center",
-                gap: "1.25rem",
-                marginTop: "2rem",
+                gap: "1rem",
+                marginTop: "1.75rem",
               }}
             >
               {["Free to browse", "Verified sellers", "WhatsApp support"].map(
@@ -546,12 +521,12 @@ export default function Home() {
                       style={{
                         display: "flex",
                         alignItems: "center",
-                        gap: "0.4rem",
-                        color: "#7c6250",
+                        gap: "0.35rem",
+                        color: "#ceb99e", // Brightened to be perfectly readable on dark brown background
                         fontSize: "0.7rem",
                         fontFamily: "'Montserrat', sans-serif",
                         fontWeight: 600,
-                        letterSpacing: "0.03em",
+                        letterSpacing: "0.02em",
                       }}
                     >
                       <svg
@@ -575,8 +550,8 @@ export default function Home() {
                         style={{
                           width: "1px",
                           height: "11px",
-                          background: "#7c6250",
-                          opacity: 0.4,
+                          background: "#ceb99e",
+                          opacity: 0.3,
                         }}
                       />
                     )}
@@ -587,22 +562,22 @@ export default function Home() {
           </motion.div>
         </div>
 
-        {/* Ticker */}
+        {/* Marquee Ticker Row */}
         <div
           style={{
-            borderTop: "1px solid rgba(124,98,80,0.2)",
-            background: "rgba(61,38,25,0.5)",
-            padding: "0.75rem 0",
+            borderTop: "1px solid rgba(248,184,93,0.15)",
+            background: "rgba(45,28,18,0.8)", // Darker overlay block to emphasize readable contrast
+            padding: "0.6rem 0",
             overflow: "hidden",
           }}
         >
           <motion.div
             animate={{ x: ["0%", "-50%"] }}
-            transition={{ ease: "linear", duration: 32, repeat: Infinity }}
+            transition={{ ease: "linear", duration: 25, repeat: Infinity }}
             style={{
               display: "flex",
               whiteSpace: "nowrap",
-              gap: "4rem",
+              gap: "3rem",
               alignItems: "center",
             }}
           >
@@ -612,19 +587,19 @@ export default function Home() {
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: "4rem",
-                  fontSize: "0.6rem",
+                  gap: "3rem",
+                  fontSize: "0.65rem",
                   fontWeight: 700,
                   fontFamily: "'Montserrat', sans-serif",
-                  color: "#7c6250",
-                  letterSpacing: "0.2em",
+                  color: "#ded7cf", // Fixed! Changed from #7c6250 to #ded7cf so the text pops and reads instantly
+                  letterSpacing: "0.15em",
                   textTransform: "uppercase",
                 }}
               >
                 {TICKER.map((item, idx) => (
                   <React.Fragment key={idx}>
                     <span>{item}</span>
-                    <span style={{ color: "#f8b85d", opacity: 0.6 }}>★</span>
+                    <span style={{ color: "#f8b85d", opacity: 0.8 }}>★</span>
                   </React.Fragment>
                 ))}
               </span>
