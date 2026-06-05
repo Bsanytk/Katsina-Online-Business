@@ -210,7 +210,8 @@ const AppBanner = memo(function AppBanner() {
              "
           >
             <img
-              src='https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1779990660/logo512_yci0g2.png'              alt="KOB Marketplace"
+              src='https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1780655200/logo512_xomyvi.png'
+               alt="KOB Marketplace"
               className="w-10 h-10 object-contain"
             />
           </div>

@@ -87,7 +87,7 @@ function NotificationToast({ notification, onClose }) {
     >
       <div className="flex items-start gap-3">
         <img
-          src="https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1779990660/logo512_yci0g2.png"
+          src="https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1780655200/logo512_xomyvi.png"
           alt="KOB official logo"
           className="w-10 h-10 rounded-xl object-contain flex-shrink-0"
         />

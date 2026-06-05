@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "../hooks/useTranslation";
 
 const KOB_LOGO =
-  'https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1779990660/logo512_yci0g2.png';
+  'https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1780655200/logo512_xomyvi.png';
 
 const FOOTER_LINKS = {
   marketplace: [

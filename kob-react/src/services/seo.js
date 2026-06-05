@@ -11,7 +11,7 @@ export function updatePageMeta({
   title = 'Katsina Online Business - Local Marketplace',
   description = 'Discover authentic local products from verified sellers in Katsina',
   keywords = 'marketplace, katsina, online business, buy, sell',
-  ogImage = 'https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1779990660/logo512_yci0g2.png',
+  ogImage = 'https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1780655200/logo512_xomyvi.png',
   ogType = 'website',
   canonicalUrl = window.location.href,
 }) {
@@ -99,7 +99,7 @@ export const STRUCTURED_DATA = {
     '@context': 'https://schema.org',
     '@type': 'LocalBusiness',
     name: 'Katsina Online Business',
-    image: 'https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1779990660/logo512_yci0g2.png',
+    image: 'https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1780655200/logo512_xomyvi.png',
     description: 'Online marketplace for local businesses in Katsina',
     address: {
       '@type': 'PostalAddress',
@@ -122,7 +122,7 @@ export const STRUCTURED_DATA = {
     '@type': 'Product',
     name: product.title,
     description: product.description,
-    image: product.images?.[0]?.url || 'https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1779990660/logo512_yci0g2.png',
+    image: product.images?.[0]?.url || 'https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1780655200/logo512_xomyvi.png',
     brand: {
       '@type': 'Brand',
       name: product.sellerName || 'KOB Seller',

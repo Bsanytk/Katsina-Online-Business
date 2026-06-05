@@ -16,7 +16,7 @@ import BackButton from "../components/BackButton";
 import { motion, AnimatePresence } from "framer-motion";
 
 const KOB_LOGO =
-  "https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1779990660/logo512_yci0g2.png";
+  "https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1780655200/logo512_xomyvi.png";
 
 // ─────────────────────────────────────────────
 // Icons
