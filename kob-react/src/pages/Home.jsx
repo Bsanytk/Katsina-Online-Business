@@ -249,381 +249,121 @@ export default function Home() {
 
 
       {/* ================================ */}
-      {/* HERO                             */}
       {/* ================================ */}
-          <section
-        className="relative overflow-hidden"
-        style={{
-          backgroundColor: "#3d2619",
-        }}
-      >
-        {/* WANNAN SHINE DIV DIN HASKEN BACKGROUND: */}
-        {/* Warm gold bloom — top right */}
-        <div
-          aria-hidden="true"
-          className="absolute right-0 top-0 -mr-40 -mt-40 h-[600px] w-[600px] rounded-full blur-[140px] pointer-events-none"
-          style={{
-            // 1. An cire farin da ke ciki (An rage #ffffff)
-            // 2. An rage transparent (opacity) din hasken zuwa 0.12 kawai maimakon 0.3
-            background: "radial-gradient(circle, rgba(248,184,93,0.12) 0%, rgba(61,38,25,0) 70%)",
-          }}
-        />
-        
-        
+      {/* HERO — Clean Marketplace-First   */}
+      {/* ================================ */}
+      <section className="bg-[#F8F6F3] border-b border-[#ded7cf]/60">
+        <div className="container py-10 md:py-14">
+          <div className="max-w-2xl mx-auto text-center">
 
-        <div
-          className="container relative z-10"
-          style={{ paddingTop: "2.5rem", paddingBottom: "3rem" }}
-        >
-          <motion.div
-            variants={heroVariants}
-            initial="hidden"
-            animate="visible"
-            className="max-w-xl mx-auto text-center"
-          >
             {/* Badge */}
-            <motion.div variants={fadeUp} style={{ marginBottom: "1.5rem" }}>
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5
+              bg-[#f8b85d]/10 border border-[#f8b85d]/25
+              rounded-full mb-5">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#f8b85d]" />
               <span
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "0.5rem",
-                  padding: "0.375rem 1.125rem",
-                  background: "rgba(248,184,93,0.12)",
-                  border: "1px solid rgba(248,184,93,0.22)",
-                  borderRadius: "9999px",
-                  color: "#f8b85d",
-                  fontSize: "0.6rem",
-                  fontWeight: 700,
-                  fontFamily: "'Montserrat', sans-serif",
-                  letterSpacing: "0.2em",
-                  textTransform: "uppercase",
-                }}
+                className="text-[10px] font-bold uppercase tracking-widest"
+                style={{ color: "#9c642d", fontFamily: "'Montserrat', sans-serif" }}
               >
-                <span
-                  style={{
-                    width: "6px",
-                    height: "6px",
-                    borderRadius: "50%",
-                    background: "#f8b85d",
-                    boxShadow: "0 0 8px rgba(248,184,93,0.8)",
-                    flexShrink: 0,
-                  }}
-                />
                 Katsina's #1 Online Marketplace
               </span>
-            </motion.div>
+            </div>
 
             {/* Heading */}
-            <motion.div variants={fadeUp} style={{ marginBottom: "0.5rem" }}>
+            <h1
+              style={{
+                fontFamily: "'Montserrat', sans-serif",
+                fontWeight: 900,
+                fontSize: "clamp(2rem, 7vw, 3.25rem)",
+                lineHeight: 1.1,
+                letterSpacing: "-0.02em",
+                color: "#3d2619",
+                margin: "0 0 0.875rem 0",
+              }}
+            >
+              KOB{" "}
+              <span style={{ color: "#9c642d" }}>Marketplace</span>
+            </h1>
 
-              {/* KOB — brand cream, Montserrat Black */}
-              <h1
-                style={{
-                  fontFamily: "'Montserrat', sans-serif",
-                  fontWeight: 900,
-                  fontSize: "clamp(3.25rem, 12vw, 6rem)",
-                  lineHeight: 1,
-                  letterSpacing: "-0.025em",
-                  color: "#ded7cf",
-                  margin: 0,
-                  padding: 0,
-                }}
-              >
-                KOB
-              </h1>
-
-              {/* Marketplace — brand amber solid, NO webkit gradient bug */}
-              <h2
-                style={{
-                  fontFamily: "'Montserrat', sans-serif",
-                  fontWeight: 800,
-                  fontSize: "clamp(1.6rem, 5.5vw, 2.9rem)",
-                  lineHeight: 1.15,
-                  letterSpacing: "0.05em",
-                  color: "#f8b85d",
-                  margin: "0.3rem 0 0 0",
-                  padding: 0,
-                }}
-              >
-                Marketplace
-              </h2>
-
-              {/* Gold swoosh — brand amber to sand gold */}
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  marginTop: "1.1rem",
-                }}
-              >
-                <svg
-                  viewBox="0 0 240 22"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  style={{
-                    width: "clamp(150px, 38vw, 230px)",
-                    height: "auto",
-                  }}
-                  aria-hidden="true"
-                >
-                  <defs>
-                    <linearGradient
-                      id="swooshBrand"
-                      x1="0%"
-                      y1="0%"
-                      x2="100%"
-                      y2="0%"
-                    >
-                      <stop offset="0%"   stopColor="#f8b85d" stopOpacity="0.05" />
-                      <stop offset="35%"  stopColor="#f8b85d" stopOpacity="0.85" />
-                      <stop offset="100%" stopColor="#d6a666" stopOpacity="0.65" />
-                    </linearGradient>
-                  </defs>
-                  <path
-                    d="M8 18 Q90 4 218 8"
-                    stroke="url(#swooshBrand)"
-                    strokeWidth="2.8"
-                    strokeLinecap="round"
-                    fill="none"
-                  />
-                  <path
-                    d="M207 3 L220 8 L208 14"
-                    stroke="url(#swooshBrand)"
-                    strokeWidth="2.8"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    fill="none"
-                  />
-                </svg>
-              </div>
-            </motion.div>
-
-            {/* Subtitle */}
-            <motion.p
-              variants={fadeUp}
+            {/* Description */}
+            <p
               style={{
                 fontFamily: "'Montserrat', sans-serif",
                 fontWeight: 500,
-                fontSize: "0.875rem",
-                color: "#ceb99e",
-                lineHeight: 1.75,
-                maxWidth: "28rem",
-                margin: "1.5rem auto 2.25rem",
-                letterSpacing: "0.01em",
+                fontSize: "0.9375rem",
+                color: "#7c6250",
+                lineHeight: 1.65,
+                maxWidth: "26rem",
+                margin: "0 auto 2rem",
               }}
             >
-              Discover authentic products from verified local sellers.
-              Buy, sell, and connect — all in one place.
-            </motion.p>
+              Buy, sell and discover products from trusted businesses
+              across Katsina.
+            </p>
 
             {/* CTA Buttons */}
-            <motion.div
-              variants={fadeUp}
-              style={{
-                display: "flex",
-                flexWrap: "wrap",
-                gap: "0.75rem",
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-            >
+            <div className="flex flex-col sm:flex-row items-center
+              justify-center gap-3">
               <button
                 onClick={() => navigate("/marketplace")}
+                className="flex items-center justify-center gap-2
+                  w-full sm:w-auto px-7 py-3 rounded-xl
+                  text-sm font-bold transition-all duration-200
+                  active:scale-[0.98]"
                 style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "0.5rem",
-                  padding: "0.9rem 2.25rem",
-                  background: "#f8b85d",
-                  color: "#3d2619",
-                  borderRadius: "14px",
-                  border: "none",
                   fontFamily: "'Montserrat', sans-serif",
-                  fontWeight: 700,
-                  fontSize: "0.875rem",
-                  letterSpacing: "0.03em",
-                  cursor: "pointer",
-                  boxShadow: "0 4px 20px rgba(248,184,93,0.28)",
-                  transition: "all 0.2s ease",
+                  background: "#3d2619",
+                  color: "#ded7cf",
+                  letterSpacing: "0.02em",
                 }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = "#d6a666";
-                  e.currentTarget.style.transform = "translateY(-2px)";
-                  e.currentTarget.style.boxShadow =
-                    "0 8px 28px rgba(248,184,93,0.38)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "#f8b85d";
-                  e.currentTarget.style.transform = "translateY(0)";
-                  e.currentTarget.style.boxShadow =
-                    "0 4px 20px rgba(248,184,93,0.28)";
-                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = "#60412f"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = "#3d2619"; }}
               >
-                <svg
-                  style={{ width: "16px", height: "16px", flexShrink: 0 }}
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2.5}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
-                  />
+                <svg style={{ width: "15px", height: "15px", flexShrink: 0 }}
+                  fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round"
+                    d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                 </svg>
                 Explore Marketplace
               </button>
 
               <button
                 onClick={handleStartSelling}
+                className="flex items-center justify-center gap-2
+                  w-full sm:w-auto px-7 py-3 rounded-xl
+                  text-sm font-bold transition-all duration-200
+                  active:scale-[0.98]"
                 style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "0.5rem",
-                  padding: "0.9rem 2.25rem",
-                  background: "rgba(222,215,207,0.07)",
-                  color: "#ded7cf",
-                  borderRadius: "14px",
-                  border: "1px solid rgba(222,215,207,0.18)",
                   fontFamily: "'Montserrat', sans-serif",
-                  fontWeight: 600,
-                  fontSize: "0.875rem",
-                  letterSpacing: "0.03em",
-                  cursor: "pointer",
-                  backdropFilter: "blur(8px)",
-                  transition: "all 0.2s ease",
+                  background: "transparent",
+                  color: "#60412f",
+                  border: "1.5px solid #ceb99e",
+                  letterSpacing: "0.02em",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = "rgba(222,215,207,0.13)";
-                  e.currentTarget.style.borderColor = "rgba(248,184,93,0.35)";
-                  e.currentTarget.style.color = "#f8b85d";
+                  e.currentTarget.style.borderColor = "#9c642d";
+                  e.currentTarget.style.color = "#3d2619";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "rgba(222,215,207,0.07)";
-                  e.currentTarget.style.borderColor = "rgba(222,215,207,0.18)";
-                  e.currentTarget.style.color = "#ded7cf";
+                  e.currentTarget.style.borderColor = "#ceb99e";
+                  e.currentTarget.style.color = "#60412f";
                 }}
               >
-                Start Selling Free
+                Start Selling
               </button>
-            </motion.div>
+            </div>
 
-            {/* Trust row */}
-            <motion.div
-              variants={fadeUp}
-              style={{
-                display: "flex",
-                flexWrap: "wrap",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "1.25rem",
-                marginTop: "2rem",
-              }}
-            >
-              {["Free to browse", "Verified sellers", "WhatsApp support"].map(
-                (item, i) => (
-                  <React.Fragment key={item}>
-                    <span
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "0.4rem",
-                        color: "#7c6250",
-                        fontSize: "0.7rem",
-                        fontFamily: "'Montserrat', sans-serif",
-                        fontWeight: 600,
-                        letterSpacing: "0.03em",
-                      }}
-                    >
-                      <svg
-                        style={{ width: "11px", height: "11px", color: "#f8b85d" }}
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0
-                          01-1.414 0l-4-4a1 1 0 011.414-1.414L8
-                          12.586l7.293-7.293a1 1 0 011.414 0z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                      {item}
-                    </span>
-                    {i < 2 && (
-                      <span
-                        aria-hidden="true"
-                        style={{
-                          width: "1px",
-                          height: "11px",
-                          background: "#7c6250",
-                          opacity: 0.4,
-                        }}
-                      />
-                    )}
-                  </React.Fragment>
-                )
-              )}
-            </motion.div>
-          </motion.div>
-        </div>
-
-        {/* Ticker */}
-        <div
-          style={{
-            borderTop: "1px solid rgba(124,98,80,0.2)",
-            background: "rgba(61,38,25,0.5)",
-            padding: "0.75rem 0",
-            overflow: "hidden",
-          }}
-        >
-          <motion.div
-            animate={{ x: ["0%", "-50%"] }}
-            transition={{ ease: "linear", duration: 32, repeat: Infinity }}
-            style={{
-              display: "flex",
-              whiteSpace: "nowrap",
-              gap: "4rem",
-              alignItems: "center",
-            }}
-          >
-            {[1, 2].map((i) => (
-              <span
-                key={i}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "4rem",
-                  fontSize: "0.6rem",
-                  fontWeight: 700,
-                  fontFamily: "'Montserrat', sans-serif",
-                  color: "#7c6250",
-                  letterSpacing: "0.2em",
-                  textTransform: "uppercase",
-                }}
-              >
-                {TICKER.map((item, idx) => (
-                  <React.Fragment key={idx}>
-                    <span>{item}</span>
-                    <span style={{ color: "#f8b85d", opacity: 0.6 }}>★</span>
-                  </React.Fragment>
-                ))}
-              </span>
-            ))}
-          </motion.div>
+          </div>
         </div>
       </section>
-      
-                    
 
       <QuickStartCard />
 
       {/* ================================ */}
       {/* STATS BAR                        */}
       {/* ================================ */}
-      <section className="bg-[#4B3621]">
+      
+      <section className="bg-[#3d2619]">
         <div className="container py-5">
           <motion.div
             variants={stagger}
