@@ -49,19 +49,28 @@ export default async function handler(req, res) {
   try {
     const usersRef = db.collection('users');
     
-    // Kokarin nemo shago ta hanyar 'username' ko kuma 'businessName'
-    let snapshot = await usersRef.where('username', '==', username).limit(1).get();
-    
-    if (snapshot.empty) {
-      // Idan ba a gano username ba, a jarraba da ainihin businessName
-      snapshot = await usersRef.where('businessName', '==', username).limit(1).get();
-    }
+    // 1. MATAKI NA FARCO (Kari na Wayo): Tunda link dinka yana zo da UID, 
+    // za mu fara duba kai tsaye idan akwai Document mai wannan UID din a Firestore.
+    const docRef = usersRef.doc(username);
+    const docSnap = await docRef.get();
 
-    if (!snapshot.empty) {
-      sellerData = snapshot.docs[0].data();
+    if (docSnap.exists) {
+      sellerData = docSnap.data();
+    } else {
+      // 2. MATAKI NA BIYU (Tsohon Tsarinka): Idan ba UID ba ne (misali sunan shago ne na asali),
+      // sai mu binciki gurbin username ko businessName kamar yadda kake yi a da.
+      let snapshot = await usersRef.where('username', '==', username).limit(1).get();
+      
+      if (snapshot.empty) {
+        snapshot = await usersRef.where('businessName', '==', username).limit(1).get();
+      }
+
+      if (!snapshot.empty) {
+        sellerData = snapshot.docs[0].data();
+      }
     }
   } catch (error) {
-    console.error(`Firestore Error for username: ${username}`, error);
+    console.error(`Firestore Error for username/UID: ${username}`, error);
   }
 
   const tags = {
