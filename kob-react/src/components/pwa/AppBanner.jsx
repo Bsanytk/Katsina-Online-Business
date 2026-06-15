@@ -8,21 +8,34 @@
  * ✅ Premium KOB brand UI — mobile-first
  * ✅ WCAG AA accessible
  * ✅ Zero breaking changes to existing KOB architecture
+ *
+ * NEW v2:
+ * ✅ isMarkedInstalled() — checks kob_pwa_manually_installed key
+ * ✅ Triple guard: isAppInstalled() || wasDismissed() || isMarkedInstalled()
+ * ✅ handleMarkAsInstalled — sets key + hides banner
+ * ✅ "Already Installed" button replaces "Not Now"
  */
 
-import React, { useState, useEffect, useCallback, useRef, memo } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  memo,
+} from "react";
 import { Download, X, Zap, Bell, ShoppingBag } from "lucide-react";
 
 // ─────────────────────────────────────────────
-// Constants
+// Storage Keys
 // ─────────────────────────────────────────────
-const DISMISS_KEY = "kob_banner_dismissed";
+const DISMISS_KEY   = "kob_banner_dismissed";
+const INSTALLED_KEY = "kob_pwa_manually_installed"; // NEW
 
-/**
- * Detect if app is already running as installed PWA.
- * Covers Chrome/Android (display-mode: standalone)
- * and Safari iOS (navigator.standalone).
- */
+// ─────────────────────────────────────────────
+// Helper: Detect installed PWA via browser API
+// Covers Chrome/Android (display-mode: standalone)
+// and Safari iOS (navigator.standalone)
+// ─────────────────────────────────────────────
 function isAppInstalled() {
   const standaloneMedia = window.matchMedia?.(
     "(display-mode: standalone)"
@@ -31,9 +44,9 @@ function isAppInstalled() {
   return standaloneMedia || iosStandalone;
 }
 
-/**
- * Check if user has previously dismissed the banner.
- */
+// ─────────────────────────────────────────────
+// Helper: Check if user previously dismissed banner
+// ─────────────────────────────────────────────
 function wasDismissed() {
   try {
     return localStorage.getItem(DISMISS_KEY) === "true";
@@ -43,111 +56,125 @@ function wasDismissed() {
 }
 
 // ─────────────────────────────────────────────
-// Feature Pills — shown inside banner
+// NEW Helper: Check if user manually marked as installed
+// Covers: app installed via another browser/path,
+// or site data cleared but app still on device.
+// ─────────────────────────────────────────────
+function isMarkedInstalled() {
+  try {
+    return localStorage.getItem(INSTALLED_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
+
+// ─────────────────────────────────────────────
+// Feature Pills
 // ─────────────────────────────────────────────
 const FEATURES = [
-  { icon: Zap, label: "Faster Access" },
-  { icon: Bell, label: "Notifications" },
-  { icon: ShoppingBag, label: "Offline Ready" },
+  { icon: Zap,         label: "Faster Access"  },
+  { icon: Bell,        label: "Notifications"  },
+  { icon: ShoppingBag, label: "Offline Ready"  },
 ];
 
 // ─────────────────────────────────────────────
 // AppBanner Component
 // ─────────────────────────────────────────────
 const AppBanner = memo(function AppBanner() {
-  // Stored beforeinstallprompt event
   const deferredPromptRef = useRef(null);
-
-  // Controls banner visibility
-  const [visible, setVisible] = useState(false);
-
-  // Tracks install outcome for UX feedback
+  const [visible,    setVisible]    = useState(false);
   const [installing, setInstalling] = useState(false);
-  const [installed, setInstalled] = useState(false);
+  const [installed,  setInstalled]  = useState(false);
 
   // ─────────────────────────────────────────
   // Effect: Listen for beforeinstallprompt
+  //
+  // UPDATED guard — triple check:
+  //   1. isAppInstalled()    — browser API detection
+  //   2. wasDismissed()      — user dismissed before
+  //   3. isMarkedInstalled() — user manually flagged
+  // Any one true → banner never shows
   // ─────────────────────────────────────────
   useEffect(() => {
-    // Do not show if already installed or dismissed
-    if (isAppInstalled() || wasDismissed()) return;
+    if (isAppInstalled() || wasDismissed() || isMarkedInstalled()) return;
 
     function handleBeforeInstallPrompt(e) {
-      // Prevent browser from showing its own prompt
       e.preventDefault();
-      // Store the event for later use
       deferredPromptRef.current = e;
-      // Show our custom banner
       setVisible(true);
     }
 
     function handleAppInstalled() {
-      // App was installed via another path — hide banner
       setVisible(false);
       deferredPromptRef.current = null;
     }
 
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-    window.addEventListener("appinstalled", handleAppInstalled);
+    window.addEventListener("appinstalled",        handleAppInstalled);
 
     return () => {
-      window.removeEventListener(
-        "beforeinstallprompt",
-        handleBeforeInstallPrompt
-      );
-      window.removeEventListener("appinstalled", handleAppInstalled);
+      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+      window.removeEventListener("appinstalled",        handleAppInstalled);
     };
   }, []);
 
   // ─────────────────────────────────────────
-  // Handler: Install button clicked
+  // Handler: Install button — unchanged
   // ─────────────────────────────────────────
   const handleInstall = useCallback(async () => {
     const prompt = deferredPromptRef.current;
     if (!prompt) return;
 
     setInstalling(true);
-
     try {
-      // Trigger the install prompt
       await prompt.prompt();
       const { outcome } = await prompt.userChoice;
-
       if (outcome === "accepted") {
         console.log("PWA Install Accepted");
         setInstalled(true);
-        // Brief success state then hide
         setTimeout(() => setVisible(false), 1800);
       }
     } catch (err) {
-      // Silent fail — do not crash the app
       console.warn("PWA install prompt error:", err);
     } finally {
-      // Always clear the prompt after use
       deferredPromptRef.current = null;
       setInstalling(false);
     }
   }, []);
 
   // ─────────────────────────────────────────
-  // Handler: Dismiss button clicked
+  // Handler: Dismiss — unchanged
   // ─────────────────────────────────────────
   const handleDismiss = useCallback(() => {
     try {
       localStorage.setItem(DISMISS_KEY, "true");
     } catch {
-      // localStorage may be unavailable in some contexts
+      // localStorage may be unavailable
     }
     setVisible(false);
     deferredPromptRef.current = null;
   }, []);
 
-  // Do not render if banner should not be visible
+  // ─────────────────────────────────────────
+  // NEW Handler: Mark as already installed
+  //
+  // For users who have the app installed via
+  // another browser/path, or cleared site data.
+  // Sets kob_pwa_manually_installed → hides banner
+  // permanently until key is cleared.
+  // ─────────────────────────────────────────
+  const handleMarkAsInstalled = useCallback(() => {
+    try {
+      localStorage.setItem(INSTALLED_KEY, "true");
+    } catch {
+      // localStorage may be unavailable
+    }
+    setVisible(false);
+    deferredPromptRef.current = null;
+  }, []);
+
   if (!visible) return null;
 
-  // ─────────────────────────────────────────
-  // Render
-  // ─────────────────────────────────────────
   return (
     <div
       role="banner"
@@ -202,16 +229,16 @@ const AppBanner = memo(function AppBanner() {
           <div
             aria-hidden="true"
             className="
-            flex-shrink-0
-            w-12 h-12 rounded-xl
-            bg-gradient-to-br from-[#4B3621] to-[#2C1F0E]
-            flex items-center justify-center
+              flex-shrink-0
+              w-12 h-12 rounded-xl
+              bg-gradient-to-br from-[#4B3621] to-[#2C1F0E]
+              flex items-center justify-center
               shadow-md
-             "
+            "
           >
             <img
-              src='https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1780655200/logo512_xomyvi.png'
-               alt="KOB Marketplace"
+              src="https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1780655200/logo512_xomyvi.png"
+              alt="KOB Marketplace"
               className="w-10 h-10 object-contain"
             />
           </div>
@@ -248,6 +275,7 @@ const AppBanner = memo(function AppBanner() {
 
         {/* Action buttons */}
         <div className="flex items-center gap-2 mt-4">
+
           {/* Primary — Install */}
           <button
             type="button"
@@ -271,7 +299,7 @@ const AppBanner = memo(function AppBanner() {
               <>
                 <span
                   className="w-3.5 h-3.5 rounded-full bg-[#D4AF37]
-                  flex items-center justify-center"
+                    flex items-center justify-center"
                   aria-hidden="true"
                 >
                   ✓
@@ -282,8 +310,8 @@ const AppBanner = memo(function AppBanner() {
               <>
                 <div
                   className="w-3.5 h-3.5 border-2
-                  border-white/40 border-t-white
-                  rounded-full animate-spin"
+                    border-white/40 border-t-white
+                    rounded-full animate-spin"
                   aria-hidden="true"
                 />
                 Installing...
@@ -296,15 +324,15 @@ const AppBanner = memo(function AppBanner() {
             )}
           </button>
 
-          {/* Secondary — Dismiss */}
+          {/* Secondary — Already Installed (was "Not Now") */}
           <button
             type="button"
-            onClick={handleDismiss}
-            aria-label="Not now"
+            onClick={handleMarkAsInstalled}
+            aria-label="I already have the app installed"
             className="
-              px-4 py-2.5 rounded-xl
+              px-3 py-2.5 rounded-xl
               border-2 border-gray-200
-              text-xs font-semibold text-gray-500
+              text-[11px] font-semibold text-gray-500
               hover:border-gray-300 hover:text-gray-700
               active:scale-[0.98]
               transition-all
@@ -312,8 +340,9 @@ const AppBanner = memo(function AppBanner() {
               focus-visible:ring-gray-400 focus-visible:ring-offset-2
             "
           >
-            Not Now
+            Already Installed
           </button>
+
         </div>
       </div>
     </div>
@@ -321,3 +350,4 @@ const AppBanner = memo(function AppBanner() {
 });
 
 export default AppBanner;
+              
