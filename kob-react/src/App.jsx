@@ -62,6 +62,8 @@ const ProductDetail = lazy(() => import("./pages/ProductDetail"));
 const SellerShop   = lazy(() => import("./pages/SellerShop"));
 const NotFound     = lazy(() => import("./pages/NotFound"));
 const Legal        = lazy(() => import("./pages/Legal"));
+const EthicalCommerce = lazy(() => import("./pages/EthicalCommercePage"));
+
 
 // ========================================
 // Notification Toast — preserved exactly
@@ -289,6 +291,7 @@ function AppContent() {
             <Route path="/cookies"         element={<CookiePolicy />} />
             <Route path="/alerts"          element={<Alerts />} />
             <Route path="/legal"           element={<Legal />} />
+            <Route path="/ethical-commerce" element={<EthicalCommerce />} />
 
             {/* Authentication */}
             <Route path="/login"    element={<Login />} />
