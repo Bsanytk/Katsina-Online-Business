@@ -118,8 +118,19 @@ export default function Register() {
     try {
       // ✅ Step 1: Register user — registerUser only, no loginUser needed
       const userCredential = await registerUser(email, password, role);
+      const displayName = email.split('@')[0];
+      
+      // ✅ Step 2: Welcome Email — fire-and-forget, non-blocking
+      fetch('/api/auth/welcome-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, displayName }),
+      }).catch(err => console.warn('[KOB Register] Welcome email trigger failed:', err.message));
 
-      // ✅ Step 2: FCM — fire-and-forget, NEVER awaited
+
+      // ✅ Step 3: FCM — fire-and-forget, NEVER awaited
       // Route FIRST then init FCM in background.
       // Awaiting FCM here was causing mobile freeze on registration.
       if (userCredential?.user?.uid) {
@@ -130,7 +141,7 @@ export default function Register() {
           );
       }
 
-      // ✅ Step 3: Hard redirect — forces ProfileContext to reload fresh
+      // ✅ Step 4: Hard redirect — forces ProfileContext to reload fresh
       const returnTo = sessionStorage.getItem("returnTo");
       if (returnTo) {
         sessionStorage.removeItem("returnTo");

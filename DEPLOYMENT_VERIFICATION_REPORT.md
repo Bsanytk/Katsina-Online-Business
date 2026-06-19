@@ -158,7 +158,7 @@ VITE_CLOUDINARY_UPLOAD_PRESET
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" href='https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1779990660/logo512_yci0g2.png' />
+    <link rel="icon" href='https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1780655200/logo512_xomyvi.png' />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Katsina Online Business</title>
     <script type="module" crossorigin src="/assets/index-CdcuivQA.js"></script>
