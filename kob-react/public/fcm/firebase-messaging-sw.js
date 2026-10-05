@@ -6,13 +6,14 @@
 
 // ======================================
 // Firebase SDKs (Compat Version)
-// ======================================
+// ==================================
 importScripts(
-  "https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"
-);
-importScripts(
-  "https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js"
-);
+    "https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"
+    );
+    importScripts(
+      "https://www.gstatic.com/firebasejs/10.14.1/firebase-messaging-compat.js"
+      );
+
 
 // ======================================
 // Firebase Config — AN GYARA WANNAN SASHE
@@ -20,9 +21,9 @@ importScripts(
 // ======================================
 firebase.initializeApp({
   apiKey: "AIzaSyCrJDGQbbMxHkZU9fmO1jmT-1mnN3o6P6k", // Tabbatar wannan shi ne na KOB Marketplace
-  authDomain: "kob-marketplace.firebaseapp.com",     // Idan ka canza domain, sanya madaidacin a nan
-  projectId: "kob-marketplace",                     // Sunan sabon project dinka
-  storageBucket: "kob-marketplace.appspot.com",
+  authDomain: "kob-community.firebaseapp.com",     // Idan ka canza domain, sanya madaidacin a nan
+  projectId: "kob-community",                     // Sunan sabon project dinka
+  storageBucket: "kob-community.appspot.com",
   messagingSenderId: "245778888984",
   appId: "1:245778888984:web:cc819e57545b7df338066d",
 });

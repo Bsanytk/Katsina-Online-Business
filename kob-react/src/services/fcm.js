@@ -110,9 +110,9 @@ export async function initFCM(userId) {
     let registration;
     try {
       // Register SW first (safe to call even if already registered)
-      await navigator.serviceWorker.register("/firebase-messaging-sw.js", {
-        scope: "/",
-      });
+      await navigator.serviceWorker.register("/fcm/firebase-messaging-sw.js", {
+          scope: "/fcm/",
+          });
       // Wait until fully active — this resolves the race condition
       registration = await Promise.race([
         navigator.serviceWorker.ready,
