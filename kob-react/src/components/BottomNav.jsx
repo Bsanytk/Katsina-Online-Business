@@ -2,7 +2,13 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../firebase/auth";
 import { useProfile } from "../contexts/ProfileContext";
-import { collection, query, onSnapshot } from "firebase/firestore";
+import {
+  collection,
+  query,
+  onSnapshot,
+  where,
+} from "firebase/firestore";
+
 import { db } from "../firebase/firebase";
 
 // ================================
@@ -327,23 +333,42 @@ export default function BottomNav() {
   // ✅ FIXED: Real-time alert count
   // ================================
   useEffect(() => {
-    const q = query(collection(db, "broadcasts"));
+    const uid = user?.uid;
+
+    if (!uid) {
+      setAlertCount(0);
+      return;
+    }
+
+    const notificationsRef = collection(
+      db,
+      "users",
+      uid,
+      "notifications"
+    );
+
+    const unreadQuery = query(
+      notificationsRef,
+      where("read", "==", false)
+    );
 
     const unsubscribe = onSnapshot(
-      q,
+      unreadQuery,
       (snapshot) => {
-        // ✅ 'snapshot' lowercase — was bug before
-        setAlertCount(snapshot.docs.length);
+        setAlertCount(snapshot.size);
       },
-      (err) => {
-        // Non-critical — silent fail
-        console.warn("[BottomNav] Alerts:", err.message);
+      (error) => {
+        console.error(
+          "[KOB BottomNav] Unread count error:",
+          error
+        );
+
         setAlertCount(0);
       }
     );
 
     return () => unsubscribe();
-  }, []);
+  }, [user?.uid]);
 
   // Hide on these pages
   if (path.startsWith("/admin") || path === "/login" || path === "/register")

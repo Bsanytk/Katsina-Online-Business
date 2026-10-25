@@ -42,28 +42,27 @@ import { initFCM, onForegroundMessage } from "./services/fcm";
 // ========================================
 // Lazy Loaded Pages — preserved exactly
 // ========================================
-const Home         = lazy(() => import("./pages/Home"));
-const Marketplace  = lazy(() => import("./pages/Marketplace"));
-const Dashboard    = lazy(() => import("./pages/Dashboard"));
+const Home = lazy(() => import("./pages/Home"));
+const Marketplace = lazy(() => import("./pages/Marketplace"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
-const Login        = lazy(() => import("./pages/Login"));
-const Register     = lazy(() => import("./pages/Register"));
-const Contact      = lazy(() => import("./pages/Contact"));
-const FAQ          = lazy(() => import("./pages/FAQ"));
-const Help         = lazy(() => import("./pages/Help"));
-const Teams        = lazy(() => import("./pages/Teams"));
+const Login = lazy(() => import("./pages/Login"));
+const Register = lazy(() => import("./pages/Register"));
+const Contact = lazy(() => import("./pages/Contact"));
+const FAQ = lazy(() => import("./pages/FAQ"));
+const Help = lazy(() => import("./pages/Help"));
+const Teams = lazy(() => import("./pages/Teams"));
 const Testimonials = lazy(() => import("./pages/Testimonials"));
-const Terms        = lazy(() => import("./pages/Terms"));
-const Privacy      = lazy(() => import("./pages/Privacy"));
+const Terms = lazy(() => import("./pages/Terms"));
+const Privacy = lazy(() => import("./pages/Privacy"));
 const CookiePolicy = lazy(() => import("./pages/CookiePolicy"));
-const Alerts       = lazy(() => import("./pages/Alerts"));
-const Profile      = lazy(() => import("./pages/Profile"));
+const Alerts = lazy(() => import("./pages/Alerts"));
+const Profile = lazy(() => import("./pages/Profile"));
 const ProductDetail = lazy(() => import("./pages/ProductDetail"));
-const SellerShop   = lazy(() => import("./pages/SellerShop"));
-const NotFound     = lazy(() => import("./pages/NotFound"));
-const Legal        = lazy(() => import("./pages/Legal"));
+const SellerShop = lazy(() => import("./pages/SellerShop"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const Legal = lazy(() => import("./pages/Legal"));
 const EthicalCommerce = lazy(() => import("./pages/EthicalCommercePage"));
-
 
 // ========================================
 // Notification Toast — preserved exactly
@@ -71,7 +70,9 @@ const EthicalCommerce = lazy(() => import("./pages/EthicalCommercePage"));
 function NotificationToast({ notification, onClose }) {
   useEffect(() => {
     if (!notification) return;
-    const timer = setTimeout(() => { onClose(); }, 5000);
+    const timer = setTimeout(() => {
+      onClose();
+    }, 5000);
     return () => clearTimeout(timer);
   }, [notification, onClose]);
 
@@ -177,23 +178,75 @@ function AppContent() {
     if (!uid) return;
 
     let unsubscribe;
+    let cancelled = false;
 
     const setupListener = async () => {
-      unsubscribe = await onForegroundMessage((payload) => {
-        const { title, body } = payload?.notification || {};
-        setNotification({ title, body });
-      });
+      try {
+        const stop = await onForegroundMessage(async (payload) => {
+          if (!payload || cancelled) return;
+
+          const title =
+            payload.notification?.title ||
+            payload.data?.title ||
+            "KOB Notification";
+
+          const body =
+            payload.notification?.body || payload.data?.body || "";
+
+          const notificationData = {
+            title,
+            body,
+            url: payload.data?.url || "/alerts",
+            type: payload.data?.type || "broadcast",
+            source: "fcm",
+            read: false,
+            createdAt: new Date(),
+            messageId: payload.messageId || null,
+          };
+
+          // Ci gaba da nuna toast a cikin app.
+          setNotification({ title, body });
+
+          // Adana saƙon a cikin sanarwar wannan mai amfani.
+          try {
+            const { addDoc, collection, serverTimestamp } = await import(
+              "firebase/firestore"
+            );
+
+            await addDoc(collection(db, "users", uid, "notifications"), {
+              ...notificationData,
+              createdAt: serverTimestamp(),
+            });
+
+            console.log("[KOB Alerts] FCM notification saved.");
+          } catch (error) {
+            console.error(
+              "[KOB Alerts] Failed to save FCM notification:",
+              error
+            );
+          }
+        });
+
+        if (cancelled) {
+          if (typeof stop === "function") stop();
+        } else {
+          unsubscribe = stop;
+        }
+      } catch (error) {
+        console.error("[KOB FCM] Foreground listener failed:", error);
+      }
     };
 
     setupListener();
 
-    // ✅ Cleanup on uid change (logout/login) or unmount
     return () => {
+      cancelled = true;
+
       if (typeof unsubscribe === "function") {
         unsubscribe();
       }
     };
-  }, [uid]); // ← same stable primitive
+  }, [uid]);
 
   // ========================================
   // Smart Bottom Navigation — preserved exactly
@@ -212,7 +265,9 @@ function AppContent() {
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => { window.removeEventListener("scroll", handleScroll); };
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
   }, [lastScrollY]);
 
   // ========================================
@@ -277,24 +332,24 @@ function AppContent() {
         <Suspense fallback={<PageLoader message="Loading..." show={true} />}>
           <Routes>
             {/* Public Routes */}
-            <Route path="/"                element={<Home />} />
-            <Route path="/marketplace"     element={<Marketplace />} />
+            <Route path="/" element={<Home />} />
+            <Route path="/marketplace" element={<Marketplace />} />
             <Route path="/product/:productId" element={<ProductDetail />} />
-            <Route path="/shop/:sellerId"  element={<SellerShop />} />
-            <Route path="/contact"         element={<Contact />} />
-            <Route path="/faq"             element={<FAQ />} />
-            <Route path="/help"            element={<Help />} />
-            <Route path="/teams"           element={<Teams />} />
-            <Route path="/testimonials"    element={<Testimonials />} />
-            <Route path="/terms"           element={<Terms />} />
-            <Route path="/privacy"         element={<Privacy />} />
-            <Route path="/cookies"         element={<CookiePolicy />} />
-            <Route path="/alerts"          element={<Alerts />} />
-            <Route path="/legal"           element={<Legal />} />
+            <Route path="/shop/:sellerId" element={<SellerShop />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/faq" element={<FAQ />} />
+            <Route path="/help" element={<Help />} />
+            <Route path="/teams" element={<Teams />} />
+            <Route path="/testimonials" element={<Testimonials />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/cookies" element={<CookiePolicy />} />
+            <Route path="/alerts" element={<Alerts />} />
+            <Route path="/legal" element={<Legal />} />
             <Route path="/ethical-commerce" element={<EthicalCommerce />} />
 
             {/* Authentication */}
-            <Route path="/login"    element={<Login />} />
+            <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
 
             {/* Profile */}
