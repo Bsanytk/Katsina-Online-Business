@@ -108,25 +108,42 @@ export async function initFCM(userId) {
     // navigator.serviceWorker.ready waits until SW is fully active.
     // This is the correct fix for "SW in installing/waiting state" hang.
     let registration;
+
     try {
-      // Register SW first (safe to call even if already registered)
-      await navigator.serviceWorker.register("/fcm/firebase-messaging-sw.js", {
-          scope: "/fcm/",
+      registration = await navigator.serviceWorker.register(
+        "/fcm/firebase-messaging-sw.js",
+        { scope: "/fcm/" }
+      );
+
+      if (!registration.active) {
+        const worker = registration.installing || registration.waiting;
+
+        if (!worker) {
+          throw new Error("FCM Service Worker is not active");
+        }
+
+        await new Promise((resolve, reject) => {
+          if (worker.state === "activated") {
+            resolve();
+            return;
+          }
+
+          worker.addEventListener("statechange", () => {
+            if (worker.state === "activated") {
+              resolve();
+            }
+            if (worker.state === "redundant") {
+              reject(new Error("FCM Service Worker became redundant"));
+            }
           });
-      // Wait until fully active — this resolves the race condition
-      registration = await Promise.race([
-        navigator.serviceWorker.ready,
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error("SW ready timeout")), 8000)
-        ),
-      ]);
+        });
+      }
+
+      if (!registration.active) {
+        throw new Error("FCM Service Worker did not activate");
+      }
     } catch (swErr) {
       console.warn("[FCM] Service Worker setup failed:", swErr.message);
-      return null;
-    }
-
-    if (!registration) {
-      console.warn("[FCM] No active SW registration found");
       return null;
     }
 
