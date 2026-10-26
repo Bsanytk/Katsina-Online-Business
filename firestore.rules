@@ -14,6 +14,35 @@ service cloud.firestore {
 
       // Users cannot delete their own profile
       allow delete: if false;
+
+      // Notifications belonging to each user.
+      match /notifications/{notificationId} {
+
+        // A signed-in user can read only their own notifications.
+        allow read: if request.auth != null && request.auth.uid == uid;
+
+        // A signed-in user can create a notification only in their own path.
+        allow create: if request.auth != null
+                    && request.auth.uid == uid
+                    && request.resource.data.keys().hasAll([
+                        'title',
+                        'body',
+                        'read',
+                        'createdAt'
+                    ])
+                    && request.resource.data.read == false;
+
+        // Users can update only the read status and read timestamp.
+        allow update: if request.auth != null
+                    && request.auth.uid == uid
+                    && request.resource.data.diff(resource.data)
+                                        .affectedKeys()
+                                        .hasOnly(['read', 'readAt'])
+                    && request.resource.data.read is bool;
+
+        // Do not allow client-side deletion.
+        allow delete: if false;
+      }
     }
 
     // --------------------------
