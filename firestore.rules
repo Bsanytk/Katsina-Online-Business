@@ -165,12 +165,36 @@ service cloud.firestore {
       allow update, delete: if request.auth != null
         && request.auth.uid == "faAlHUtsZ2MVQRN4Apc3itIoeGf2";
     }
-  }
+     // --------------------------
+     // KOB Broadcast Read Markers
+     // --------------------------
+     match /users/{uid}/broadcastReads/{broadcastId} {
 
-  // --------------------------
-  // Default deny
-  // --------------------------
-  match /{document=**} {
-    allow read, write: if false;
+        // Each signed-in user can read only their own read markers.
+        allow read: if request.auth != null && request.auth.uid == uid;
+
+        // Users can mark a broadcast as read only in their own account.
+        allow create: if request.auth != null
+          && request.auth.uid == uid
+          && request.resource.data.keys().hasOnly(["read", "readAt"])
+          && request.resource.data.read == true;
+
+        // Users can update only their own read markers.
+        allow update: if request.auth != null
+          && request.auth.uid == uid
+          && request.resource.data.diff(resource.data)
+                                .affectedKeys()
+                                .hasOnly(["read", "readAt"])
+          && request.resource.data.read == true;
+
+        // Users cannot delete read markers from the client.
+        allow delete: if false;
+     }
+    // --------------------------
+    // Default deny
+    // --------------------------
+    match /{document=**} {
+      allow read, write: if false;
+    }
   }
 }

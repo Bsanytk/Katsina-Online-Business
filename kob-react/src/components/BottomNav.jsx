@@ -26,9 +26,7 @@ const Icons = {
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
-        d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2
-        2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0
-        011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+        d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
       />
     </svg>
   ),
@@ -44,8 +42,7 @@ const Icons = {
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
-        d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3
-        6h18M16 10a4 4 0 01-8 0"
+        d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0"
       />
     </svg>
   ),
@@ -61,12 +58,7 @@ const Icons = {
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
-        d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2
-        0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0
-        01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0
-        012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0
-        012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0
-        01-2-2v-2z"
+        d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
       />
     </svg>
   ),
@@ -99,19 +91,12 @@ const Icons = {
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
-          d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118
-          14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4
-          0v.341C7.67 6.165 6 8.388 6 11v3.159c0
-          .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0
-          11-6 0v-1m6 0H9"
+          d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
         />
       </svg>
       {count > 0 && (
         <span
-          className="absolute -top-1.5 -right-1.5
-          min-w-[16px] h-4 bg-red-500 text-white
-          text-[9px] font-bold rounded-full
-          flex items-center justify-center px-0.5"
+          className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5"
         >
           {count > 9 ? "9+" : count}
         </span>
@@ -119,7 +104,6 @@ const Icons = {
     </div>
   ),
 
-  // ✅ Profile icon — fallback when no photo
   ProfileIcon: ({ active }) => (
     <svg
       className="w-5 h-5"
@@ -131,8 +115,7 @@ const Icons = {
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
-        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0
-        00-7 7h14a7 7 0 00-7-7z"
+        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
       />
     </svg>
   ),
@@ -150,34 +133,25 @@ const Icons = {
   ),
 };
 
-// ================================
-// ✅ Profile Avatar — shows photo or icon
-// ================================
 function ProfileAvatar({ profile, active }) {
   const hasPhoto = Boolean(profile?.photoURL || profile?.profileImage);
-
   const photoSrc = profile?.photoURL || profile?.profileImage || null;
-
   const initials = (profile?.displayName || profile?.fullName || "?")
     .charAt(0)
     .toUpperCase();
 
-  // Has profile photo
   if (hasPhoto) {
     return (
       <div
-        className={`
-        w-7 h-7 rounded-xl overflow-hidden
-        border-2 transition-all duration-200
-        ${active ? "border-[#4B3621] shadow-sm" : "border-gray-200"}
-      `}
+        className={`w-7 h-7 rounded-xl overflow-hidden border-2 transition-all duration-200 ${
+          active ? "border-[#4B3621] shadow-sm" : "border-gray-200"
+        }`}
       >
         <img
           src={photoSrc}
           alt="Profile"
           className="w-full h-full object-cover"
           onError={(e) => {
-            // Fallback if image fails to load
             e.currentTarget.style.display = "none";
           }}
         />
@@ -185,77 +159,54 @@ function ProfileAvatar({ profile, active }) {
     );
   }
 
-  // Has name — show initial
   if (profile?.displayName || profile?.fullName) {
     return (
       <div
-        className={`
-        w-7 h-7 rounded-xl flex items-center justify-center
-        text-[11px] font-bold border-2 transition-all duration-200
-        ${
+        className={`w-7 h-7 rounded-xl flex items-center justify-center text-[11px] font-bold border-2 transition-all duration-200 ${
           active
             ? "bg-[#4B3621] text-white border-[#4B3621]"
             : "bg-[#4B3621]/10 text-[#4B3621] border-[#4B3621]/20"
-        }
-      `}
+        }`}
       >
         {initials}
       </div>
     );
   }
 
-  // No profile — show default icon
   return (
     <span
-      className={`
-      transition-colors duration-200
-      ${active ? "text-[#4B3621]" : "text-gray-400"}
-    `}
+      className={`transition-colors duration-200 ${
+        active ? "text-[#4B3621]" : "text-gray-400"
+      }`}
     >
       <Icons.ProfileIcon active={active} />
     </span>
   );
 }
 
-// ================================
-// Nav Item
-// ================================
 function NavItem({ to, icon, label, active, onClick }) {
   const content = (
-    <div
-      className="flex flex-col items-center gap-0.5
-      relative px-1 py-1 min-w-[52px]"
-    >
+    <div className="flex flex-col items-center gap-0.5 relative px-1 py-1 min-w-[52px]">
       <div
-        className={`
-        relative flex items-center justify-center
-        w-8 h-8 rounded-xl transition-all duration-200
-        ${active ? "bg-[#4B3621]/10" : ""}
-      `}
+        className={`relative flex items-center justify-center w-8 h-8 rounded-xl transition-all duration-200 ${
+          active ? "bg-[#4B3621]/10" : ""
+        }`}
       >
         <span
-          className={`
-          transition-colors duration-200
-          ${active ? "text-[#4B3621]" : "text-gray-400"}
-        `}
+          className={`transition-colors duration-200 ${
+            active ? "text-[#4B3621]" : "text-gray-400"
+          }`}
         >
           {icon}
         </span>
-        {/* Active dot */}
         {active && (
-          <span
-            className="absolute -bottom-0.5 left-1/2
-            -translate-x-1/2 w-1 h-1 rounded-full
-            bg-[#4B3621]"
-          />
+          <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#4B3621]" />
         )}
       </div>
       <span
-        className={`
-        text-[9px] font-semibold tracking-wide
-        leading-tight text-center transition-colors
-        ${active ? "text-[#4B3621]" : "text-gray-400"}
-      `}
+        className={`text-[9px] font-semibold tracking-wide leading-tight text-center transition-colors ${
+          active ? "text-[#4B3621]" : "text-gray-400"
+        }`}
       >
         {label}
       </span>
@@ -266,8 +217,7 @@ function NavItem({ to, icon, label, active, onClick }) {
     return (
       <button
         onClick={onClick}
-        className="flex-1 flex items-center justify-center
-          active:scale-95 transition-transform"
+        className="flex-1 flex items-center justify-center active:scale-95 transition-transform"
       >
         {content}
       </button>
@@ -277,109 +227,140 @@ function NavItem({ to, icon, label, active, onClick }) {
   return (
     <Link
       to={to}
-      className="flex-1 flex items-center justify-center
-        active:scale-95 transition-transform"
+      className="flex-1 flex items-center justify-center active:scale-95 transition-transform"
     >
       {content}
     </Link>
   );
 }
 
-// ================================
-// Center Search Button
-// ================================
 function CenterSearchButton({ onClick }) {
   return (
     <button
       onClick={onClick}
-      className="flex flex-col items-center gap-0.5
-        flex-1 active:scale-95 transition-transform"
+      className="flex flex-col items-center gap-0.5 flex-1 active:scale-95 transition-transform"
     >
-      <div
-        className="w-12 h-12 -mt-5 bg-[#4B3621]
-        rounded-2xl flex items-center justify-center
-        shadow-xl shadow-[#4B3621]/30 border-4 border-white
-        transition-all hover:bg-[#362818] active:scale-95"
-      >
+      <div className="w-12 h-12 -mt-5 bg-[#4B3621] rounded-2xl flex items-center justify-center shadow-xl shadow-[#4B3621]/30 border-4 border-white transition-all hover:bg-[#362818] active:scale-95">
         <span className="text-white">
           <Icons.Search active={false} />
         </span>
       </div>
-      <span
-        className="text-[9px] font-semibold
-        text-gray-400 mt-0.5"
-      >
+      <span className="text-[9px] font-semibold text-gray-400 mt-0.5">
         Search
       </span>
     </button>
   );
 }
 
-// ================================
-// Main BottomNav
-// ================================
 export default function BottomNav() {
   const { user } = useAuth();
-  const location = useNavigate();
   const navigate = useNavigate();
-  const path = useLocation().pathname;
+  const { pathname } = useLocation();
 
-  // ✅ useProfile — no extra Firestore reads
+  const isActive = (p) => p === pathname;
+
   const { profile } = useProfile();
-
   const [alertCount, setAlertCount] = useState(0);
 
-  // ================================
-  // ✅ FIXED: Real-time alert count
-  // ================================
   useEffect(() => {
     const uid = user?.uid;
-
     if (!uid) {
       setAlertCount(0);
       return;
     }
 
-    const notificationsRef = collection(
-      db,
-      "users",
-      uid,
-      "notifications"
-    );
+    let personalUnread = 0;
+    let broadcastUnread = 0;
+    let listenersReady = 0;
+    let listenerFailed = false;
 
-    const unreadQuery = query(
+    const updateCount = () => {
+      if (listenerFailed || listenersReady < 2) return;
+      setAlertCount(personalUnread + broadcastUnread);
+    };
+
+    const notificationsRef = collection(db, "users", uid, "notifications");
+    const unreadNotificationsQuery = query(
       notificationsRef,
       where("read", "==", false)
     );
 
-    const unsubscribe = onSnapshot(
-      unreadQuery,
+    const broadcastsRef = collection(db, "broadcasts");
+    const broadcastReadsRef = collection(db, "users", uid, "broadcastReads");
+
+    let broadcasts = [];
+    let readBroadcastIds = new Set();
+    let broadcastsReady = false;
+    let readsReady = false;
+
+    const updateBroadcastUnread = () => {
+      if (!broadcastsReady || !readsReady) return;
+      broadcastUnread = broadcasts.filter(
+        (broadcast) => !readBroadcastIds.has(broadcast.id)
+      ).length;
+      if (listenersReady >= 1) {
+        listenersReady = 2;
+        updateCount();
+      }
+    };
+
+    const unsubscribeNotifications = onSnapshot(
+      unreadNotificationsQuery,
       (snapshot) => {
-        setAlertCount(snapshot.size);
+        personalUnread = snapshot.size;
+        if (listenersReady === 0) {
+          listenersReady = 1;
+        }
+        updateCount();
       },
       (error) => {
-        console.error(
-          "[KOB BottomNav] Unread count error:",
-          error
-        );
-
+        listenerFailed = true;
         setAlertCount(0);
+        console.error("[KOB BottomNav] Personal unread count error:", error);
       }
     );
 
-    return () => unsubscribe();
+    const unsubscribeBroadcasts = onSnapshot(
+      broadcastsRef,
+      (snapshot) => {
+        broadcasts = snapshot.docs
+          .filter((item) => item.data().status === "sent")
+          .map((item) => ({ id: item.id, ...item.data() }));
+        broadcastsReady = true;
+        updateBroadcastUnread();
+      },
+      (error) => {
+        listenerFailed = true;
+        setAlertCount(0);
+        console.error("[KOB BottomNav] Broadcast listener error:", error);
+      }
+    );
+
+    const unsubscribeReads = onSnapshot(
+      broadcastReadsRef,
+      (snapshot) => {
+        readBroadcastIds = new Set(
+          snapshot.docs
+            .filter((item) => item.data().read === true)
+            .map((item) => item.id)
+        );
+        readsReady = true;
+        updateBroadcastUnread();
+      },
+      (error) => {
+        listenerFailed = true;
+        setAlertCount(0);
+        console.error("[KOB BottomNav] Broadcast read-marker error:", error);
+      }
+    );
+
+    return () => {
+      unsubscribeNotifications();
+      unsubscribeBroadcasts();
+      unsubscribeReads();
+    };
   }, [user?.uid]);
 
-  // Hide on these pages
-  if (path.startsWith("/admin") || path === "/login" || path === "/register")
-    return null;
-
-  const isActive = (route) =>
-    route === "/" ? path === "/" : path.startsWith(route);
-
-  // ================================
-  // Search
-  // ================================
   function handleSearch() {
     navigate("/marketplace");
     setTimeout(() => {
@@ -390,9 +371,6 @@ export default function BottomNav() {
     }, 300);
   }
 
-  // ================================
-  // ✅ Profile → /profile for all logged-in
-  // ================================
   function handleProfile() {
     if (!user) {
       navigate("/login");
@@ -401,152 +379,83 @@ export default function BottomNav() {
     }
   }
 
-  // ================================
-  // Profile nav item — reused in both navs
-  // ================================
   const profileNavItem = (
     <NavItem
       label="Profile"
       active={isActive("/profile")}
       onClick={handleProfile}
-      icon={
-        <div
-          className={`
-          relative flex items-center justify-center
-          w-8 h-8 rounded-xl transition-all duration-200
-          ${isActive("/profile") ? "bg-[#4B3621]/10" : ""}
-        `}
-        >
-          {/* ✅ ProfileAvatar — shows photo or initials */}
-          <ProfileAvatar profile={profile} active={isActive("/profile")} />
-          {/* Active dot */}
-          {isActive("/profile") && (
-            <span
-              className="absolute -bottom-0.5 left-1/2
-              -translate-x-1/2 w-1 h-1 rounded-full
-              bg-[#4B3621]"
-            />
-          )}
-        </div>
-      }
+      icon={<ProfileAvatar profile={profile} active={isActive("/profile")} />}
     />
   );
 
-  // ================================
-  // SELLER NAV
-  // ================================
+  const commonNavProps = {
+    handleSearch,
+    alertCount,
+    isActive,
+    profileNavItem,
+  };
+
   if (user?.role === "seller") {
-    return (
-      <nav
-        className="fixed bottom-0 left-0 right-0
-        z-50 lg:hidden"
-      >
-        <div
-          className="absolute inset-0 bg-white/95
-          backdrop-blur-xl border-t border-gray-100
-          shadow-2xl shadow-black/10"
-        />
-
-        <div
-          className="relative flex items-end
-          justify-around px-3 pt-2 pb-2 max-w-lg
-          mx-auto h-[68px]"
-        >
-          {/* Home */}
-          <NavItem
-            to="/"
-            label="Home"
-            active={isActive("/")}
-            icon={<Icons.Home active={isActive("/")} />}
-          />
-
-          {/* My Shop */}
-          <NavItem
-            to={`/shop/${user.uid}`}
-            label="My Shop"
-            active={isActive(`/shop/${user.uid}`)}
-            icon={<Icons.Shop active={isActive(`/shop/${user.uid}`)} />}
-          />
-
-          {/* Search — Center */}
-          <CenterSearchButton onClick={handleSearch} />
-
-          {/* Alerts */}
-          <NavItem
-            to="/alerts"
-            label="Alerts"
-            active={isActive("/alerts")}
-            icon={
-              <Icons.Alert active={isActive("/alerts")} count={alertCount} />
-            }
-          />
-
-          {/* ✅ Profile with photo */}
-          {profileNavItem}
-        </div>
-
-        <div
-          className="h-[env(safe-area-inset-bottom)]
-          bg-white/95"
-        />
-      </nav>
-    );
+    return <SellerNav {...commonNavProps} user={user} />;
   }
 
-  // ================================
-  // BUYER / VISITOR NAV
-  // ================================
-  return (
-    <nav
-      className="fixed bottom-0 left-0 right-0
-      z-50 lg:hidden"
-    >
-      <div
-        className="absolute inset-0 bg-white/95
-        backdrop-blur-xl border-t border-gray-100
-        shadow-2xl shadow-black/10"
-      />
-
-      <div
-        className="relative flex items-end
-        justify-around px-3 pt-2 pb-2 max-w-lg
-        mx-auto h-[68px]"
-      >
-        {/* Home */}
-        <NavItem
-          to="/"
-          label="Home"
-          active={isActive("/")}
-          icon={<Icons.Home active={isActive("/")} />}
-        />
-
-        {/* Catalogue */}
-        <NavItem
-          to="/marketplace"
-          label="Catalogue"
-          active={isActive("/marketplace")}
-          icon={<Icons.Catalogue active={isActive("/marketplace")} />}
-        />
-
-        {/* Search — Center */}
-        <CenterSearchButton onClick={handleSearch} />
-
-        {/* Alerts */}
-        <NavItem
-          to="/alerts"
-          label="Alerts"
-          active={isActive("/alerts")}
-          icon={<Icons.Alert active={isActive("/alerts")} count={alertCount} />}
-        />
-
-        {/* ✅ Profile with photo */}
-        {profileNavItem}
-      </div>
-
-      <div
-        className="h-[env(safe-area-inset-bottom)]
-        bg-white/95"
-      />
-    </nav>
-  );
+  return <BuyerNav {...commonNavProps} />;
 }
+
+const SellerNav = ({ handleSearch, alertCount, isActive, profileNavItem, user }) => (
+  <nav className="fixed bottom-0 left-0 right-0 z-50 lg:hidden">
+    <div className="absolute inset-0 bg-white/95 backdrop-blur-xl border-t border-gray-100 shadow-2xl shadow-black/10" />
+    <div className="relative flex items-end justify-around px-3 pt-2 pb-2 max-w-lg mx-auto h-[68px]">
+      <NavItem
+        to="/"
+        label="Home"
+        active={isActive("/")}
+        icon={<Icons.Home active={isActive("/")} />}
+      />
+      <NavItem
+        to={`/shop/${user.uid}`}
+        label="My Shop"
+        active={isActive(`/shop/${user.uid}`)}
+        icon={<Icons.Shop active={isActive(`/shop/${user.uid}`)} />}
+      />
+      <CenterSearchButton onClick={handleSearch} />
+      <NavItem
+        to="/alerts"
+        label="Alerts"
+        active={isActive("/alerts")}
+        icon={<Icons.Alert active={isActive("/alerts")} count={alertCount} />}
+      />
+      {profileNavItem}
+    </div>
+    <div className="h-[env(safe-area-inset-bottom)] bg-white/95" />
+  </nav>
+);
+
+const BuyerNav = ({ handleSearch, alertCount, isActive, profileNavItem }) => (
+  <nav className="fixed bottom-0 left-0 right-0 z-50 lg:hidden">
+    <div className="absolute inset-0 bg-white/95 backdrop-blur-xl border-t border-gray-100 shadow-2xl shadow-black/10" />
+    <div className="relative flex items-end justify-around px-3 pt-2 pb-2 max-w-lg mx-auto h-[68px]">
+      <NavItem
+        to="/"
+        label="Home"
+        active={isActive("/")}
+        icon={<Icons.Home active={isActive("/")} />}
+      />
+      <NavItem
+        to="/marketplace"
+        label="Catalogue"
+        active={isActive("/marketplace")}
+        icon={<Icons.Catalogue active={isActive("/marketplace")} />}
+      />
+      <CenterSearchButton onClick={handleSearch} />
+      <NavItem
+        to="/alerts"
+        label="Alerts"
+        active={isActive("/alerts")}
+        icon={<Icons.Alert active={isActive("/alerts")} count={alertCount} />}
+      />
+      {profileNavItem}
+    </div>
+    <div className="h-[env(safe-area-inset-bottom)] bg-white/95" />
+  </nav>
+);
