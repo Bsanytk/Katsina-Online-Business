@@ -15,6 +15,7 @@ import React, { Suspense, lazy, useEffect, useState } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 import { AuthProvider, useAuth } from "./firebase/auth";
 import { ProfileProvider } from "./contexts/ProfileContext";
+import { db } from "./firebase/firebase";
 import AlertProvider from "./components/ui/AlertProvider";
 import AppBanner from "./components/pwa/AppBanner";
 import "./i18n";

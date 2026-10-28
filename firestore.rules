@@ -138,13 +138,39 @@ service cloud.firestore {
         allow delete: if false;
       }
     }
-
-
     // --------------------------
-    // Default deny
+    // KOB Broadcasts
     // --------------------------
-    match /{document=**} {
-      allow read, write: if false;
+    match /broadcasts/{broadcastId} {
+
+      // Logged-in users can read published broadcasts.
+      allow read: if request.auth != null;
+
+      // Only the designated KOB admin can create broadcasts.
+      allow create: if request.auth != null
+        && request.auth.uid == "faAlHUtsZ2MVQRN4Apc3itIoeGf2"
+        && request.resource.data.keys().hasAll([
+          "title",
+          "body",
+          "url",
+          "type",
+          "status",
+          "createdAt"
+        ])
+        && request.resource.data.title is string
+        && request.resource.data.body is string
+        && request.resource.data.status == "sent";
+
+      // Only the designated KOB admin can edit or delete broadcasts.
+      allow update, delete: if request.auth != null
+        && request.auth.uid == "faAlHUtsZ2MVQRN4Apc3itIoeGf2";
     }
+  }
+
+  // --------------------------
+  // Default deny
+  // --------------------------
+  match /{document=**} {
+    allow read, write: if false;
   }
 }

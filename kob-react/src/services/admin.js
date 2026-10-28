@@ -173,17 +173,27 @@ export async function saveFCMToken(uid, token) {
 // ================================
 // Tabbatar saveBroadcast tana haka:
 export async function saveBroadcast(data) {
+  const title = data?.title?.trim();
+  const body = data?.body?.trim();
+  const url = data?.url?.trim() || "/";
+
+  if (!title || !body) {
+  throw new Error("Broadcast title and message are required.");
+  }
+
   const ref = await addDoc(collection(db, "broadcasts"), {
-    title: data.title || "",
-    body: data.body || "",
-    url: data.url || "/",
-    type: data.type || "broadcast",
-    status: "sent",
-    sentAt: serverTimestamp(), // ✅ Primary timestamp
-    createdAt: serverTimestamp(), // ✅ Backup timestamp
+  title,
+  body,
+  url,
+  type: "broadcast",
+  status: "sent",
+  sentAt: serverTimestamp(),
+  createdAt: serverTimestamp(),
   });
+
   return ref.id;
-}
+  }
+
 
 // ================================
 // Get dashboard stats
