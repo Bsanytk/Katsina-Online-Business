@@ -39,16 +39,25 @@ const messaging = firebase.messaging();
 messaging.onBackgroundMessage((payload) => {
   console.log("[KOB FCM] Background message received:", payload);
 
-  const notification = payload.notification || {};
+  // DUPLICATE NOTIFICATION FIX:
+  // If the incoming payload has a 'notification' property, we assume
+  // Firebase will show a notification automatically. We return early
+  // to prevent the service worker from showing a second, duplicate notification.
+  if (payload.notification) {
+    return;
+  }
+
+  // The rest of this function handles DATA-ONLY messages, which require
+  // the service worker to create the notification manually.
   const data = payload.data || {};
 
-  const title = notification.title || "KOB Marketplace";
+  const title = data.title || "KOB Marketplace";
 
   const options = {
-    body: notification.body || "Notificatin from KOB Marketplace.",
-    icon: notification.icon || 'https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1780655200/logo512_xomyvi.png',
+    body: data.body || "Notification from KOB Marketplace.",
+    icon: data.icon || 'https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1780655200/logo512_xomyvi.png',
     badge: "https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1780056061/badge192_hlibzw.png",
-    image: notification.image || undefined,
+    image: data.image || undefined,
     data: {
       url: data.url || "/",
     },

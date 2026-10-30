@@ -74,29 +74,6 @@ export async function initFCM(userId) {
       return null;
     }
 
-    // ✅ Only request if not already granted
-    if (currentPermission !== "granted") {
-      // Defer permission prompt — this must be triggered by
-      // a user gesture in mobile PWA (button click, etc.)
-      // If called during boot without gesture, it may freeze mobile.
-      // We schedule it to run after current call stack clears.
-      const permission = await new Promise((resolve) => {
-        setTimeout(async () => {
-          try {
-            const result = await Notification.requestPermission();
-            resolve(result);
-          } catch {
-            resolve("denied");
-          }
-        }, 500); // small delay ensures call stack is clear
-      });
-
-      if (permission !== "granted") {
-        console.warn("[FCM] Permission not granted:", permission);
-        return null;
-      }
-    }
-
     // Get messaging instance
     const messaging = await getMessagingInstance();
     if (!messaging) {

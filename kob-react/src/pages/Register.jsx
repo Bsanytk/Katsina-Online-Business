@@ -12,6 +12,7 @@
 
 import React, { useState } from "react";
 import { registerUser } from "../firebase/auth";
+import { initFCM } from "../services/fcm";
 import { useNavigate, Link } from "react-router-dom";
 import BackButton from "../components/BackButton";
 import { motion } from "framer-motion";
@@ -134,9 +135,7 @@ export default function Register() {
       // Route FIRST then init FCM in background.
       // Awaiting FCM here was causing mobile freeze on registration.
       if (userCredential?.user?.uid) {
-        import("../services/fcm")
-          .then(({ initFCM }) => initFCM(userCredential.user.uid))
-          .catch((fcmErr) =>
+        initFCM(userCredential.user.uid).catch((fcmErr) =>
             console.warn("[KOB Register] FCM background init:", fcmErr.message)
           );
       }

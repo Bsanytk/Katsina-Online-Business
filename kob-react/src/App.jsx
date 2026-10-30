@@ -124,56 +124,14 @@ function NotificationToast({ notification, onClose }) {
 // ========================================
 function AppContent() {
   const { user, loading } = useAuth();
-
-  // ✅ LOOP FIX — Extract uid as primitive string
-  //
-  // user?.uid returns a STRING like "abc123" — not an object.
-  // A string primitive is compared by VALUE in React's dependency
-  // check, not by reference. This means:
-  //   - Same user logged in → uid never changes → effects never re-run
-  //   - User logs out → uid becomes null → effects clean up
-  //   - Different user logs in → uid changes → effects re-run once
-  //
-  // If we used [user?.uid] directly in the dep array, optional
-  // chaining evaluation can be inconsistent across re-renders.
-  // Extracting to a variable first guarantees stability.
   const uid = user?.uid ?? null;
-
   const location = useLocation();
   const [notification, setNotification] = useState(null);
   const [showBottomNav, setShowBottomNav] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
 
   // ========================================
-  // ✅ FCM INIT — loop-safe, isolated
-  //
-  // WHY THIS WORKS:
-  // 1. uid is a primitive string — React compares by value
-  //    so this effect NEVER re-runs unless uid actually changes
-  // 2. initFCM() has localStorage guard inside —
-  //    if token exists, returns in <1ms with zero API calls
-  // 3. Even if getToken() runs, saveTokenToFirestore()
-  //    skips the write if token hasn't changed
-  // Result: zero Firestore writes on reload = zero re-renders = no loop
-  // ========================================
-  useEffect(() => {
-    if (!uid) return;
-
-    // fire-and-forget — never await in useEffect directly
-    initFCM(uid).catch((err) =>
-      console.warn("[KOB App] FCM init:", err?.message)
-    );
-
-    // No cleanup needed — initFCM has no persistent listeners
-  }, [uid]); // ← uid STRING primitive only — never user object
-
-  // ========================================
   // ✅ FOREGROUND MESSAGES — separate isolated effect
-  //
-  // Separated from FCM init intentionally:
-  // - Init runs once, foreground listener persists
-  // - Cleanup is handled correctly on logout
-  // - Both depend on same stable uid primitive
   // ========================================
   useEffect(() => {
     if (!uid) return;
@@ -194,30 +152,25 @@ function AppContent() {
           const body =
             payload.notification?.body || payload.data?.body || "";
 
-          const notificationData = {
-            title,
-            body,
-            url: payload.data?.url || "/alerts",
-            type: payload.data?.type || "broadcast",
-            source: "fcm",
-            read: false,
-            createdAt: new Date(),
-            messageId: payload.messageId || null,
-          };
-
-          // Ci gaba da nuna toast a cikin app.
           setNotification({ title, body });
 
-          // Adana saƙon a cikin sanarwar wannan mai amfani.
           try {
             const { addDoc, collection, serverTimestamp } = await import(
               "firebase/firestore"
             );
-
-            await addDoc(collection(db, "users", uid, "notifications"), {
-              ...notificationData,
+            
+            const notificationToWrite = {
+              title: title,
+              body: body,
+              url: payload.data?.url || "/alerts",
+              type: payload.data?.type || "broadcast",
+              source: "fcm",
+              read: false,
               createdAt: serverTimestamp(),
-            });
+              messageId: payload.messageId || null,
+            };
+
+            await addDoc(collection(db, "users", uid, "notifications"), notificationToWrite);
 
             console.log("[KOB Alerts] FCM notification saved.");
           } catch (error) {

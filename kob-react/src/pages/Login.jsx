@@ -260,33 +260,26 @@ export default function Login() {
   const [showPass, setShowPass] = useState(false);
   const [showForgot, setShowForgot] = useState(false);
 
-  // ✅ loginUser comes from AuthContext — always defined
   const { loginUser, resetPassword } = useAuth();
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (loading) return; // duplicate submit guard
+    if (loading) return;
 
     setLoading(true);
     setError(null);
 
     try {
-      // ✅ Step 1: Login — loginUser is correct (email, password)
       const userCredential = await loginUser(email, password);
 
-      // ✅ Step 2: FCM — fully non-blocking fire-and-forget
-      // Route FIRST, then init FCM in background
-      // FCM failure must never block navigation
       if (userCredential?.user?.uid) {
         import("../services/fcm")
-          .then(({ initFCM }) => initFCM(userCredential.user.uid))
+          .then(({ initFCM }) => initFCM(userCredential.user.uid, { request: true }))
           .catch((fcmErr) =>
-            console.warn("[KOB Login] FCM background init:", fcmErr.message)
+            console.warn("[KOB Login] FCM background init failed:", fcmErr.message)
           );
       }
 
-      // ✅ Step 3: Hard redirect — forces ProfileContext to reload
-      // window.location.href is intentional here (not navigate())
       const returnTo = sessionStorage.getItem("returnTo");
       if (returnTo) {
         sessionStorage.removeItem("returnTo");

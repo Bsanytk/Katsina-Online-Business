@@ -17,30 +17,58 @@ service cloud.firestore {
 
       // Notifications belonging to each user.
       match /notifications/{notificationId} {
+        // Users can read only their own notifications.
+        allow read: if request.auth != null
+                    && request.auth.uid == uid;
 
-        // A signed-in user can read only their own notifications.
-        allow read: if request.auth != null && request.auth.uid == uid;
-
-        // A signed-in user can create a notification only in their own path.
+        // Users can create only their own foreground FCM notifications.
         allow create: if request.auth != null
                     && request.auth.uid == uid
                     && request.resource.data.keys().hasAll([
                         'title',
                         'body',
+                        'url',
+                        'type',
+                        'source',
                         'read',
-                        'createdAt'
+                        'createdAt',
+                        'messageId'
                     ])
-                    && request.resource.data.read == false;
+                    && request.resource.data.keys().hasOnly([
+                        'title',
+                        'body',
+                        'url',
+                        'type',
+                        'source',
+                        'read',
+                        'createdAt',
+                        'messageId'
+                    ])
+                    && request.resource.data.title is string
+                    && request.resource.data.body is string
+                    && request.resource.data.url is string
+                    && request.resource.data.type is string
+                    && request.resource.data.source == 'fcm'
+                    && request.resource.data.read == false
+                    && request.resource.data.createdAt is timestamp
+                    && (
+                        request.resource.data.messageId is string
+                        || request.resource.data.messageId == null
+                    );
 
         // Users can update only the read status and read timestamp.
         allow update: if request.auth != null
-                    && request.auth.uid == uid
-                    && request.resource.data.diff(resource.data)
-                                        .affectedKeys()
-                                        .hasOnly(['read', 'readAt'])
-                    && request.resource.data.read is bool;
+                      && request.auth.uid == uid
+                      && request.resource.data.diff(resource.data)
+                          .affectedKeys()
+                          .hasOnly(['read', 'readAt'])
+                      && request.resource.data.read is bool
+                      && (
+                          !('readAt' in request.resource.data)
+                          || request.resource.data.readAt is timestamp
+                      );
 
-        // Do not allow client-side deletion.
+        // Client-side deletion remains prohibited.
         allow delete: if false;
       }
     }
