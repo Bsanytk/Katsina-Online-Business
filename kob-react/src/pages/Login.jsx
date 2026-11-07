@@ -259,6 +259,7 @@ export default function Login() {
   const [error, setError] = useState(null);
   const [showPass, setShowPass] = useState(false);
   const [showForgot, setShowForgot] = useState(false);
+  const navigate = useNavigate();
 
   const { loginUser, resetPassword } = useAuth();
 
@@ -270,22 +271,13 @@ export default function Login() {
     setError(null);
 
     try {
-      const userCredential = await loginUser(email, password);
-
-      if (userCredential?.user?.uid) {
-        import("../services/fcm")
-          .then(({ initFCM }) => initFCM(userCredential.user.uid, { request: true }))
-          .catch((fcmErr) =>
-            console.warn("[KOB Login] FCM background init failed:", fcmErr.message)
-          );
-      }
-
+      await loginUser(email, password);
       const returnTo = sessionStorage.getItem("returnTo");
       if (returnTo) {
         sessionStorage.removeItem("returnTo");
-        window.location.href = returnTo;
+        navigate(returnTo);
       } else {
-        window.location.href = "/dashboard";
+        navigate("/dashboard");
       }
     } catch (err) {
       setError(err.message);

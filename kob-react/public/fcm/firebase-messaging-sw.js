@@ -8,25 +8,26 @@
 // Firebase SDKs (Compat Version)
 // ==================================
 importScripts(
-    "https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"
-    );
-    importScripts(
-      "https://www.gstatic.com/firebasejs/10.14.1/firebase-messaging-compat.js"
-      );
-
+  "https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"
+);
+importScripts(
+  "https://www.gstatic.com/firebasejs/10.14.1/firebase-messaging-compat.js"
+);
 
 // ======================================
 // Firebase Config — AN GYARA WANNAN SASHE
-// Dole ne ya yi daidai daram da bayanan da ke cikin .env na dandalinka
+// Waɗannan masu canji suna zuwa daga tsarin ginin Vite
 // ======================================
-firebase.initializeApp({
-  apiKey: "AIzaSyCrJDGQbbMxHkZU9fmO1jmT-1mnN3o6P6k", // Tabbatar wannan shi ne na KOB Marketplace
-  authDomain: "kob-community.firebaseapp.com",     // Idan ka canza domain, sanya madaidacin a nan
-  projectId: "kob-community",                     // Sunan sabon project dinka
-  storageBucket: "kob-community.appspot.com",
-  messagingSenderId: "245778888984",
-  appId: "1:245778888984:web:cc819e57545b7df338066d",
-});
+const firebaseConfig = {
+  apiKey: __FIREBASE_API_KEY__,
+  authDomain: __FIREBASE_AUTH_DOMAIN__,
+  projectId: __FIREBASE_PROJECT_ID__,
+  storageBucket: __FIREBASE_STORAGE_BUCKET__,
+  messagingSenderId: __FIREBASE_MESSAGING_SENDER_ID__,
+  appId: __FIREBASE_APP_ID__,
+};
+
+firebase.initializeApp(firebaseConfig);
 
 // ======================================
 // Messaging Instance
@@ -55,8 +56,11 @@ messaging.onBackgroundMessage((payload) => {
 
   const options = {
     body: data.body || "Notification from KOB Marketplace.",
-    icon: data.icon || 'https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1780655200/logo512_xomyvi.png',
-    badge: "https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1780056061/badge192_hlibzw.png",
+    icon:
+      data.icon ||
+      "https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1780655200/logo512_xomyvi.png",
+    badge:
+      "https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1780056061/badge192_hlibzw.png",
     image: data.image || undefined,
     data: {
       url: data.url || "/",

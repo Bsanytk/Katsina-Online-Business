@@ -131,6 +131,15 @@ function AppContent() {
   const [lastScrollY, setLastScrollY] = useState(0);
 
   // ========================================
+  // ✅ FCM Initialization
+  // ========================================
+  useEffect(() => {
+    if (uid) {
+      initFCM(uid);
+    }
+  }, [uid]);
+
+  // ========================================
   // ✅ FOREGROUND MESSAGES — separate isolated effect
   // ========================================
   useEffect(() => {
@@ -158,7 +167,7 @@ function AppContent() {
             const { addDoc, collection, serverTimestamp } = await import(
               "firebase/firestore"
             );
-            
+
             const notificationToWrite = {
               title: title,
               body: body,
@@ -170,7 +179,10 @@ function AppContent() {
               messageId: payload.messageId || null,
             };
 
-            await addDoc(collection(db, "users", uid, "notifications"), notificationToWrite);
+            await addDoc(
+              collection(db, "users", uid, "notifications"),
+              notificationToWrite
+            );
 
             console.log("[KOB Alerts] FCM notification saved.");
           } catch (error) {

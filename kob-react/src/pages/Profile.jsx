@@ -4,7 +4,7 @@
  * Amazon Seller Central / Etsy inspired UX
  */
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth, logoutUser } from "../firebase/auth";
 import { useProfile } from "../contexts/ProfileContext";
@@ -13,6 +13,7 @@ import {
   changePassword,
   deleteAccount,
 } from "../services/profile";
+import { requestPermissionAndRegister } from "../services/fcm"; // Import the new function
 import EditProfileModal from "../components/profile/EditProfileModal";
 import SuccessModal from "../components/profile/SuccessModal";
 
@@ -419,6 +420,11 @@ export default function Profile() {
   const [showDelete, setDelete] = useState(false);
   const [showPwdSuccess, setPwdSuccess] = useState(false);
   const [loggingOut, setLogout] = useState(false);
+  const [notifStatus, setNotifStatus] = useState("...");
+
+  useEffect(() => {
+    setNotifStatus(Notification.permission);
+  }, []);
 
   // Guard
   if (!user && !loading) {
@@ -444,6 +450,16 @@ export default function Profile() {
       window.location.href = "/";
     } catch {
       setLogout(false);
+    }
+  }
+
+  async function handleEnableNotifications() {
+    setNotifStatus("loading");
+    const result = await requestPermissionAndRegister(user.uid);
+    if (result.success) {
+      setNotifStatus("granted");
+    } else {
+      setNotifStatus(Notification.permission);
     }
   }
 
@@ -566,6 +582,28 @@ export default function Profile() {
       ),
     },
   ];
+
+  const notifAction = {
+    label: "Notifications",
+    color: "text-[#4B3621]",
+    onClick: handleEnableNotifications,
+    disabled: notifStatus !== "default",
+    icon: (
+      <svg
+        className="w-4 h-4"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        strokeWidth={2}
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+        />
+      </svg>
+    ),
+  };
 
   return (
     <main className="min-h-screen bg-[#F9F9F7] pb-24 lg:pb-8">
@@ -1005,14 +1043,15 @@ export default function Profile() {
               >
                 Settings
               </p>
-              {ACTIONS.map((a, i) => (
+              {[...ACTIONS.slice(0, 2), notifAction, ...ACTIONS.slice(2)].map((a, i) => (
                 <button
                   key={a.label}
                   onClick={a.onClick}
+                  disabled={a.disabled}
                   className={`w-full flex items-center
                     justify-between px-6 py-4 transition-all
                     ${i > 0 ? "border-t border-gray-50" : ""}
-                    ${a.danger ? "hover:bg-red-50" : "hover:bg-gray-50"}`}
+                    ${a.danger ? "hover:bg-red-50" : "hover:bg-gray-50"} disabled:opacity-50 disabled:cursor-not-allowed`}
                 >
                   <div className="flex items-center gap-3">
                     <span className={a.color}>{a.icon}</span>
@@ -1023,6 +1062,11 @@ export default function Profile() {
                       {a.label}
                     </span>
                   </div>
+                  <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-400">
+                    {notifStatus === "granted" && a.label === "Notifications" && "Enabled"}
+                    {notifStatus === "denied" && a.label === "Notifications" && "Disabled"}
+                  </span>
                   <svg
                     className="w-4 h-4 text-gray-300"
                     fill="none"
@@ -1036,6 +1080,7 @@ export default function Profile() {
                       d="M9 5l7 7-7 7"
                     />
                   </svg>
+                  </div>
                 </button>
               ))}
             </div>

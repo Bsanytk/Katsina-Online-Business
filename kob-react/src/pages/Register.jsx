@@ -12,7 +12,6 @@
 
 import React, { useState } from "react";
 import { registerUser } from "../firebase/auth";
-import { initFCM } from "../services/fcm";
 import { useNavigate, Link } from "react-router-dom";
 import BackButton from "../components/BackButton";
 import { motion } from "framer-motion";
@@ -93,6 +92,7 @@ export default function Register() {
   const [policyError, setPolicyError] = useState(false);
   const [showPass, setShowPass] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const navigate = useNavigate();
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -117,36 +117,28 @@ export default function Register() {
     setLoading(true);
 
     try {
-      // ✅ Step 1: Register user — registerUser only, no loginUser needed
-      const userCredential = await registerUser(email, password, role);
-      const displayName = email.split('@')[0];
-      
+      // ✅ Step 1: Register user
+      await registerUser(email, password, role);
+      const displayName = email.split("@")[0];
+
       // ✅ Step 2: Welcome Email — fire-and-forget, non-blocking
-      fetch('/api/auth/welcome-email', {
-        method: 'POST',
+      fetch("/api/auth/welcome-email", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ email, displayName }),
-      }).catch(err => console.warn('[KOB Register] Welcome email trigger failed:', err.message));
+      }).catch((err) =>
+        console.warn("[KOB Register] Welcome email trigger failed:", err.message)
+      );
 
-
-      // ✅ Step 3: FCM — fire-and-forget, NEVER awaited
-      // Route FIRST then init FCM in background.
-      // Awaiting FCM here was causing mobile freeze on registration.
-      if (userCredential?.user?.uid) {
-        initFCM(userCredential.user.uid).catch((fcmErr) =>
-            console.warn("[KOB Register] FCM background init:", fcmErr.message)
-          );
-      }
-
-      // ✅ Step 4: Hard redirect — forces ProfileContext to reload fresh
+      // ✅ Step 3: Hard redirect — forces ProfileContext to reload fresh
       const returnTo = sessionStorage.getItem("returnTo");
       if (returnTo) {
         sessionStorage.removeItem("returnTo");
-        window.location.href = returnTo;
+        navigate(returnTo);
       } else {
-        window.location.href = "/dashboard";
+        navigate("/dashboard");
       }
     } catch (err) {
       setError(err.message);
@@ -487,7 +479,7 @@ export default function Register() {
                       }
                     `}
                   >
-                  {agreed && <CheckIcon />}
+                    {agreed && <CheckIcon />}
                   </div>
 
                   <p className="text-xs text-gray-600 leading-relaxed">
