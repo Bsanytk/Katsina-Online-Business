@@ -2,9 +2,12 @@
  * Profile.jsx — KOB Professional Profile Page
  * Global-standard marketplace seller/buyer profile
  * Amazon Seller Central / Etsy inspired UX
+ *
+ * PHASE 1 FIX: Replaced the old notification toggle with the new self-contained
+ * NotificationSettings component for a robust permission-first UX.
  */
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth, logoutUser } from "../firebase/auth";
 import { useProfile } from "../contexts/ProfileContext";
@@ -12,11 +15,10 @@ import {
   getCompletionScore,
   changePassword,
   deleteAccount,
-  updateProfile, // Import updateProfile
 } from "../services/profile";
-import { requestPermissionAndRegister } from "../services/fcm"; // Import the new function
 import EditProfileModal from "../components/profile/EditProfileModal";
 import SuccessModal from "../components/profile/SuccessModal";
+import NotificationSettings from "../components/NotificationSettings"; // Import the new component
 
 // ================================
 // Helpers
@@ -414,7 +416,7 @@ function DeleteModal({ show, onClose }) {
 export default function Profile() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { profile, loading, isSeller, isAdmin, updateLocalProfile } = useProfile();
+  const { profile, loading, isSeller, isAdmin } = useProfile();
 
   const [showEdit, setEdit] = useState(false);
   const [showPass, setPass] = useState(false);
@@ -446,37 +448,6 @@ export default function Profile() {
       window.location.href = "/";
     } catch {
       setLogout(false);
-    }
-  }
-
-  async function toggleNotifications() {
-    if (!user || !profile) return;
-
-    const currentlyEnabled = profile.notificationsEnabled !== false;
-    const newPreference = !currentlyEnabled;
-
-    try {
-      // Instantly update UI
-      updateLocalProfile({ notificationsEnabled: newPreference });
-
-      // If enabling, request permission first
-      if (newPreference) {
-        const result = await requestPermissionAndRegister(user.uid);
-        if (!result.success) {
-          // Permission denied or failed, revert the preference
-          updateLocalProfile({ notificationsEnabled: false });
-          await updateProfile(user.uid, { notificationsEnabled: false });
-          return; // Stop here
-        }
-      }
-
-      // Persist the final preference to Firestore
-      await updateProfile(user.uid, { notificationsEnabled: newPreference });
-
-    } catch (error) {
-      console.error("Failed to update notification preference:", error);
-      // Revert UI on error
-      updateLocalProfile({ notificationsEnabled: currentlyEnabled });
     }
   }
 
@@ -600,34 +571,11 @@ export default function Profile() {
     },
   ];
 
-  const notificationsEnabled = profile?.notificationsEnabled !== false;
-
-  const notifAction = {
-    label: "Notifications",
-    color: "text-[#4B3621]",
-    onClick: toggleNotifications,
-    icon: (
-      <svg
-        className="w-4 h-4"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        strokeWidth={2}
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-        />
-      </svg>
-    ),
-  };
-
   return (
     <main className="min-h-screen bg-[#F9F9F7] pb-24 lg:pb-8">
       {/* Modals */}
       <EditProfileModal show={showEdit} onClose={() => setEdit(false)} />
-      <ChangePasswordModal
+      <ChangeProfileModal
         show={showPass}
         onClose={() => setPass(false)}
         onSuccess={() => setPwdSuccess(true)}
@@ -709,22 +657,17 @@ export default function Profile() {
           <Skeleton />
         ) : (
           <>
-            {/* ================================ */}
-            {/* ================================ */}
-            {/* HERO CARD — Avatar Overlap Fix   */}
-            {/* ================================ */}
+            {/* Hero Card */}
             <div
               className="bg-white rounded-3xl shadow-sm
   border border-gray-100 overflow-visible"
             >
-              {/* ✅ Brown banner */}
               <div
                 className="h-28 md:h-36
     bg-gradient-to-br from-[#2C1F0E]
     via-[#4B3621] to-[#6B4C31]
     rounded-t-3xl relative overflow-hidden"
               >
-                {/* Decorative blobs */}
                 <div
                   className="absolute -top-8 -right-8 w-40 h-40
       bg-[#D4AF37]/10 rounded-full blur-3xl
@@ -737,15 +680,11 @@ export default function Profile() {
                 />
               </div>
 
-              {/* ✅ AVATAR — lifted above banner */}
-              {/* -mt-12 raises avatar over the brown strip */}
-              {/* z-10 ensures it layers above the banner  */}
               <div className="px-5 md:px-7 pb-6">
                 <div
                   className="flex items-end justify-between
       -mt-12 mb-4"
                 >
-                  {/* Avatar with layered border effect */}
                   <div className="relative z-10 flex-shrink-0">
                     <div
                       className="w-20 h-20 md:w-24 md:h-24
@@ -773,7 +712,6 @@ export default function Profile() {
                     </div>
                   </div>
 
-                  {/* ✅ Verified + KOB Express badges — top right */}
                   <div
                     className="flex flex-wrap gap-2 justify-end
         pb-1 flex-1 ml-3"
@@ -824,7 +762,6 @@ export default function Profile() {
                   </div>
                 </div>
 
-                {/* ✅ Name — proper spacing below avatar */}
                 <div className="mb-3">
                   <h2
                     className="text-xl md:text-2xl font-bold
@@ -833,7 +770,6 @@ export default function Profile() {
                     {profile?.displayName || "No Name Set"}
                   </h2>
 
-                  {/* Business name */}
                   {profile?.businessName && (
                     <p
                       className="text-sm text-[#D4AF37] font-bold mb-2
@@ -843,7 +779,6 @@ export default function Profile() {
                     </p>
                   )}
 
-                  {/* Role + KOB ID badges */}
                   <div className="flex flex-wrap gap-2 mb-3">
                     <span
                       className={`px-3 py-1 rounded-xl text-xs
@@ -862,7 +797,6 @@ export default function Profile() {
                     )}
                   </div>
 
-                  {/* Bio */}
                   {profile?.bio && (
                     <p className="text-sm text-gray-500 leading-relaxed">
                       {profile.bio}
@@ -870,7 +804,6 @@ export default function Profile() {
                   )}
                 </div>
 
-                {/* ✅ Profile Completion */}
                 <div className="mt-3">
                   <div
                     className="flex items-center
@@ -924,9 +857,8 @@ export default function Profile() {
                 </div>
               </div>
             </div>
-            {/* ================================ */}
-            {/* INFO CARD                        */}
-            {/* ================================ */}
+
+            {/* Info Card */}
             <div
               className="bg-white rounded-3xl shadow-sm
               border border-gray-100 px-6 py-5"
@@ -1049,6 +981,13 @@ export default function Profile() {
             </div>
 
             {/* ================================ */}
+            {/* NOTIFICATION SETTINGS          */}
+            {/* ================================ */}
+            <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
+              <NotificationSettings />
+            </div>
+
+            {/* ================================ */}
             {/* ACTIONS CARD                     */}
             {/* ================================ */}
             <div
@@ -1059,9 +998,9 @@ export default function Profile() {
                 className="text-[9px] font-bold uppercase
                 tracking-widest text-gray-400 px-6 pt-5 pb-2"
               >
-                Settings
+                Account Settings
               </p>
-              {[...ACTIONS.slice(0, 2), notifAction, ...ACTIONS.slice(2)].map((a, i) => (
+              {ACTIONS.map((a, i) => (
                 <button
                   key={a.label}
                   onClick={a.onClick}
@@ -1080,14 +1019,6 @@ export default function Profile() {
                       {a.label}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold">
-                    {a.label === "Notifications" && (
-                      <span className={notificationsEnabled ? "text-emerald-600" : "text-red-500"}>
-                        {notificationsEnabled ? "Enabled" : "Disabled"}
-                      </span>
-                    )}
-                  </span>
                   <svg
                     className="w-4 h-4 text-gray-300"
                     fill="none"
@@ -1101,7 +1032,6 @@ export default function Profile() {
                       d="M9 5l7 7-7 7"
                     />
                   </svg>
-                  </div>
                 </button>
               ))}
             </div>

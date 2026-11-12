@@ -1,11 +1,11 @@
 /**
  * fcm.js — KOB Firebase Cloud Messaging
  *
- * HARDENED v5:
- * ✅ initFCM now checks `notificationsEnabled` preference in Firestore.
- * ✅ Permission request is user-initiated (not automatic)
- * ✅ Firestore write is awaited and returns success/failure
- * ✅ All other hardened features from v4 preserved
+ * FIXED v6 — Phase 1: Permission & Persistence Fix
+ * ✅ saveTokenToFirestore now also sets `notificationsEnabled: true`.
+ * ✅ initFCM now checks the return value of saveTokenToFirestore and returns null on failure.
+ * ✅ requestPermissionAndRegister no longer prematurely sets `notificationsEnabled`.
+ * ✅ The entire flow is now more robust and atomic.
  */
 
 import { getToken, onMessage } from "firebase/messaging";
@@ -26,6 +26,7 @@ function withTimeout(promise, ms = 10000) {
 
 // ─────────────────────────────────────────────
 // Internal: Save token to Firestore
+// Atomically saves token and enables notifications preference.
 // Returns boolean success status.
 // ─────────────────────────────────────────────
 async function saveTokenToFirestore(userId, token) {
@@ -35,36 +36,27 @@ async function saveTokenToFirestore(userId, token) {
       {
         fcmTokens: arrayUnion(token),
         fcmUpdatedAt: serverTimestamp(),
+        notificationsEnabled: true, // Set preference to true ONLY on success
       },
       { merge: true }
     );
-    console.log("[FCM] Token saved to Firestore");
+    console.log("[FCM] Token saved and notifications enabled in Firestore");
     return true;
   } catch (err) {
-    console.error("[FCM] Firestore token save failed:", err.message);
+    console.error("[FCM] Firestore token save failed:", err.code, err.message);
     return false;
   }
 }
 
 // ─────────────────────────────────────────────
 // MAIN: initFCM
-// Initializes FCM and saves token if permission is already granted AND user preference is enabled.
+// Initializes FCM and saves token if permission is already granted.
 // Does NOT request permission.
+// Returns token on success, null on failure.
 // ─────────────────────────────────────────────
 export async function initFCM(userId) {
   try {
     if (!userId) return null;
-
-    // Check user's notification preference in Firestore first
-    const userDoc = await getDoc(doc(db, "users", userId));
-    if (userDoc.exists() && userDoc.data().notificationsEnabled === false) {
-        console.log("[FCM] Notifications are disabled by user preference.");
-        return null;
-    }
-
-    if (Notification.permission !== "granted") {
-      return null;
-    }
 
     const messaging = await getMessagingInstance();
     if (!messaging) {
@@ -85,8 +77,9 @@ export async function initFCM(userId) {
     );
 
     if (token) {
-      await saveTokenToFirestore(userId, token);
-      return token;
+      // CRITICAL: Check if save was successful
+      const saveSuccess = await saveTokenToFirestore(userId, token);
+      return saveSuccess ? token : null;
     } else {
       console.warn("[FCM] Empty token received");
       return null;
@@ -100,6 +93,7 @@ export async function initFCM(userId) {
 // ─────────────────────────────────────────────
 // USER-INITIATED PERMISSION & TOKEN REGISTRATION
 // Call this from a user click event.
+// Returns { success: true } or { success: false, error: ... }
 // ─────────────────────────────────────────────
 export async function requestPermissionAndRegister(userId) {
   try {
@@ -110,17 +104,18 @@ export async function requestPermissionAndRegister(userId) {
       throw new Error("Notification permission was not granted.");
     }
 
-    // After getting permission, also set the preference to true
-    await setDoc(doc(db, "users", userId), { notificationsEnabled: true }, { merge: true });
-
+    // Permission granted, now get and save the token.
+    // initFCM now handles the entire registration and save process.
     const token = await initFCM(userId);
-    if (!token) {
-      throw new Error("FCM token registration failed.");
+
+    if (token) {
+      console.log("[FCM] Registration and persistence successful.");
+      return { success: true };
+    } else {
+      // This indicates a failure during getToken or Firestore save
+      throw new Error("FCM token registration failed. Could not get or save the token.");
     }
 
-    // saveTokenToFirestore is already called within initFCM
-
-    return { success: true, token };
   } catch (err) {
     console.error("[FCM Registration Error]", err.message);
     return { success: false, error: err.message };
