@@ -5,7 +5,8 @@ import {
   query,
   orderBy,
   doc,
-  writeBatch,
+  setDoc,
+  updateDoc,
 } from "firebase/firestore";
 import { db } from "../firebase/firebase";
 import { useAuth } from "../firebase/auth";
@@ -42,31 +43,6 @@ export default function Alerts() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [updatingId, setUpdatingId] = useState(null);
-  const [hasMarkedAll, setHasMarkedAll] = useState(false);
-
-  // Effect to mark all unread personal notifications as read on load
-  useEffect(() => {
-    if (user?.uid && alerts.length > 0 && !hasMarkedAll) {
-      const unreadPersonalAlerts = alerts.filter(
-        (alert) => alert.alertType === 'personal' && !alert.read
-      );
-
-      if (unreadPersonalAlerts.length > 0) {
-        const batch = writeBatch(db);
-        unreadPersonalAlerts.forEach((alert) => {
-          const alertRef = doc(db, "users", user.uid, "notifications", alert.id);
-          batch.update(alertRef, { read: true, readAt: new Date() });
-        });
-
-        batch.commit().then(() => {
-          console.log("[KOB Alerts] Marked all unread personal alerts as read.");
-          setHasMarkedAll(true); // Ensure this runs only once
-        }).catch((err) => {
-          console.error("[KOB Alerts] Failed to batch update read status:", err);
-        });
-      }
-    }
-  }, [user, alerts, hasMarkedAll]);
 
   useEffect(() => {
     const uid = user?.uid;

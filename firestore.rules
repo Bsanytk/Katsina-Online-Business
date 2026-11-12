@@ -13,12 +13,17 @@ service cloud.firestore {
       allow create: if request.auth != null && request.auth.uid == uid;
 
       // Users can ONLY update specific, non-sensitive fields.
-      // CRITICAL: Prevents self-promotion to admin or changing KOB ID.
+      // This rule now uses diff() to ensure only the specified fields can be changed,
+      // without rejecting the update due to other existing fields like 'role'.
       allow update: if request.auth != null && request.auth.uid == uid
-        && request.resource.data.keys().hasOnly([
-            'displayName', 'businessName', 'bio', 'location', 
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'displayName', 'businessName', 'bio', 'location',
             'fullAddress', 'phone', 'whatsappNumber', 'photoURL',
-            'updatedAt' // Allow a timestamp update
+            'updatedAt',
+            // FCM-related fields required by the app
+            'fcmTokens',
+            'fcmUpdatedAt',
+            'notificationsEnabled'
         ]);
 
       // Users cannot delete their own profile
