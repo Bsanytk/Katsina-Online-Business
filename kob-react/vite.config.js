@@ -1,11 +1,11 @@
 /**
  * vite.config.js — KOB Marketplace
  *
- * FIXED v3:
- * ✅ JSX in .js files — react plugin include pattern (fixes auth.js crash)
- * ✅ All /public assets confirmed present — screenshots restored
- * ✅ badge.png + apple-touch-icon.png added to includeAssets
- * ✅ All existing chunks, define, server config preserved
+ * SURGICAL FIX — Service Worker Runtime Error
+ * ✅ Moved FCM service worker from /public to /src.
+ * ✅ Added a dedicated Rollup entry point for the service worker.
+ * ✅ This ensures Vite processes the file and injects Firebase config.
+ * ✅ The output is correctly placed at `dist/fcm/firebase-messaging-sw.js`.
  */
 
 import { defineConfig, loadEnv } from "vite";
@@ -17,18 +17,12 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [
-      // ✅ CRITICAL FIX — JSX in .js files
-      // auth.js uses <AuthContext.Provider> JSX syntax.
-      // Vite only processes JSX in .jsx by default — this caused
-      // the build crash at auth.js:126:27 on Vercel.
       react({
         include: ["**/*.jsx", "**/*.js", "**/*.tsx", "**/*.ts"],
       }),
 
       VitePWA({
         registerType: "prompt",
-
-        // ✅ All confirmed present in /public — restored + badge + apple icon
         includeAssets: [
           "favicon.ico",
           "logo192.png",
@@ -38,14 +32,11 @@ export default defineConfig(({ mode }) => {
           "mobile-screenshot.png",
           "desktop-screenshot.png",
         ],
-
-      // ✅ KA SAKA SHI NAN
-      workbox: {
-        cleanupOutdatedCaches: true,
-        skipWaiting: false,
-        clientsClaim: false,
-      },
-
+        workbox: {
+          cleanupOutdatedCaches: true,
+          skipWaiting: false,
+          clientsClaim: false,
+        },
         manifest: {
           name: "Katsina Online Business",
           short_name: "KOB Marketplace",
@@ -56,7 +47,6 @@ export default defineConfig(({ mode }) => {
           orientation: "portrait",
           theme_color: "#2C1F0E",
           background_color: "#FFFFFF",
-
           icons: [
             {
               src: "logo192.png",
@@ -77,8 +67,6 @@ export default defineConfig(({ mode }) => {
               purpose: "any",
             },
           ],
-
-          // ✅ Screenshots restored — files confirmed in /public
           screenshots: [
             {
               src: "mobile-screenshot.png",
@@ -101,7 +89,6 @@ export default defineConfig(({ mode }) => {
 
     base: "/",
 
-    // ✅ Firebase env vars injected at build time (used by service worker)
     define: {
       __FIREBASE_API_KEY__: JSON.stringify(env.VITE_FIREBASE_API_KEY || ""),
       __FIREBASE_AUTH_DOMAIN__: JSON.stringify(
@@ -126,7 +113,18 @@ export default defineConfig(({ mode }) => {
       outDir: "dist",
       chunkSizeWarningLimit: 600,
       rollupOptions: {
+        // ✅ ADDED — Build the FCM service worker as a separate entry point
+        input: {
+          main: './index.html',
+          'fcm/firebase-messaging-sw': './src/firebase-messaging-sw.js',
+        },
         output: {
+          // ✅ ADDED — Ensure the SW file has a fixed, non-hashed name
+          entryFileNames: assetInfo => {
+            return assetInfo.name === 'fcm/firebase-messaging-sw'
+              ? '[name].js' // Output as fcm/firebase-messaging-sw.js
+              : 'assets/[name]-[hash].js'; // Standard hash for other chunks
+          },
           manualChunks: {
             "vendor-react": ["react", "react-dom", "react-router-dom"],
             "vendor-firebase": [
