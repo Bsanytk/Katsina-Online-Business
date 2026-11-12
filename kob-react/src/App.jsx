@@ -1,14 +1,10 @@
 /**
  * App.jsx — KOB Marketplace
  *
- * FIXED v2 — FCM infinite loop prevention:
- * ✅ uid extracted as primitive string (not user object)
- * ✅ FCM init useEffect depends on uid only — never re-fires on re-render
- * ✅ Foreground messages in separate isolated useEffect
- * ✅ All existing routes, layout, scroll logic preserved exactly
- * ✅ NotificationToast preserved exactly
- * ✅ AppBanner preserved exactly
- * ✅ BottomNav hide/show logic preserved exactly
+ * FIXED v3 — Deduplication of Foreground/Background Notifications
+ * ✅ Foreground message handler now uses `setDoc` with the unique `messageId`.
+ * ✅ This prevents duplicate records when a notification is received in both
+ *    foreground and background states.
  */
 
 import React, { Suspense, lazy, useEffect, useState } from "react";
@@ -40,9 +36,10 @@ import ScrollToTop from "./components/ScrollToTop";
 // Services
 // ========================================
 import { initFCM, onForegroundMessage } from "./services/fcm";
+import { syncPendingNotifications } from "./services/fcmSync";
 
 // ========================================
-// Lazy Loaded Pages — preserved exactly
+// Lazy Loaded Pages
 // ========================================
 const Home = lazy(() => import("./pages/Home"));
 const Marketplace = lazy(() => import("./pages/Marketplace"));
@@ -67,7 +64,7 @@ const Legal = lazy(() => import("./pages/Legal"));
 const EthicalCommerce = lazy(() => import("./pages/EthicalCommercePage"));
 
 // ========================================
-// Notification Toast — preserved exactly
+// Notification Toast
 // ========================================
 function NotificationToast({ notification, onClose }) {
   useEffect(() => {
@@ -81,15 +78,7 @@ function NotificationToast({ notification, onClose }) {
   if (!notification) return null;
 
   return (
-    <div
-      className="
-        fixed top-4 right-4 z-[100]
-        max-w-sm w-[calc(100%-2rem)]
-        bg-white rounded-2xl
-        shadow-xl border border-gray-100
-        p-4 animate-slide-down
-      "
-    >
+    <div className="fixed top-4 right-4 z-[100] max-w-sm w-[calc(100%-2rem)] bg-white rounded-2xl shadow-xl border border-gray-100 p-4 animate-slide-down">
       <div className="flex items-start gap-3">
         <img
           src="https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1780655200/logo512_xomyvi.png"
@@ -104,15 +93,7 @@ function NotificationToast({ notification, onClose }) {
             {notification.body}
           </p>
         </div>
-        <button
-          onClick={onClose}
-          aria-label="Close notification"
-          className="
-            text-gray-300 hover:text-gray-500
-            flex-shrink-0 text-lg leading-none
-            transition-colors
-          "
-        >
+        <button onClick={onClose} aria-label="Close notification" className="text-gray-300 hover:text-gray-500 flex-shrink-0 text-lg leading-none transition-colors">
           ×
         </button>
       </div>
@@ -132,73 +113,57 @@ function AppContent() {
   const [lastScrollY, setLastScrollY] = useState(0);
 
   // ========================================
-  // ✅ FCM Initialization
+  // FCM & Background Sync Initialization
   // ========================================
   useEffect(() => {
     if (uid) {
       initFCM(uid);
+      syncPendingNotifications(uid);
     }
   }, [uid]);
 
   // ========================================
-  // ✅ FOREGROUND MESSAGES — separate isolated effect
+  // Foreground Messages Handler
   // ========================================
   useEffect(() => {
     if (!uid) return;
 
     let unsubscribe;
-    let cancelled = false;
-
     const setupListener = async () => {
       try {
-        const stop = await onForegroundMessage(async (payload) => {
-          if (!payload || cancelled) return;
+        unsubscribe = await onForegroundMessage(async (payload) => {
+          if (!payload?.messageId) return;
 
-          const title =
-            payload.notification?.title ||
-            payload.data?.title ||
-            "KOB Notification";
-
-          const body =
-            payload.notification?.body || payload.data?.body || "";
+          const title = payload.notification?.title || payload.data?.title || "KOB Notification";
+          const body = payload.notification?.body || payload.data?.body || "";
 
           setNotification({ title, body });
 
           try {
-            const { addDoc, collection, serverTimestamp } = await import(
+            const { doc, setDoc, collection, serverTimestamp } = await import(
               "firebase/firestore"
             );
+
+            const notificationRef = doc(db, `users/${uid}/notifications/${payload.messageId}`);
 
             const notificationToWrite = {
               title: title,
               body: body,
               url: payload.data?.url || "/alerts",
-              type: payload.data?.type || "broadcast",
-              source: "fcm",
+              type: payload.data?.type || "direct", // Default to 'direct' for FCM
+              source: "fcm-foreground",
               read: false,
               createdAt: serverTimestamp(),
-              messageId: payload.messageId || null,
+              messageId: payload.messageId,
             };
 
-            await addDoc(
-              collection(db, "users", uid, "notifications"),
-              notificationToWrite
-            );
+            await setDoc(notificationRef, notificationToWrite, { merge: true });
 
-            console.log("[KOB Alerts] FCM notification saved.");
+            console.log("[KOB Alerts] Foreground FCM notification saved.");
           } catch (error) {
-            console.error(
-              "[KOB Alerts] Failed to save FCM notification:",
-              error
-            );
+            console.error("[KOB Alerts] Failed to save FCM notification:", error);
           }
         });
-
-        if (cancelled) {
-          if (typeof stop === "function") stop();
-        } else {
-          unsubscribe = stop;
-        }
       } catch (error) {
         console.error("[KOB FCM] Foreground listener failed:", error);
       }
@@ -207,8 +172,6 @@ function AppContent() {
     setupListener();
 
     return () => {
-      cancelled = true;
-
       if (typeof unsubscribe === "function") {
         unsubscribe();
       }
@@ -216,21 +179,18 @@ function AppContent() {
   }, [uid]);
 
   // ========================================
-  // Smart Bottom Navigation — preserved exactly
+  // Smart Bottom Navigation
   // ========================================
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-
       if (currentScrollY < lastScrollY) {
         setShowBottomNav(true);
       } else if (currentScrollY > lastScrollY && currentScrollY > 80) {
         setShowBottomNav(false);
       }
-
       setLastScrollY(currentScrollY);
     };
-
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => {
       window.removeEventListener("scroll", handleScroll);
@@ -238,68 +198,32 @@ function AppContent() {
   }, [lastScrollY]);
 
   // ========================================
-  // Route visibility rules — preserved exactly
+  // Route & UI Visibility Rules
   // ========================================
   const hideBottomNavRoutes = ["/profile", "/login", "/register"];
-
-  const hideBannerRoutes = [
-    "/profile",
-    "/login",
-    "/register",
-    "/dashboard",
-    "/admin",
-  ];
-
   const shouldHideBottomNav = hideBottomNavRoutes.includes(location.pathname);
 
   // ========================================
-  // Initial Loader — preserved exactly
+  // Initial Loader
   // ========================================
   if (loading) {
-    return (
-      <PageLoader message="Initializing KOB Infrastructure..." show={true} />
-    );
+    return <PageLoader message="Initializing KOB Infrastructure..." show={true} />;
   }
 
   // ========================================
-  // Main Layout — preserved exactly
+  // Main Layout
   // ========================================
   return (
-    <div
-      className="
-        flex flex-col min-h-screen
-        bg-[#FAFAF8]
-        text-[#2C1F0E]
-        text-[95%]
-        overflow-x-hidden
-        pb-[84px] lg:pb-0
-      "
-    >
-      {/* Notifications */}
-      <NotificationToast
-        notification={notification}
-        onClose={() => setNotification(null)}
-      />
-
-      {/* PWA Smart Banner */}
+    <div className="flex flex-col min-h-screen bg-[#FAFAF8] text-[#2C1F0E] text-[95%] overflow-x-hidden pb-[84px] lg:pb-0">
+      <NotificationToast notification={notification} onClose={() => setNotification(null)} />
       <AppBanner />
-
-      {/* Top Navigation */}
       <TopBar />
 
-      {/* Main Content */}
-      <main
-        className={`
-          flex-grow
-          transition-all duration-300
-          ${shouldHideBottomNav ? "pb-6" : "pb-[88px]"}
-          lg:pb-0
-        `}
-      >
+      <main className={`flex-grow transition-all duration-300 ${shouldHideBottomNav ? "pb-6" : "pb-[88px]"} lg:pb-0`}>
         <Suspense fallback={<PageLoader message="Loading..." show={true} />}>
           <ScrollToTop />
           <Routes>
-            {/* Public Routes */}
+            {/* Public & Auth Routes */}
             <Route path="/" element={<Home />} />
             <Route path="/marketplace" element={<Marketplace />} />
             <Route path="/product/:productId" element={<ProductDetail />} />
@@ -315,33 +239,13 @@ function AppContent() {
             <Route path="/alerts" element={<Alerts />} />
             <Route path="/legal" element={<Legal />} />
             <Route path="/ethical-commerce" element={<EthicalCommerce />} />
-
-            {/* Authentication */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-
-            {/* Profile */}
             <Route path="/profile" element={<Profile />} />
 
-            {/* Protected Dashboard */}
-            <Route
-              path="/dashboard/*"
-              element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Admin Dashboard */}
-            <Route
-              path="/admin/*"
-              element={
-                <AdminRoute>
-                  <AdminDashboard />
-                </AdminRoute>
-              }
-            />
+            {/* Protected Routes */}
+            <Route path="/dashboard/*" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/admin/*" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
 
             {/* 404 */}
             <Route path="*" element={<NotFound />} />
@@ -349,49 +253,14 @@ function AppContent() {
         </Suspense>
       </main>
 
-      {/* Footer */}
-      <footer
-        className="
-          block
-          border-t border-gray-200/70
-          bg-[#FAFAF8]
-        "
-      >
-        <div className="lg:block pb-[90px] lg:pb-0">
-          <Footer />
-        </div>
+      <footer className="block border-t border-gray-200/70 bg-[#FAFAF8]">
+        <div className="lg:block pb-[90px] lg:pb-0"><Footer /></div>
       </footer>
 
-      {/* Desktop Support Widget */}
-      <div className="hidden lg:block">
-        <SupportWidget />
-      </div>
+      <div className="hidden lg:block"><SupportWidget /></div>
 
-      {/* Mobile Bottom Navigation */}
-      <div
-        className={`
-          lg:hidden
-          fixed bottom-0 left-0 right-0
-          z-40
-          transition-all duration-500 ease-out
-          ${
-            shouldHideBottomNav
-              ? "translate-y-full opacity-0 pointer-events-none"
-              : showBottomNav
-              ? "translate-y-0 opacity-100"
-              : "translate-y-full opacity-0"
-          }
-        `}
-      >
-        <div
-          className="
-            bg-white/90
-            backdrop-blur-xl
-            border-t border-gray-200/70
-            shadow-[0_-4px_20px_rgba(0,0,0,0.06)]
-            pb-[max(0.5rem,env(safe-area-inset-bottom))]
-          "
-        >
+      <div className={`lg:hidden fixed bottom-0 left-0 right-0 z-40 transition-all duration-500 ease-out ${shouldHideBottomNav ? "translate-y-full opacity-0 pointer-events-none" : showBottomNav ? "translate-y-0 opacity-100" : "translate-y-full opacity-0"}`}>
+        <div className="bg-white/90 backdrop-blur-xl border-t border-gray-200/70 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] pb-[max(0.5rem,env(safe-area-inset-bottom))]">
           <BottomNav />
         </div>
       </div>
@@ -400,7 +269,7 @@ function AppContent() {
 }
 
 // ========================================
-// Root App — preserved exactly
+// Root App
 // ========================================
 export default function App() {
   return (

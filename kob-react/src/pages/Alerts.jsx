@@ -6,7 +6,6 @@ import {
   orderBy,
   doc,
   setDoc,
-  updateDoc,
 } from "firebase/firestore";
 import { db } from "../firebase/firebase";
 import { useAuth } from "../firebase/auth";
@@ -178,10 +177,10 @@ export default function Alerts() {
           "notifications",
           alert.id
         );
-        await updateDoc(notificationRef, {
+        await setDoc(notificationRef, {
           read: true,
           readAt: new Date(),
-        });
+        }, { merge: true });
       }
     } catch (err) {
       console.error(

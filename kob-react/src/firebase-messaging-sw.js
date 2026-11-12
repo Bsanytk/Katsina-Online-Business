@@ -1,10 +1,14 @@
 /**
  * KOB Firebase Messaging Service Worker
  * Production Ready — Zero Error Version
- * File: /public/firebase-messaging-sw.js
+ *
+ * CHANGE: Added IndexedDB caching for background messages.
+ * Background messages cannot be written to Firestore directly due to security
+ * rules. This worker now saves them to a local IndexedDB. The main app
+ * will sync them to Firestore upon startup.
  */
 
-// ======================================
+// =====================================
 // Firebase SDKs (Compat Version)
 // ==================================
 importScripts(
@@ -14,10 +18,48 @@ importScripts(
   "https://www.gstatic.com/firebasejs/10.14.1/firebase-messaging-compat.js"
 );
 
-// ======================================
-// Firebase Config — AN GYARA WANNAN SASHE
-// Waɗannan masu canji suna zuwa daga tsarin ginin Vite
-// ======================================
+// =====================================
+// IndexedDB Logic for Offline Caching
+// =====================================
+const DB_NAME = "fcm-pending-notifications";
+const STORE_NAME = "pending_notifications";
+const DB_VERSION = 1;
+
+let dbPromise = null;
+const getDb = () => {
+  if (!dbPromise) {
+    dbPromise = new Promise((resolve, reject) => {
+      const request = indexedDB.open(DB_NAME, DB_VERSION);
+      request.onupgradeneeded = (event) => {
+        const db = event.target.result;
+        if (!db.objectStoreNames.contains(STORE_NAME)) {
+          db.createObjectStore(STORE_NAME, { keyPath: "messageId" });
+        }
+      };
+      request.onsuccess = (event) => resolve(event.target.result);
+      request.onerror = (event) => reject(event.target.error);
+    });
+  }
+  return dbPromise;
+};
+
+const saveNotificationToDB = async (notification) => {
+  try {
+    const db = await getDb();
+    const tx = db.transaction(STORE_NAME, "readwrite");
+    const store = tx.objectStore(STORE_NAME);
+    store.put(notification);
+    await new Promise(resolve => tx.oncomplete = resolve);
+    console.log("[KOB FCM] Background notification saved to IndexedDB.");
+  } catch (error) {
+    console.error("[KOB FCM] Failed to save notification to IndexedDB:", error);
+  }
+};
+
+
+// =====================================
+// Firebase Config (Injected by Vite)
+// =====================================
 const firebaseConfig = {
   apiKey: __FIREBASE_API_KEY__,
   authDomain: __FIREBASE_AUTH_DOMAIN__,
@@ -28,77 +70,61 @@ const firebaseConfig = {
 };
 
 firebase.initializeApp(firebaseConfig);
-
-// ======================================
-// Messaging Instance
-// ======================================
 const messaging = firebase.messaging();
 
-// ======================================
-// Background Notifications
-// ======================================
-messaging.onBackgroundMessage((payload) => {
+// =====================================
+// Background Notifications Handler
+// =====================================
+messaging.onBackgroundMessage(async (payload) => {
   console.log("[KOB FCM] Background message received:", payload);
 
-  // DUPLICATE NOTIFICATION FIX:
-  // If the incoming payload has a 'notification' property, we assume
-  // Firebase will show a notification automatically. We return early
-  // to prevent the service worker from showing a second, duplicate notification.
-  if (payload.notification) {
-    return;
-  }
+  const notificationData = {
+    title: payload.notification?.title || payload.data?.title || "KOB Marketplace",
+    body: payload.notification?.body || payload.data?.body || "",
+    url: payload.data?.url || "/alerts",
+    type: payload.data?.type || "direct",
+    source: "fcm-background",
+    read: false,
+    createdAt: new Date().toISOString(), // Use ISO string for IndexedDB
+    messageId: payload.messageId || `offline-${Date.now()}`,
+  };
 
-  // The rest of this function handles DATA-ONLY messages, which require
-  // the service worker to create the notification manually.
-  const data = payload.data || {};
+  // Persist to IndexedDB for the app to sync later
+  await saveNotificationToDB(notificationData);
 
-  const title = data.title || "KOB Marketplace";
-
-  const options = {
-    body: data.body || "Notification from KOB Marketplace.",
+  // Define the notification to be shown
+  const notificationTitle = notificationData.title;
+  const notificationOptions = {
+    body: notificationData.body,
     icon:
-      data.icon ||
+      payload.notification?.icon ||
       "https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1780655200/logo512_xomyvi.png",
     badge:
       "https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1780056061/badge192_hlibzw.png",
-    image: data.image || undefined,
+    image: payload.data?.image || undefined,
     data: {
-      url: data.url || "/",
+      url: notificationData.url,
     },
     vibrate: [200, 100, 200],
-    requireInteraction: false,
-    renotify: true,
     tag: "kob-notification",
-    actions: [
-      { action: "open", title: "Buɗe KOB" },
-      { action: "dismiss", title: "Kore shi" },
-    ],
   };
 
-  return self.registration.showNotification(title, options);
+  return self.registration.showNotification(notificationTitle, notificationOptions);
 });
 
-// ======================================
-// Notification Click
-// ======================================
+// =====================================
+// Notification Click Handler
+// =====================================
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-
-  if (event.action === "dismiss") {
-    return;
-  }
-
   const targetUrl = event.notification.data?.url || "/";
 
   event.waitUntil(
     clients
-      .matchAll({
-        type: "window",
-        includeUncontrolled: true,
-      })
+      .matchAll({ type: "window", includeUncontrolled: true })
       .then((clientList) => {
         for (const client of clientList) {
-          if (client.url === targetUrl && "focus" in client) {
+          if (client.url.includes(targetUrl) && "focus" in client) {
             return client.focus();
           }
         }
@@ -109,15 +135,13 @@ self.addEventListener("notificationclick", (event) => {
   );
 });
 
-// ======================================
-// Service Worker Lifecycles (SAFE VERSION)
-// ======================================
+// =====================================
+// Service Worker Lifecycles
+// =====================================
 self.addEventListener("install", () => {
-  console.log("[KOB FCM] Service Worker Installed (Safe Mode)");
-  // self.skipWaiting(); // REMOVED: This forces immediate activation, causing reload loops.
+  console.log("[KOB FCM] Service Worker Installed");
 });
 
 self.addEventListener("activate", (event) => {
-  console.log("[KOB FCM] Service Worker Activated (Safe Mode)");
-  // event.waitUntil(clients.claim()); // REMOVED: This forces control, causing reload loops.
+  console.log("[KOB FCM] Service Worker Activated");
 });
