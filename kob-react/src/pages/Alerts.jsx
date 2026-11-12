@@ -5,9 +5,7 @@ import {
   query,
   orderBy,
   doc,
-  setDoc,
-  updateDoc,
-  serverTimestamp,
+  writeBatch,
 } from "firebase/firestore";
 import { db } from "../firebase/firebase";
 import { useAuth } from "../firebase/auth";
@@ -36,6 +34,7 @@ function getTimestampValue(timestamp) {
   const date = new Date(timestamp);
   return Number.isNaN(date.getTime()) ? 0 : date.getTime();
 }
+
 export default function Alerts() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -43,6 +42,32 @@ export default function Alerts() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [updatingId, setUpdatingId] = useState(null);
+  const [hasMarkedAll, setHasMarkedAll] = useState(false);
+
+  // Effect to mark all unread personal notifications as read on load
+  useEffect(() => {
+    if (user?.uid && alerts.length > 0 && !hasMarkedAll) {
+      const unreadPersonalAlerts = alerts.filter(
+        (alert) => alert.alertType === 'personal' && !alert.read
+      );
+
+      if (unreadPersonalAlerts.length > 0) {
+        const batch = writeBatch(db);
+        unreadPersonalAlerts.forEach((alert) => {
+          const alertRef = doc(db, "users", user.uid, "notifications", alert.id);
+          batch.update(alertRef, { read: true, readAt: new Date() });
+        });
+
+        batch.commit().then(() => {
+          console.log("[KOB Alerts] Marked all unread personal alerts as read.");
+          setHasMarkedAll(true); // Ensure this runs only once
+        }).catch((err) => {
+          console.error("[KOB Alerts] Failed to batch update read status:", err);
+        });
+      }
+    }
+  }, [user, alerts, hasMarkedAll]);
+
   useEffect(() => {
     const uid = user?.uid;
     if (!uid) {
@@ -150,6 +175,7 @@ export default function Alerts() {
       unsubscribeReads();
     };
   }, [user?.uid]);
+
   async function markAsRead(alert) {
     const uid = user?.uid;
     if (!uid || !alert?.id || alert.read === true) return;
@@ -166,7 +192,7 @@ export default function Alerts() {
         );
         await setDoc(readRef, {
           read: true,
-          readAt: serverTimestamp(),
+          readAt: new Date(),
         });
       } else {
         const notificationRef = doc(
@@ -178,7 +204,7 @@ export default function Alerts() {
         );
         await updateDoc(notificationRef, {
           read: true,
-          readAt: serverTimestamp(),
+          readAt: new Date(),
         });
       }
     } catch (err) {
@@ -195,9 +221,11 @@ export default function Alerts() {
       setUpdatingId(null);
     }
   }
+
   const unreadCount = alerts.filter(
     (alert) => alert.read !== true
   ).length;
+
   return (
     <main className="min-h-screen bg-[#F9F9F7] pb-24">
       <header className="sticky top-0 z-30 border-b border-gray-100 bg-[#F9F9F7]/95 backdrop-blur-md">

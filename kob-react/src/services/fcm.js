@@ -1,14 +1,15 @@
 /**
  * fcm.js — KOB Firebase Cloud Messaging
  *
- * HARDENED v4:
+ * HARDENED v5:
+ * ✅ initFCM now checks `notificationsEnabled` preference in Firestore.
  * ✅ Permission request is user-initiated (not automatic)
  * ✅ Firestore write is awaited and returns success/failure
- * ✅ All other hardened features from v3 preserved
+ * ✅ All other hardened features from v4 preserved
  */
 
 import { getToken, onMessage } from "firebase/messaging";
-import { doc, setDoc, serverTimestamp, arrayUnion } from "firebase/firestore";
+import { doc, getDoc, setDoc, serverTimestamp, arrayUnion } from "firebase/firestore";
 import { db, getMessagingInstance } from "../firebase/firebase";
 
 const VAPID_KEY = import.meta.env.VITE_FIREBASE_VAPID_KEY;
@@ -32,7 +33,7 @@ async function saveTokenToFirestore(userId, token) {
     await setDoc(
       doc(db, "users", userId),
       {
-        fcmToken: arrayUnion(token),
+        fcmTokens: arrayUnion(token),
         fcmUpdatedAt: serverTimestamp(),
       },
       { merge: true }
@@ -47,12 +48,21 @@ async function saveTokenToFirestore(userId, token) {
 
 // ─────────────────────────────────────────────
 // MAIN: initFCM
-// Initializes FCM and saves token if permission is already granted.
+// Initializes FCM and saves token if permission is already granted AND user preference is enabled.
 // Does NOT request permission.
 // ─────────────────────────────────────────────
 export async function initFCM(userId) {
   try {
-    if (!userId || Notification.permission !== "granted") {
+    if (!userId) return null;
+
+    // Check user's notification preference in Firestore first
+    const userDoc = await getDoc(doc(db, "users", userId));
+    if (userDoc.exists() && userDoc.data().notificationsEnabled === false) {
+        console.log("[FCM] Notifications are disabled by user preference.");
+        return null;
+    }
+
+    if (Notification.permission !== "granted") {
       return null;
     }
 
@@ -100,15 +110,15 @@ export async function requestPermissionAndRegister(userId) {
       throw new Error("Notification permission was not granted.");
     }
 
+    // After getting permission, also set the preference to true
+    await setDoc(doc(db, "users", userId), { notificationsEnabled: true }, { merge: true });
+
     const token = await initFCM(userId);
     if (!token) {
       throw new Error("FCM token registration failed.");
     }
 
-    const success = await saveTokenToFirestore(userId, token);
-    if (!success) {
-      throw new Error("Failed to save FCM token to Firestore.");
-    }
+    // saveTokenToFirestore is already called within initFCM
 
     return { success: true, token };
   } catch (err) {

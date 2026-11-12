@@ -12,6 +12,7 @@ import {
   getCompletionScore,
   changePassword,
   deleteAccount,
+  updateProfile, // Import updateProfile
 } from "../services/profile";
 import { requestPermissionAndRegister } from "../services/fcm"; // Import the new function
 import EditProfileModal from "../components/profile/EditProfileModal";
@@ -413,18 +414,13 @@ function DeleteModal({ show, onClose }) {
 export default function Profile() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { profile, loading, isSeller, isAdmin } = useProfile();
+  const { profile, loading, isSeller, isAdmin, updateLocalProfile } = useProfile();
 
   const [showEdit, setEdit] = useState(false);
   const [showPass, setPass] = useState(false);
   const [showDelete, setDelete] = useState(false);
   const [showPwdSuccess, setPwdSuccess] = useState(false);
   const [loggingOut, setLogout] = useState(false);
-  const [notifStatus, setNotifStatus] = useState("...");
-
-  useEffect(() => {
-    setNotifStatus(Notification.permission);
-  }, []);
 
   // Guard
   if (!user && !loading) {
@@ -453,13 +449,34 @@ export default function Profile() {
     }
   }
 
-  async function handleEnableNotifications() {
-    setNotifStatus("loading");
-    const result = await requestPermissionAndRegister(user.uid);
-    if (result.success) {
-      setNotifStatus("granted");
-    } else {
-      setNotifStatus(Notification.permission);
+  async function toggleNotifications() {
+    if (!user || !profile) return;
+
+    const currentlyEnabled = profile.notificationsEnabled !== false;
+    const newPreference = !currentlyEnabled;
+
+    try {
+      // Instantly update UI
+      updateLocalProfile({ notificationsEnabled: newPreference });
+
+      // If enabling, request permission first
+      if (newPreference) {
+        const result = await requestPermissionAndRegister(user.uid);
+        if (!result.success) {
+          // Permission denied or failed, revert the preference
+          updateLocalProfile({ notificationsEnabled: false });
+          await updateProfile(user.uid, { notificationsEnabled: false });
+          return; // Stop here
+        }
+      }
+
+      // Persist the final preference to Firestore
+      await updateProfile(user.uid, { notificationsEnabled: newPreference });
+
+    } catch (error) {
+      console.error("Failed to update notification preference:", error);
+      // Revert UI on error
+      updateLocalProfile({ notificationsEnabled: currentlyEnabled });
     }
   }
 
@@ -583,11 +600,12 @@ export default function Profile() {
     },
   ];
 
+  const notificationsEnabled = profile?.notificationsEnabled !== false;
+
   const notifAction = {
     label: "Notifications",
     color: "text-[#4B3621]",
-    onClick: handleEnableNotifications,
-    disabled: notifStatus !== "default",
+    onClick: toggleNotifications,
     icon: (
       <svg
         className="w-4 h-4"
@@ -1063,9 +1081,12 @@ export default function Profile() {
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-400">
-                    {notifStatus === "granted" && a.label === "Notifications" && "Enabled"}
-                    {notifStatus === "denied" && a.label === "Notifications" && "Disabled"}
+                  <span className="text-xs font-semibold">
+                    {a.label === "Notifications" && (
+                      <span className={notificationsEnabled ? "text-emerald-600" : "text-red-500"}>
+                        {notificationsEnabled ? "Enabled" : "Disabled"}
+                      </span>
+                    )}
                   </span>
                   <svg
                     className="w-4 h-4 text-gray-300"

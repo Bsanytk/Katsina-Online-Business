@@ -1,7 +1,7 @@
 /**
  * Login.jsx — KOB Marketplace Login Page
  *
- * FIXED v3:
+ * FIXED v4:
  * ✅ loginUser called correctly — from useAuth() context
  * ✅ FCM init non-blocking — fire-and-forget after routing
  * ✅ window.location.href for hard redirect — forces ProfileContext refresh
@@ -11,7 +11,7 @@
 
 import React, { useState } from "react";
 import { useAuth } from "../firebase/auth";
-import { useNavigate, Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import BackButton from "../components/BackButton";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -259,9 +259,9 @@ export default function Login() {
   const [error, setError] = useState(null);
   const [showPass, setShowPass] = useState(false);
   const [showForgot, setShowForgot] = useState(false);
-  const navigate = useNavigate();
 
   const { loginUser, resetPassword } = useAuth();
+  const navigate = useNavigate();
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -275,9 +275,9 @@ export default function Login() {
       const returnTo = sessionStorage.getItem("returnTo");
       if (returnTo) {
         sessionStorage.removeItem("returnTo");
-        navigate(returnTo);
+        window.location.href = returnTo;
       } else {
-        navigate("/dashboard");
+        window.location.href = "/dashboard";
       }
     } catch (err) {
       setError(err.message);

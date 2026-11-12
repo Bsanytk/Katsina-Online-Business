@@ -3,14 +3,23 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // --------------------------
-    // Users - Ownership-based
+    // Users - SECURED
     // --------------------------
     match /users/{uid} {
       // Users can only read their own profile
       allow read: if request.auth != null && request.auth.uid == uid;
 
-      // Users can create and update only their own profile
-      allow create, update: if request.auth != null && request.auth.uid == uid;
+      // Users can create their own profile on registration
+      allow create: if request.auth != null && request.auth.uid == uid;
+
+      // Users can ONLY update specific, non-sensitive fields.
+      // CRITICAL: Prevents self-promotion to admin or changing KOB ID.
+      allow update: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly([
+            'displayName', 'businessName', 'bio', 'location', 
+            'fullAddress', 'phone', 'whatsappNumber', 'photoURL',
+            'updatedAt' // Allow a timestamp update
+        ]);
 
       // Users cannot delete their own profile
       allow delete: if false;
@@ -176,7 +185,7 @@ service cloud.firestore {
 
       // Only the designated KOB admin can create broadcasts.
       allow create: if request.auth != null
-        && request.auth.uid == "faAlHUtsZ2MVQRN4Apc3itIoeGf2"
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
         && request.resource.data.keys().hasAll([
           "title",
           "body",
@@ -191,7 +200,7 @@ service cloud.firestore {
 
       // Only the designated KOB admin can edit or delete broadcasts.
       allow update, delete: if request.auth != null
-        && request.auth.uid == "faAlHUtsZ2MVQRN4Apc3itIoeGf2";
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
      // --------------------------
      // KOB Broadcast Read Markers

@@ -34,6 +34,7 @@ import AdminRoute from "./components/AdminRoute";
 import BottomNav from "./components/BottomNav";
 import SupportWidget from "./components/widgets/SupportWidget";
 import { PageLoader } from "./components/ui";
+import ScrollToTop from "./components/ScrollToTop";
 
 // ========================================
 // Services
@@ -296,6 +297,7 @@ function AppContent() {
         `}
       >
         <Suspense fallback={<PageLoader message="Loading..." show={true} />}>
+          <ScrollToTop />
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<Home />} />
