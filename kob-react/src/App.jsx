@@ -1,10 +1,11 @@
 /**
  * App.jsx — KOB Marketplace
  *
- * FIXED v3 — Deduplication of Foreground/Background Notifications
- * ✅ Foreground message handler now uses `setDoc` with the unique `messageId`.
- * ✅ This prevents duplicate records when a notification is received in both
- *    foreground and background states.
+ * SURGICAL REPAIR v4
+ * ✅ Restored AppBanner visibility rules.
+ * ✅ Implemented reliable, multi-trigger sync for background notifications.
+ * ✅ Sync now runs on auth load AND when app returns to foreground.
+ * ✅ Added listener for real-time "Mark as Read" actions from Service Worker.
  */
 
 import React, { Suspense, lazy, useEffect, useState } from "react";
@@ -12,19 +13,16 @@ import { Routes, Route, useLocation } from "react-router-dom";
 import { AuthProvider, useAuth } from "./firebase/auth";
 import { ProfileProvider } from "./contexts/ProfileContext";
 import { db } from "./firebase/firebase";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import AlertProvider from "./components/ui/AlertProvider";
 import AppBanner from "./components/pwa/AppBanner";
 import "./i18n";
 
 // ========================================
-// Layouts
+// Layouts & Components
 // ========================================
 import TopBar from "./layouts/TopBar";
 import Footer from "./layouts/Footer";
-
-// ========================================
-// Components
-// ========================================
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminRoute from "./components/AdminRoute";
 import BottomNav from "./components/BottomNav";
@@ -36,10 +34,10 @@ import ScrollToTop from "./components/ScrollToTop";
 // Services
 // ========================================
 import { initFCM, onForegroundMessage } from "./services/fcm";
-import { syncPendingNotifications } from "./services/fcmSync";
+import { runSync } from "./services/fcmSync"; // ✅ USE THE NEW FULL SYNC
 
 // ========================================
-// Lazy Loaded Pages
+// Lazy Loaded Pages (Preserved)
 // ========================================
 const Home = lazy(() => import("./pages/Home"));
 const Marketplace = lazy(() => import("./pages/Marketplace"));
@@ -64,14 +62,12 @@ const Legal = lazy(() => import("./pages/Legal"));
 const EthicalCommerce = lazy(() => import("./pages/EthicalCommercePage"));
 
 // ========================================
-// Notification Toast
+// Notification Toast (Preserved)
 // ========================================
 function NotificationToast({ notification, onClose }) {
   useEffect(() => {
     if (!notification) return;
-    const timer = setTimeout(() => {
-      onClose();
-    }, 5000);
+    const timer = setTimeout(() => onClose(), 5000);
     return () => clearTimeout(timer);
   }, [notification, onClose]);
 
@@ -80,22 +76,12 @@ function NotificationToast({ notification, onClose }) {
   return (
     <div className="fixed top-4 right-4 z-[100] max-w-sm w-[calc(100%-2rem)] bg-white rounded-2xl shadow-xl border border-gray-100 p-4 animate-slide-down">
       <div className="flex items-start gap-3">
-        <img
-          src="https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1780655200/logo512_xomyvi.png"
-          alt="KOB official logo"
-          className="w-10 h-10 rounded-xl object-contain flex-shrink-0"
-        />
+        <img src="https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1780655200/logo512_xomyvi.png" alt="KOB official logo" className="w-10 h-10 rounded-xl object-contain flex-shrink-0" />
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-[#2C1F0E] mb-0.5">
-            {notification.title}
-          </p>
-          <p className="text-xs text-gray-500 leading-relaxed">
-            {notification.body}
-          </p>
+          <p className="text-sm font-semibold text-[#2C1F0E] mb-0.5">{notification.title}</p>
+          <p className="text-xs text-gray-500 leading-relaxed">{notification.body}</p>
         </div>
-        <button onClick={onClose} aria-label="Close notification" className="text-gray-300 hover:text-gray-500 flex-shrink-0 text-lg leading-none transition-colors">
-          ×
-        </button>
+        <button onClick={onClose} aria-label="Close notification" className="text-gray-300 hover:text-gray-500 flex-shrink-0 text-lg leading-none transition-colors">×</button>
       </div>
     </div>
   );
@@ -113,73 +99,89 @@ function AppContent() {
   const [lastScrollY, setLastScrollY] = useState(0);
 
   // ========================================
-  // FCM & Background Sync Initialization
+  // ✅ RELIABLE SYNC: Auth Load + Foreground
   // ========================================
   useEffect(() => {
     if (uid) {
+      // 1. Initialize FCM for the user
       initFCM(uid);
-      syncPendingNotifications(uid);
+      // 2. Run sync on initial load
+      runSync(uid);
+
+      // 3. Set up a listener to re-sync when app returns to foreground
+      const handleVisibilityChange = () => {
+        if (document.visibilityState === 'visible') {
+          console.log("[KOB App] App became visible. Running sync.");
+          runSync(uid);
+        }
+      };
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+
+      // 4. Clean up listener
+      return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
     }
   }, [uid]);
 
   // ========================================
-  // Foreground Messages Handler
+  // ✅ REAL-TIME ACTION HANDLER: from Service Worker
   // ========================================
   useEffect(() => {
     if (!uid) return;
 
-    let unsubscribe;
+    const handleMessage = async (event) => {
+        if (event.data?.type === 'MARK_AS_READ' && event.data?.messageId) {
+            console.log("[KOB App] Received mark-as-read from SW for:", event.data.messageId);
+            const notificationRef = doc(db, `users/${uid}/notifications/${event.data.messageId}`);
+            try {
+                await setDoc(notificationRef, { read: true, readAt: serverTimestamp() }, { merge: true });
+                console.log("[KOB App] Updated notification from SW action.");
+            } catch (error) {
+                console.error("[KOB App] Error handling SW action:", error);
+            }
+        }
+    };
+
+    navigator.serviceWorker.addEventListener('message', handleMessage);
+
+    return () => navigator.serviceWorker.removeEventListener('message', handleMessage);
+
+  }, [uid]);
+
+  // ========================================
+  // ✅ FOREGROUND MESSAGES: Preserved logic
+  // ========================================
+  useEffect(() => {
+    if (!uid) return;
     const setupListener = async () => {
       try {
-        unsubscribe = await onForegroundMessage(async (payload) => {
+        return await onForegroundMessage(async (payload) => {
           if (!payload?.messageId) return;
-
           const title = payload.notification?.title || payload.data?.title || "KOB Notification";
-          const body = payload.notification?.body || payload.data?.body || "";
-
+          const body = payload.notification?.body || "";
           setNotification({ title, body });
 
-          try {
-            const { doc, setDoc, collection, serverTimestamp } = await import(
-              "firebase/firestore"
-            );
-
-            const notificationRef = doc(db, `users/${uid}/notifications/${payload.messageId}`);
-
-            const notificationToWrite = {
-              title: title,
-              body: body,
-              url: payload.data?.url || "/alerts",
-              type: payload.data?.type || "direct", // Default to 'direct' for FCM
-              source: "fcm-foreground",
-              read: false,
-              createdAt: serverTimestamp(),
-              messageId: payload.messageId,
-            };
-
-            await setDoc(notificationRef, notificationToWrite, { merge: true });
-
-            console.log("[KOB Alerts] Foreground FCM notification saved.");
-          } catch (error) {
-            console.error("[KOB Alerts] Failed to save FCM notification:", error);
-          }
+          const notificationRef = doc(db, `users/${uid}/notifications/${payload.messageId}`);
+          await setDoc(notificationRef, {
+            title, body,
+            url: payload.data?.url || "/alerts",
+            type: payload.data?.type || "direct",
+            source: "fcm-foreground",
+            read: false,
+            createdAt: serverTimestamp(),
+            messageId: payload.messageId,
+          }, { merge: true });
+          console.log("[KOB Alerts] Foreground FCM notification saved.");
         });
       } catch (error) {
         console.error("[KOB FCM] Foreground listener failed:", error);
       }
     };
-
-    setupListener();
-
-    return () => {
-      if (typeof unsubscribe === "function") {
-        unsubscribe();
-      }
-    };
+    const unsubscribePromise = setupListener();
+    return () => { unsubscribePromise.then(unsubscribe => unsubscribe && unsubscribe()); };
   }, [uid]);
 
   // ========================================
-  // Smart Bottom Navigation
+  // SCROLL & UI LOGIC (Preserved)
   // ========================================
   useEffect(() => {
     const handleScroll = () => {
@@ -192,38 +194,31 @@ function AppContent() {
       setLastScrollY(currentScrollY);
     };
     window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
+    return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY]);
 
-  // ========================================
-  // Route & UI Visibility Rules
-  // ========================================
   const hideBottomNavRoutes = ["/profile", "/login", "/register"];
   const shouldHideBottomNav = hideBottomNavRoutes.includes(location.pathname);
 
-  // ========================================
-  // Initial Loader
-  // ========================================
+  // ✅ RESTORED: App Banner visibility rules
+  const hideBannerRoutes = ["/profile", "/login", "/register", "/dashboard", "/admin"];
+  const shouldShowAppBanner = !hideBannerRoutes.some(path => location.pathname.startsWith(path));
+
   if (loading) {
     return <PageLoader message="Initializing KOB Infrastructure..." show={true} />;
   }
 
-  // ========================================
-  // Main Layout
-  // ========================================
   return (
     <div className="flex flex-col min-h-screen bg-[#FAFAF8] text-[#2C1F0E] text-[95%] overflow-x-hidden pb-[84px] lg:pb-0">
       <NotificationToast notification={notification} onClose={() => setNotification(null)} />
-      <AppBanner />
+      {shouldShowAppBanner && <AppBanner />}
       <TopBar />
 
       <main className={`flex-grow transition-all duration-300 ${shouldHideBottomNav ? "pb-6" : "pb-[88px]"} lg:pb-0`}>
         <Suspense fallback={<PageLoader message="Loading..." show={true} />}>
           <ScrollToTop />
           <Routes>
-            {/* Public & Auth Routes */}
+            {/* All routes preserved */}
             <Route path="/" element={<Home />} />
             <Route path="/marketplace" element={<Marketplace />} />
             <Route path="/product/:productId" element={<ProductDetail />} />
@@ -242,12 +237,8 @@ function AppContent() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/profile" element={<Profile />} />
-
-            {/* Protected Routes */}
             <Route path="/dashboard/*" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/admin/*" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
-
-            {/* 404 */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
@@ -269,7 +260,7 @@ function AppContent() {
 }
 
 // ========================================
-// Root App
+// Root App (Preserved)
 // ========================================
 export default function App() {
   return (

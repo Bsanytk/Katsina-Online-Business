@@ -6,6 +6,11 @@
  * Background messages cannot be written to Firestore directly due to security
  * rules. This worker now saves them to a local IndexedDB. The main app
  * will sync them to Firestore upon startup.
+ *
+ * CHANGE v2: Added Notification Actions and Pending Action Queue.
+ * - Displays "Open" and "Mark as Read" buttons on notifications.
+ * - Handles "Mark as Read" by posting a message to an active client.
+ * - If no client is active, queues the action in IndexedDB for later sync.
  */
 
 // =====================================
@@ -21,9 +26,10 @@ importScripts(
 // =====================================
 // IndexedDB Logic for Offline Caching
 // =====================================
-const DB_NAME = "fcm-pending-notifications";
-const STORE_NAME = "pending_notifications";
-const DB_VERSION = 1;
+const DB_NAME = "fcm-cache";
+const PENDING_NOTIFICATIONS_STORE = "pending_notifications";
+const PENDING_ACTIONS_STORE = "pending_actions";
+const DB_VERSION = 2; // Incremented to add new store
 
 let dbPromise = null;
 const getDb = () => {
@@ -32,8 +38,11 @@ const getDb = () => {
       const request = indexedDB.open(DB_NAME, DB_VERSION);
       request.onupgradeneeded = (event) => {
         const db = event.target.result;
-        if (!db.objectStoreNames.contains(STORE_NAME)) {
-          db.createObjectStore(STORE_NAME, { keyPath: "messageId" });
+        if (!db.objectStoreNames.contains(PENDING_NOTIFICATIONS_STORE)) {
+          db.createObjectStore(PENDING_NOTIFICATIONS_STORE, { keyPath: "messageId" });
+        }
+        if (!db.objectStoreNames.contains(PENDING_ACTIONS_STORE)) {
+           db.createObjectStore(PENDING_ACTIONS_STORE, { autoIncrement: true });
         }
       };
       request.onsuccess = (event) => resolve(event.target.result);
@@ -46,14 +55,25 @@ const getDb = () => {
 const saveNotificationToDB = async (notification) => {
   try {
     const db = await getDb();
-    const tx = db.transaction(STORE_NAME, "readwrite");
-    const store = tx.objectStore(STORE_NAME);
-    store.put(notification);
-    await new Promise(resolve => tx.oncomplete = resolve);
+    const tx = db.transaction(PENDING_NOTIFICATIONS_STORE, "readwrite");
+    const store = tx.objectStore(PENDING_NOTIFICATIONS_STORE);
+    await store.put(notification);
     console.log("[KOB FCM] Background notification saved to IndexedDB.");
   } catch (error) {
     console.error("[KOB FCM] Failed to save notification to IndexedDB:", error);
   }
+};
+
+const saveActionToDB = async (action) => {
+    try {
+        const db = await getDb();
+        const tx = db.transaction(PENDING_ACTIONS_STORE, "readwrite");
+        const store = tx.objectStore(PENDING_ACTIONS_STORE);
+        await store.put(action);
+        console.log("[KOB FCM] Pending action saved to IndexedDB.");
+    } catch (error) {
+        console.error("[KOB FCM] Failed to save pending action:", error);
+    }
 };
 
 
@@ -85,28 +105,29 @@ messaging.onBackgroundMessage(async (payload) => {
     type: payload.data?.type || "direct",
     source: "fcm-background",
     read: false,
-    createdAt: new Date().toISOString(), // Use ISO string for IndexedDB
+    createdAt: new Date().toISOString(),
     messageId: payload.messageId || `offline-${Date.now()}`,
   };
 
   // Persist to IndexedDB for the app to sync later
   await saveNotificationToDB(notificationData);
 
-  // Define the notification to be shown
   const notificationTitle = notificationData.title;
   const notificationOptions = {
     body: notificationData.body,
-    icon:
-      payload.notification?.icon ||
-      "https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1780655200/logo512_xomyvi.png",
-    badge:
-      "https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1780056061/badge192_hlibzw.png",
+    icon: "https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1780655200/logo512_xomyvi.png",
+    badge: "https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1780056061/badge192_hlibzw.png",
     image: payload.data?.image || undefined,
     data: {
       url: notificationData.url,
+      messageId: notificationData.messageId,
     },
     vibrate: [200, 100, 200],
     tag: "kob-notification",
+    actions: [
+        { action: "open", title: "Open" },
+        { action: "mark-as-read", title: "Mark as Read" }
+    ]
   };
 
   return self.registration.showNotification(notificationTitle, notificationOptions);
@@ -117,31 +138,50 @@ messaging.onBackgroundMessage(async (payload) => {
 // =====================================
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const targetUrl = event.notification.data?.url || "/";
 
-  event.waitUntil(
-    clients
-      .matchAll({ type: "window", includeUncontrolled: true })
-      .then((clientList) => {
-        for (const client of clientList) {
-          if (client.url.includes(targetUrl) && "focus" in client) {
-            return client.focus();
-          }
-        }
-        if (clients.openWindow) {
-          return clients.openWindow(targetUrl);
-        }
-      })
-  );
+  const messageId = event.notification.data?.messageId;
+  const targetUrl = event.notification.data?.url || "/alerts";
+
+  if (event.action === 'mark-as-read') {
+    console.log('[KOB FCM] "Mark as Read" action clicked for:', messageId);
+    event.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clientList => {
+            const message = { type: 'MARK_AS_READ', messageId };
+            if (clientList.length > 0) {
+                // If a client is open, post message to it
+                clientList[0].postMessage(message);
+            } else {
+                // Otherwise, queue the action in IndexedDB
+                return saveActionToDB({ type: 'mark-as-read', messageId: messageId });
+            }
+        })
+    );
+  } else {
+    // Default action is to "open"
+    event.waitUntil(
+        clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
+            for (const client of clientList) {
+                if (new URL(client.url).pathname === targetUrl && "focus" in client) {
+                    return client.focus();
+                }
+            }
+            if (clients.openWindow) {
+                return clients.openWindow(targetUrl);
+            }
+        })
+    );
+  }
 });
 
 // =====================================
 // Service Worker Lifecycles
 // =====================================
 self.addEventListener("install", () => {
-  console.log("[KOB FCM] Service Worker Installed");
+  console.log("[KOB FCM] Service Worker Installed (v2)");
 });
 
 self.addEventListener("activate", (event) => {
-  console.log("[KOB FCM] Service Worker Activated");
+  console.log("[KOB FCM] Service Worker Activated (v2)");
+  // Take control of any open pages immediately
+  event.waitUntil(clients.claim());
 });
