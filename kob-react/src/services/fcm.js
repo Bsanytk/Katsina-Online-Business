@@ -1,11 +1,11 @@
 /**
  * fcm.js — KOB Firebase Cloud Messaging
  *
- * FIXED v6 — Phase 1: Permission & Persistence Fix
- * ✅ saveTokenToFirestore now also sets `notificationsEnabled: true`.
- * ✅ initFCM now checks the return value of saveTokenToFirestore and returns null on failure.
- * ✅ requestPermissionAndRegister no longer prematurely sets `notificationsEnabled`.
- * ✅ The entire flow is now more robust and atomic.
+ * SURGICAL FIX v2 — FCM Initialization Regression
+ * ✅ Restored permission and preference guards to the main initFCM function.
+ * ✅ Automatic initialization (in App.jsx) will now correctly do nothing if permission isn't granted or if the user has opted out.
+ * ✅ User-initiated registration (in NotificationSettings) remains the explicit path to request permission.
+ * ✅ All other hardened features from Phase 1 are preserved.
  */
 
 import { getToken, onMessage } from "firebase/messaging";
@@ -49,14 +49,28 @@ async function saveTokenToFirestore(userId, token) {
 }
 
 // ─────────────────────────────────────────────
-// MAIN: initFCM
-// Initializes FCM and saves token if permission is already granted.
+// MAIN: initFCM (Automatic Initialization)
+// Called on app load. Initializes FCM and saves token only if:
+// 1. Browser permission is ALREADY granted.
+// 2. User has NOT explicitly disabled notifications in their profile.
 // Does NOT request permission.
-// Returns token on success, null on failure.
 // ─────────────────────────────────────────────
 export async function initFCM(userId) {
   try {
     if (!userId) return null;
+
+    // 1. PRE-CONDITION: Check user's notification preference in Firestore first.
+    const userDoc = await getDoc(doc(db, "users", userId));
+    if (userDoc.exists() && userDoc.data().notificationsEnabled === false) {
+      console.log("[FCM] Notifications are disabled by user preference. Aborting auto-init.");
+      return null;
+    }
+
+    // 2. PRE-CONDITION: Check browser permission without prompting.
+    if (Notification.permission !== "granted") {
+      console.log("[FCM] Notification permission not yet granted. Aborting auto-init.");
+      return null;
+    }
 
     const messaging = await getMessagingInstance();
     if (!messaging) {
@@ -104,16 +118,34 @@ export async function requestPermissionAndRegister(userId) {
       throw new Error("Notification permission was not granted.");
     }
 
-    // Permission granted, now get and save the token.
-    // initFCM now handles the entire registration and save process.
-    const token = await initFCM(userId);
+    // Permission has been granted. Now, get and save the token.
+    // We create a "clean" instance of the registration logic here,
+    // bypassing the preference checks in the main initFCM.
+    const messaging = await getMessagingInstance();
+    if (!messaging) throw new Error("Messaging instance unavailable.");
+
+    const registration = await navigator.serviceWorker.register(
+        "/fcm/firebase-messaging-sw.js",
+        { scope: "/fcm/" }
+    );
+
+    const token = await withTimeout(
+        getToken(messaging, {
+            vapidKey: VAPID_KEY,
+            serviceWorkerRegistration: registration,
+        })
+    );
 
     if (token) {
-      console.log("[FCM] Registration and persistence successful.");
-      return { success: true };
+      const saveSuccess = await saveTokenToFirestore(userId, token);
+      if (saveSuccess) {
+        console.log("[FCM] User-initiated registration and persistence successful.");
+        return { success: true };
+      } else {
+        throw new Error("Firestore save failed after getting token.");
+      }
     } else {
-      // This indicates a failure during getToken or Firestore save
-      throw new Error("FCM token registration failed. Could not get or save the token.");
+      throw new Error("FCM token registration failed. Empty token received.");
     }
 
   } catch (err) {
@@ -121,6 +153,7 @@ export async function requestPermissionAndRegister(userId) {
     return { success: false, error: err.message };
   }
 }
+
 
 // ─────────────────────────────────────────────
 // FOREGROUND MESSAGES

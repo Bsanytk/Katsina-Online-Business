@@ -3,6 +3,7 @@
  * Global-standard marketplace seller/buyer profile
  * Amazon Seller Central / Etsy inspired UX
  *
+ * SURGICAL FIX: Corrected a ReferenceError where <ChangeProfileModal> was used instead of <ChangePasswordModal>.
  * PHASE 1 FIX: Replaced the old notification toggle with the new self-contained
  * NotificationSettings component for a robust permission-first UX.
  */
@@ -575,7 +576,7 @@ export default function Profile() {
     <main className="min-h-screen bg-[#F9F9F7] pb-24 lg:pb-8">
       {/* Modals */}
       <EditProfileModal show={showEdit} onClose={() => setEdit(false)} />
-      <ChangeProfileModal
+      <ChangePasswordModal
         show={showPass}
         onClose={() => setPass(false)}
         onSuccess={() => setPwdSuccess(true)}
