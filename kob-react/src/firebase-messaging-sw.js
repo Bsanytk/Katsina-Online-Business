@@ -129,9 +129,19 @@ messaging.onBackgroundMessage(async (payload) => {
   };
 
   // Persist to IndexedDB for the app to sync later
-  await saveNotificationToDB(notificationData);
+// Persist to IndexedDB for the app to sync later
+await saveNotificationToDB(notificationData);
 
-  const notificationTitle = notificationData.title;
+// FCM automatically displays notification payloads in background.
+// Do not display the same notification a second time.
+if (payload.notification) {
+  console.log(
+    "[KOB FCM] FCM will display this notification automatically."
+  );
+  return;
+}
+
+const notificationTitle = notificationData.title;
   const notificationOptions = {
     body: notificationData.body,
     icon: "https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1780655200/logo512_xomyvi.png",
