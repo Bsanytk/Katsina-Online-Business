@@ -55,9 +55,22 @@ const getDb = () => {
 const saveNotificationToDB = async (notification) => {
   try {
     const db = await getDb();
-    const tx = db.transaction(PENDING_NOTIFICATIONS_STORE, "readwrite");
-    const store = tx.objectStore(PENDING_NOTIFICATIONS_STORE);
-    await store.put(notification);
+
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction(PENDING_NOTIFICATIONS_STORE, "readwrite");
+      const store = tx.objectStore(PENDING_NOTIFICATIONS_STORE);
+      const request = store.put(notification);
+
+      request.onerror = () => reject(request.error);
+
+      tx.oncomplete = () => resolve();
+
+      tx.onerror = () => reject(tx.error || request.error);
+
+      tx.onabort = () =>
+        reject(tx.error || new Error("IndexedDB transaction aborted"));
+    });
+
     console.log("[KOB FCM] Background notification saved to IndexedDB.");
   } catch (error) {
     console.error("[KOB FCM] Failed to save notification to IndexedDB:", error);
