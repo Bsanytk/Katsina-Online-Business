@@ -29,7 +29,7 @@ importScripts(
 const DB_NAME = "fcm-cache";
 const PENDING_NOTIFICATIONS_STORE = "pending_notifications";
 const PENDING_ACTIONS_STORE = "pending_actions";
-const DB_VERSION = 2; // Incremented to add new store
+const DB_VERSION = 3; // Incremented to add new store
 
 let dbPromise = null;
 const getDb = () => {
@@ -45,7 +45,13 @@ const getDb = () => {
            db.createObjectStore(PENDING_ACTIONS_STORE, { autoIncrement: true });
         }
       };
-      request.onsuccess = (event) => resolve(event.target.result);
+      request.onsuccess = (event) => {
+        const db = event.target.result;
+
+        db.onversionchange = () => db.close();
+
+        resolve(db);
+    };
       request.onerror = (event) => reject(event.target.error);
     });
   }
