@@ -18,19 +18,55 @@ import { collection, writeBatch, doc, serverTimestamp, runTransaction } from "fi
 const DB_NAME = "fcm-cache";
 const PENDING_NOTIFICATIONS_STORE = "pending_notifications";
 const PENDING_ACTIONS_STORE = "pending_actions";
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 
 // =====================================
 // Internal: IndexedDB Access Functions
 // =====================================
+
 const getDb = () => {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
-    // onupgradeneeded is handled by the service worker
-    request.onsuccess = (event) => resolve(event.target.result);
-    request.onerror = (event) => reject(event.target.error);
+
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+
+      // Ensure pending notifications store exists.
+      if (!db.objectStoreNames.contains(PENDING_NOTIFICATIONS_STORE)) {
+        db.createObjectStore(PENDING_NOTIFICATIONS_STORE, {
+          keyPath: "messageId",
+        });
+      }
+
+      // Ensure pending actions store exists.
+      if (!db.objectStoreNames.contains(PENDING_ACTIONS_STORE)) {
+        db.createObjectStore(PENDING_ACTIONS_STORE, {
+          autoIncrement: true,
+        });
+      }
+    };
+
+    request.onsuccess = (event) => {
+      const db = event.target.result;
+
+      // Close this connection if another context upgrades the database.
+      db.onversionchange = () => db.close();
+
+      resolve(db);
+    };
+
+    request.onerror = (event) => {
+      reject(event.target.error);
+    };
+
+    request.onblocked = () => {
+      console.error(
+        "[FCM Sync] IndexedDB upgrade blocked by another open connection."
+      );
+    };
   });
 };
+
 
 const getAllFromStore = async (storeName) => {
   const db = await getDb();
