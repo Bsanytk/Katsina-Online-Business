@@ -10,7 +10,7 @@
  */
 
 import { db } from "../firebase/firebase";
-import { collection, writeBatch, doc, serverTimestamp, setDoc } from "firebase/firestore";
+import { collection, writeBatch, doc, serverTimestamp, runTransaction } from "firebase/firestore";
 
 // =====================================
 // IndexedDB Configuration
@@ -43,6 +43,13 @@ const getAllFromStore = async (storeName) => {
   });
 };
 
+const deleteFromStore = async (storeName, id) => {
+    const db = await getDb();
+    const tx = db.transaction(storeName, "readwrite");
+    const store = tx.objectStore(storeName);
+    store.delete(id);
+};
+
 const clearStore = async (storeName) => {
     const db = await getDb();
     const tx = db.transaction(storeName, "readwrite");
@@ -61,31 +68,40 @@ const syncPendingNotifications = async (userId) => {
   const pendingNotifications = await getAllFromStore(PENDING_NOTIFICATIONS_STORE);
   if (pendingNotifications.length === 0) return;
 
-  console.log(`[FCM Sync] Found ${pendingNotifications.length} pending notifications to sync.`);
+  console.log(`[FCM Sync] Found ${pendingNotifications.length} pending notifications to process.`);
 
-  const batch = writeBatch(db);
-  const userNotificationsRef = collection(db, `users/${userId}/notifications`);
+  for (const notif of pendingNotifications) {
+      if (!notif.messageId) {
+          console.error("[FCM Sync] Found a pending notification with no messageId. Skipping, but not deleting.", notif);
+          continue;
+      }
 
-  pendingNotifications.forEach(notif => {
-    if (notif.messageId) {
-        const docRef = doc(userNotificationsRef, notif.messageId);
-        batch.set(docRef, {
-            ...notif,
-            createdAt: notif.createdAt ? new Date(notif.createdAt) : serverTimestamp(),
-        }, { merge: true });
-    }
-  });
+      const docRef = doc(db, `users/${userId}/notifications`, notif.messageId);
+      try {
+          await runTransaction(db, async (transaction) => {
+              const docSnap = await transaction.get(docRef);
+              if (!docSnap.exists()) {
+                  // Document doesn't exist, create it. This is checked against 'allow create'.
+                  const newNotifData = {
+                      ...notif,
+                      createdAt: notif.createdAt ? new Date(notif.createdAt) : serverTimestamp(),
+                  };
+                  transaction.set(docRef, newNotifData);
+              }
+              // If docSnap exists, do nothing. The notification is already synced.
+          });
 
-  try {
-    await batch.commit();
-    console.log("[FCM Sync] Successfully synced notifications to Firestore.");
-    // Clear the store only after successful commit
-    await clearStore(PENDING_NOTIFICATIONS_STORE);
-    console.log("[FCM Sync] Cleared synced notifications from IndexedDB.");
-  } catch (error) {
-    console.error("[FCM Sync] Error syncing notifications:", error);
+          // If transaction succeeds (or did nothing), remove from IndexedDB.
+          await deleteFromStore(PENDING_NOTIFICATIONS_STORE, notif.messageId);
+
+      } catch (error) {
+          // If transaction fails (e.g. network offline), log it.
+          // The notification will remain in IndexedDB for the next sync attempt.
+          console.error(`[FCM Sync] Failed to sync notification ${notif.messageId}. It will be retried later.`, error);
+      }
   }
 };
+
 
 /**
  * Syncs pending 'mark-as-read' actions from IndexedDB to Firestore.

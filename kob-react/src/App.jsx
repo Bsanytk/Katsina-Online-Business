@@ -13,7 +13,7 @@ import { Routes, Route, useLocation } from "react-router-dom";
 import { AuthProvider, useAuth } from "./firebase/auth";
 import { ProfileProvider } from "./contexts/ProfileContext";
 import { db } from "./firebase/firebase";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, setDoc, serverTimestamp, runTransaction } from "firebase/firestore";
 import AlertProvider from "./components/ui/AlertProvider";
 import AppBanner from "./components/pwa/AppBanner";
 import "./i18n";
@@ -160,17 +160,26 @@ function AppContent() {
           const body = payload.notification?.body || "";
           setNotification({ title, body });
 
-          const notificationRef = doc(db, `users/${uid}/notifications/${payload.messageId}`);
-          await setDoc(notificationRef, {
-            title, body,
-            url: payload.data?.url || "/alerts",
-            type: payload.data?.type || "direct",
-            source: "fcm-foreground",
-            read: false,
-            createdAt: serverTimestamp(),
-            messageId: payload.messageId,
-          }, { merge: true });
-          console.log("[KOB Alerts] Foreground FCM notification saved.");
+          const docRef = doc(db, `users/${uid}/notifications`, payload.messageId);
+          try {
+            await runTransaction(db, async (transaction) => {
+              const docSnap = await transaction.get(docRef);
+              if (!docSnap.exists()) {
+                transaction.set(docRef, {
+                  title, body,
+                  url: payload.data?.url || "/alerts",
+                  type: payload.data?.type || "direct",
+                  source: "fcm-foreground",
+                  read: false,
+                  createdAt: serverTimestamp(),
+                  messageId: payload.messageId,
+                });
+              }
+            });
+            console.log("[KOB Alerts] Foreground FCM notification saved transactionally.");
+          } catch (error) {
+            console.error("[KOB Alerts] Foreground transaction failed:", error);
+          }
         });
       } catch (error) {
         console.error("[KOB FCM] Foreground listener failed:", error);
@@ -179,6 +188,7 @@ function AppContent() {
     const unsubscribePromise = setupListener();
     return () => { unsubscribePromise.then(unsubscribe => unsubscribe && unsubscribe()); };
   }, [uid]);
+
 
   // ========================================
   // SCROLL & UI LOGIC (Preserved)

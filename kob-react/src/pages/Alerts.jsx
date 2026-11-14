@@ -158,14 +158,11 @@ export default function Alerts() {
     setError("");
     try {
       if (alert.alertType === "broadcast") {
-        const readRef = doc(
+        const readMarkerRef = doc(
           db,
-          "users",
-          uid,
-          "broadcastReads",
-          alert.id
+          `users/${uid}/broadcastReads/${alert.id}`
         );
-        await setDoc(readRef, {
+        await setDoc(readMarkerRef, {
           read: true,
           readAt: new Date(),
         });
