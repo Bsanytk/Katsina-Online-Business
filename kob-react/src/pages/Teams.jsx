@@ -16,7 +16,7 @@ const TEAM = [
     role: "Founder & CEO",
     image:
       "https://res.cloudinary.com/dn5crslee/image/upload/v1779013350/20260517_111707_0000_kxt1pd.png",
-    whatsapp: "07068397191",
+    whatsapp: "+2347068397191",
     facebook: "https://www.facebook.com/share/1CSXspjahg/",
     instagram: "https://instagram.com",
     email: "ceo@katsinaonlinebusiness.com.ng",
