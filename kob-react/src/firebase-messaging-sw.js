@@ -1,104 +1,302 @@
+
 /**
  * KOB Firebase Messaging Service Worker
- * Production Ready — Zero Error Version
  *
- * CHANGE: Added IndexedDB caching for background messages.
- * Background messages cannot be written to Firestore directly due to security
- * rules. This worker now saves them to a local IndexedDB. The main app
- * will sync them to Firestore upon startup.
+ * Firebase SDK: 10.14.1
  *
- * CHANGE v2: Added Notification Actions and Pending Action Queue.
- * - Displays "Open" and "Mark as Read" buttons on notifications.
- * - Handles "Mark as Read" by posting a message to an active client.
- * - If no client is active, queues the action in IndexedDB for later sync.
+ * Features:
+ * - Firebase background notification handling
+ * - Best-effort replacement of Firebase automatic notification
+ * - KOB custom notification with Open and Mark as Read actions
+ * - IndexedDB offline notification caching
+ * - IndexedDB pending action queue
  */
+
+
+// =====================================
+// KOB Custom Notification Click Handler
+// Register BEFORE Firebase Messaging SDK
+// =====================================
+
+self.addEventListener("notificationclick", (event) => {
+  const notificationData = event.notification.data || {};
+
+  // Handle only notifications created by KOB.
+  if (notificationData.source !== "kob-fcm") {
+    return;
+  }
+
+  event.stopImmediatePropagation();
+  event.notification.close();
+
+  const messageId = notificationData.messageId;
+  const rawTargetUrl = notificationData.url || "/alerts";
+
+  // Only allow URLs belonging to this KOB website.
+  let targetUrl;
+
+  try {
+    targetUrl = new URL(rawTargetUrl, self.location.origin);
+
+    if (targetUrl.origin !== self.location.origin) {
+      targetUrl = new URL("/alerts", self.location.origin);
+    }
+  } catch (error) {
+    targetUrl = new URL("/alerts", self.location.origin);
+  }
+
+  // -----------------------------------
+  // MARK AS READ ACTION
+  // -----------------------------------
+
+  if (event.action === "mark-as-read") {
+    event.waitUntil(
+      (async () => {
+        const clientList = await clients.matchAll({
+          type: "window",
+          includeUncontrolled: true,
+        });
+
+        // Select an existing KOB tab only.
+        const kobClients = clientList.filter((client) => {
+          try {
+            return new URL(client.url).origin === self.location.origin;
+          } catch {
+            return false;
+          }
+        });
+
+        const targetClient =
+          kobClients.find((client) => client.focused) ||
+          kobClients[0];
+
+        const message = {
+          type: "MARK_AS_READ",
+          messageId,
+        };
+
+        if (targetClient) {
+          await targetClient.focus();
+          targetClient.postMessage(message);
+        } else {
+          await saveActionToDB({
+            type: "mark-as-read",
+            messageId,
+          });
+        }
+      })()
+    );
+
+    return;
+  }
+
+  // -----------------------------------
+  // OPEN NOTIFICATION ACTION
+  // -----------------------------------
+
+  event.waitUntil(
+    (async () => {
+      const clientList = await clients.matchAll({
+        type: "window",
+        includeUncontrolled: true,
+      });
+
+      const kobClients = clientList.filter((client) => {
+        try {
+          return new URL(client.url).origin === self.location.origin;
+        } catch {
+          return false;
+        }
+      });
+
+      const targetClient =
+        kobClients.find((client) => client.focused) ||
+        kobClients[0];
+
+      if (targetClient) {
+        await targetClient.focus();
+
+        const currentUrl = new URL(targetClient.url);
+
+        if (currentUrl.href !== targetUrl.href) {
+          await targetClient.navigate(targetUrl.href);
+        }
+
+        return;
+      }
+
+      await clients.openWindow(targetUrl.href);
+    })()
+  );
+});
+
 
 // =====================================
 // Firebase SDKs (Compat Version)
-// ==================================
+// =====================================
+
 importScripts(
   "https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"
 );
+
 importScripts(
   "https://www.gstatic.com/firebasejs/10.14.1/firebase-messaging-compat.js"
 );
 
+
 // =====================================
-// IndexedDB Logic for Offline Caching
+// IndexedDB Logic
 // =====================================
+
 const DB_NAME = "fcm-cache";
+
 const PENDING_NOTIFICATIONS_STORE = "pending_notifications";
+
 const PENDING_ACTIONS_STORE = "pending_actions";
-const DB_VERSION = 3; // Incremented to add new store
+
+const DB_VERSION = 3;
 
 let dbPromise = null;
+
+
 const getDb = () => {
   if (!dbPromise) {
     dbPromise = new Promise((resolve, reject) => {
       const request = indexedDB.open(DB_NAME, DB_VERSION);
+
       request.onupgradeneeded = (event) => {
         const db = event.target.result;
+
         if (!db.objectStoreNames.contains(PENDING_NOTIFICATIONS_STORE)) {
-          db.createObjectStore(PENDING_NOTIFICATIONS_STORE, { keyPath: "messageId" });
+          db.createObjectStore(
+            PENDING_NOTIFICATIONS_STORE,
+            { keyPath: "messageId" }
+          );
         }
+
         if (!db.objectStoreNames.contains(PENDING_ACTIONS_STORE)) {
-           db.createObjectStore(PENDING_ACTIONS_STORE, { autoIncrement: true });
+          db.createObjectStore(
+            PENDING_ACTIONS_STORE,
+            { autoIncrement: true }
+          );
         }
       };
+
       request.onsuccess = (event) => {
         const db = event.target.result;
 
-        db.onversionchange = () => db.close();
+        db.onversionchange = () => {
+          db.close();
+          dbPromise = null;
+        };
 
         resolve(db);
-    };
-      request.onerror = (event) => reject(event.target.error);
+      };
+
+      request.onerror = (event) => {
+        dbPromise = null;
+        reject(event.target.error);
+      };
+
+      request.onblocked = () => {
+        console.warn(
+          "[KOB FCM] IndexedDB upgrade is blocked by another connection."
+        );
+      };
     });
   }
+
   return dbPromise;
 };
+
+
+// =====================================
+// Save Background Notification
+// =====================================
 
 const saveNotificationToDB = async (notification) => {
   try {
     const db = await getDb();
 
     await new Promise((resolve, reject) => {
-      const tx = db.transaction(PENDING_NOTIFICATIONS_STORE, "readwrite");
-      const store = tx.objectStore(PENDING_NOTIFICATIONS_STORE);
-      const request = store.put(notification);
+      const tx = db.transaction(
+        PENDING_NOTIFICATIONS_STORE,
+        "readwrite"
+      );
 
-      request.onerror = () => reject(request.error);
+      const store = tx.objectStore(PENDING_NOTIFICATIONS_STORE);
+
+      store.put(notification);
 
       tx.oncomplete = () => resolve();
 
-      tx.onerror = () => reject(tx.error || request.error);
+      tx.onerror = () => {
+        reject(tx.error || new Error("Notification transaction failed"));
+      };
 
-      tx.onabort = () =>
-        reject(tx.error || new Error("IndexedDB transaction aborted"));
+      tx.onabort = () => {
+        reject(tx.error || new Error("Notification transaction aborted"));
+      };
     });
 
-    console.log("[KOB FCM] Background notification saved to IndexedDB.");
+    console.log(
+      "[KOB FCM] Background notification saved to IndexedDB."
+    );
+
   } catch (error) {
-    console.error("[KOB FCM] Failed to save notification to IndexedDB:", error);
+    console.error(
+      "[KOB FCM] Failed to save notification to IndexedDB:",
+      error
+    );
   }
 };
 
+
+// =====================================
+// Save Pending Notification Action
+// =====================================
+
 const saveActionToDB = async (action) => {
-    try {
-        const db = await getDb();
-        const tx = db.transaction(PENDING_ACTIONS_STORE, "readwrite");
-        const store = tx.objectStore(PENDING_ACTIONS_STORE);
-        await store.put(action);
-        console.log("[KOB FCM] Pending action saved to IndexedDB.");
-    } catch (error) {
-        console.error("[KOB FCM] Failed to save pending action:", error);
-    }
+  try {
+    const db = await getDb();
+
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction(
+        PENDING_ACTIONS_STORE,
+        "readwrite"
+      );
+
+      const store = tx.objectStore(PENDING_ACTIONS_STORE);
+
+      store.put(action);
+
+      tx.oncomplete = () => resolve();
+
+      tx.onerror = () => {
+        reject(tx.error || new Error("Action transaction failed"));
+      };
+
+      tx.onabort = () => {
+        reject(tx.error || new Error("Action transaction aborted"));
+      };
+    });
+
+    console.log("[KOB FCM] Pending action saved to IndexedDB.");
+
+  } catch (error) {
+    console.error(
+      "[KOB FCM] Failed to save pending action:",
+      error
+    );
+  }
 };
 
 
 // =====================================
-// Firebase Config (Injected by Vite)
+// Firebase Configuration
+// Injected by Vite
 // =====================================
+
 const firebaseConfig = {
   apiKey: __FIREBASE_API_KEY__,
   authDomain: __FIREBASE_AUTH_DOMAIN__,
@@ -109,108 +307,150 @@ const firebaseConfig = {
 };
 
 firebase.initializeApp(firebaseConfig);
+
 const messaging = firebase.messaging();
+
 
 // =====================================
 // Background Notifications Handler
 // =====================================
+
 messaging.onBackgroundMessage(async (payload) => {
-  console.log("[KOB FCM] Background message received:", payload);
+  console.log(
+    "[KOB FCM] Background message received:",
+    payload
+  );
 
   const notificationData = {
-    title: payload.notification?.title || payload.data?.title || "KOB Marketplace",
-    body: payload.notification?.body || payload.data?.body || "",
+    title:
+      payload.notification?.title ||
+      payload.data?.title ||
+      "KOB Marketplace",
+
+    body:
+      payload.notification?.body ||
+      payload.data?.body ||
+      "",
+
     url: payload.data?.url || "/alerts",
+
     type: payload.data?.type || "direct",
+
     source: "fcm-background",
+
     read: false,
+
     createdAt: new Date().toISOString(),
-    messageId: payload.messageId || `offline-${Date.now()}`,
+
+    messageId:
+      payload.messageId ||
+      `offline-${Date.now()}`,
   };
 
-  // Persist to IndexedDB for the app to sync later
-// Persist to IndexedDB for the app to sync later
-await saveNotificationToDB(notificationData);
 
-// FCM automatically displays notification payloads in background.
-// Do not display the same notification a second time.
-if (payload.notification) {
-  console.log(
-    "[KOB FCM] FCM will display this notification automatically."
-  );
-  return;
-}
+  // -----------------------------------
+  // STEP 1: Save notification locally
+  // -----------------------------------
 
-const notificationTitle = notificationData.title;
+  await saveNotificationToDB(notificationData);
+
+
+  // -----------------------------------
+  // STEP 2: Replace Firebase notification
+  // -----------------------------------
+
+  if (payload.notification) {
+    const messageId = payload.messageId;
+
+    try {
+      const existingNotifications =
+        await self.registration.getNotifications();
+
+      const firebaseNotification = existingNotifications.find(
+        (notification) =>
+          notification.data?.FCM_MSG?.messageId === messageId
+      );
+
+      if (firebaseNotification) {
+        firebaseNotification.close();
+
+        console.log(
+          "[KOB FCM] Firebase automatic notification closed."
+        );
+
+      } else {
+        console.warn(
+          "[KOB FCM] Firebase automatic notification was not found. Continuing with KOB notification to avoid losing the message.",
+          messageId
+        );
+      }
+
+    } catch (error) {
+      console.error(
+        "[KOB FCM] Could not inspect Firebase notifications. Continuing with KOB notification:",
+        error
+      );
+    }
+  }
+
+
+  // -----------------------------------
+  // STEP 3: Display KOB custom notification
+  // -----------------------------------
+
+  const notificationTitle = notificationData.title;
+
   const notificationOptions = {
     body: notificationData.body,
-    icon: "https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1780655200/logo512_xomyvi.png",
-    badge: "https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1780056061/badge192_hlibzw.png",
-    image: payload.data?.image || undefined,
+
+    icon:
+      "https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1780655200/logo512_xomyvi.png",
+
+    badge:
+      "https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1780056061/badge192_hlibzw.png",
+
     data: {
+      source: "kob-fcm",
+
       url: notificationData.url,
+
       messageId: notificationData.messageId,
     },
+
     vibrate: [200, 100, 200],
-    tag: "kob-notification",
+
+    tag: `kob-notification-${notificationData.messageId}`,
+
     actions: [
-        { action: "open", title: "Open" },
-        { action: "mark-as-read", title: "Mark as Read" }
-    ]
+      {
+        action: "open",
+        title: "Open",
+      },
+      {
+        action: "mark-as-read",
+        title: "Mark as Read",
+      },
+    ],
   };
 
-  return self.registration.showNotification(notificationTitle, notificationOptions);
+  return self.registration.showNotification(
+    notificationTitle,
+    notificationOptions
+  );
 });
 
-// =====================================
-// Notification Click Handler
-// =====================================
-self.addEventListener("notificationclick", (event) => {
-  event.notification.close();
-
-  const messageId = event.notification.data?.messageId;
-  const targetUrl = event.notification.data?.url || "/alerts";
-
-  if (event.action === 'mark-as-read') {
-    console.log('[KOB FCM] "Mark as Read" action clicked for:', messageId);
-    event.waitUntil(
-        clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clientList => {
-            const message = { type: 'MARK_AS_READ', messageId };
-            if (clientList.length > 0) {
-                // If a client is open, post message to it
-                clientList[0].postMessage(message);
-            } else {
-                // Otherwise, queue the action in IndexedDB
-                return saveActionToDB({ type: 'mark-as-read', messageId: messageId });
-            }
-        })
-    );
-  } else {
-    // Default action is to "open"
-    event.waitUntil(
-        clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
-            for (const client of clientList) {
-                if (new URL(client.url).pathname === targetUrl && "focus" in client) {
-                    return client.focus();
-                }
-            }
-            if (clients.openWindow) {
-                return clients.openWindow(targetUrl);
-            }
-        })
-    );
-  }
-});
 
 // =====================================
 // Service Worker Lifecycles
 // =====================================
+
 self.addEventListener("install", () => {
-  console.log("[KOB FCM] Service Worker Installed (v2)");
+  console.log("[KOB FCM] Service Worker Installed.");
 });
 
 self.addEventListener("activate", (event) => {
-  console.log("[KOB FCM] Service Worker Activated (v2)");
-  // Take control of any open pages immediately
+  console.log("[KOB FCM] Service Worker Activated.");
+
   event.waitUntil(clients.claim());
 });
+                              
