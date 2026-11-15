@@ -146,7 +146,7 @@ const notificationTitle = notificationData.title;
     body: notificationData.body,
     icon: "https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1780655200/logo512_xomyvi.png",
     badge: "https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1780056061/badge192_hlibzw.png",
-    //ancire payload image anan wurin sai an samu iko gina functions 
+    image: payload.data?.image || undefined,
     data: {
       url: notificationData.url,
       messageId: notificationData.messageId,
