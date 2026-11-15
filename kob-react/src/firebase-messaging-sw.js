@@ -407,7 +407,7 @@ messaging.onBackgroundMessage(async (payload) => {
       "https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1780655200/logo512_xomyvi.png",
 
     badge:
-      "https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1780056061/badge192_hlibzw.png",
+      "https://res.cloudinary.com/dn5crslee/image/upload/r_max/v1794749673/file_00000000b6bc81f486d15d7b097f9202_l3ypg9.png",
 
     data: {
       source: "kob-fcm",
