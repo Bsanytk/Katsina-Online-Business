@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { toggleSellerVerification } from '../../services/admin'
 import {
   CheckCircle, XCircle, MessageCircle,
-  Search, ExternalLink, ChevronRight,
+  Search,
 } from 'lucide-react'
 
 // ================================

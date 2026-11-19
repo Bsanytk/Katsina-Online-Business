@@ -24,7 +24,6 @@ import {
   ShoppingBag,
   MessageCircle,
   Store,
-  User,
   BarChart2,
   Eye,
   Star,
@@ -302,7 +301,7 @@ function BuyerDashboard() {
 // ================================
 // SELLER DASHBOARD
 // ================================
-function SellerDashboard() {
+function SellerDashboard({ isEditModalOpen, setIsEditModalOpen }) {
   const { user } = useAuth();
 
   // ✅ From ProfileContext — single source of truth
@@ -313,7 +312,6 @@ function SellerDashboard() {
   const [deleteLoading, setDeleteLoading] = useState(null);
   const [deleteSuccess, setDeleteSuccess] = useState(false);
   const [activeTab, setActiveTab] = useState("products");
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const totalViews = products.reduce((s, p) => s + (Number(p.views) || 0), 0);
   const ratedProducts = products.filter((p) => p.rating > 0);
@@ -340,12 +338,7 @@ function SellerDashboard() {
     },
   ];
 
-  // ✅ Only fetch products — profile already in context
-  useEffect(() => {
-    if (user?.uid) fetchProducts();
-  }, [user?.uid]);
-
-  async function fetchProducts() {
+  const fetchProducts = React.useCallback(async () => {
     setLoading(true);
     try {
       const items = await getProducts({
@@ -358,7 +351,12 @@ function SellerDashboard() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [user.uid]);
+
+  // ✅ Only fetch products — profile already in context
+  useEffect(() => {
+    if (user?.uid) fetchProducts();
+  }, [user?.uid, fetchProducts]);
 
   async function handleDelete(productId, title) {
     if (!window.confirm(`Delete "${title}"? This cannot be undone.`)) return;
@@ -377,6 +375,14 @@ function SellerDashboard() {
 
   return (
     <div className="space-y-6">
+      {
+        isEditModalOpen && (
+          <EditProfileModal
+            isOpen={isEditModalOpen}
+            onClose={() => setIsEditModalOpen(false)}
+          />
+        )
+      }
       <div
         className="flex gap-1 border-b border-gray-100
         overflow-x-auto"
@@ -681,6 +687,7 @@ function SellerDashboard() {
 export default function Dashboard() {
   const { user, loading: authLoading } = useAuth();
   const { profile, loading: profileLoading } = useProfile();
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const loading = authLoading || profileLoading;
 
@@ -762,17 +769,15 @@ export default function Dashboard() {
         </div>
 
         {/* Role-based dashboard */}
-        {role === "seller" ? <SellerDashboard /> : <BuyerDashboard />}
+        {role === "seller" ? (
+          <SellerDashboard
+            isEditModalOpen={isEditModalOpen}
+            setIsEditModalOpen={setIsEditModalOpen}
+          />
+        ) : (
+          <BuyerDashboard />
+        )}
       </div>
     </main>
   );
-
-  {
-    isEditModalOpen && (
-      <EditProfileModal
-        isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-      />
-    );
-  }
 }

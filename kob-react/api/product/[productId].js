@@ -1,94 +1,96 @@
-
-import admin from 'firebase-admin';
+import { db } from '../_lib/firebase.js';
+import { injectMetaTags } from '../_lib/html.js';
 import { readFile } from 'fs/promises';
 import path from 'path';
 
-const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
+const KOB_DOMAIN = 'https://kob-market.jcew.org';
+const DEFAULT_IMAGE = 'https://res.cloudinary.com/dn5crslee/image/upload/v1700000000/kob-marketplace/desktop-screenshot.png';
 
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-    databaseURL: `https://${serviceAccount.project_id}.firebaseio.com`
-  });
+async function getProduct(productId) {
+  if (!db) {
+    return { error: 'database-unavailable' };
+  }
+  if (!productId || typeof productId !== 'string') {
+    return { error: 'invalid-id' };
+  }
+
+  const productRef = db.collection('products').doc(productId);
+  const productSnap = await productRef.get();
+
+  if (!productSnap.exists) {
+    return { error: 'not-found' };
+  }
+
+  const productData = productSnap.data();
+
+  if (productData.isDraft === true || productData.isDeleted === true) {
+    return { error: 'not-found' };
+  }
+
+  return { data: productData };
 }
 
-const db = admin.firestore();
-
-const DEFAULT_TITLE = "KOB Marketplace - Buy and Sell in Katsina";
-const DEFAULT_IMAGE = "https://res.cloudinary.com/dn5crslee/image/upload/v1700000000/kob-marketplace/desktop-screenshot.png";
-const DEFAULT_DESCRIPTION = "A vibrant online marketplace for buyers and sellers in Katsina and beyond.";
-
-function injectMetaTags(html, tags) {
-    let cleanHtml = html
-      .replace(/<meta property="og:title"[^>]*>/gi, '')
-      .replace(/<meta property="og:description"[^>]*>/gi, '')
-      .replace(/<meta property="og:image"[^>]*>/gi, '')
-      .replace(/<meta name="twitter:title"[^>]*>/gi, '')
-      .replace(/<meta name="twitter:description"[^>]*>/gi, '')
-      .replace(/<meta name="twitter:image"[^>]*>/gi, '');
-
-    const metaTags = `
-    <meta property="og:title" content="${tags.title}">
-    <meta property="og:description" content="${tags.description}">
-    <meta property="og:image" content="${tags.image}">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
-    <meta property="og:type" content="product">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="${tags.title}">
-    <meta name="twitter:description" content="${tags.description}">
-    <meta name="twitter:image" content="${tags.image}">
-  `;
-    return cleanHtml.replace('</head>', `${metaTags}</head>`);
+function getProductImage(product) {
+  if (product.imageUrl && typeof product.imageUrl === 'string') {
+    return product.imageUrl;
+  }
+  if (Array.isArray(product.images) && product.images.length > 0) {
+    const firstImage = product.images[0];
+    if (typeof firstImage === 'string') return firstImage;
+    if (typeof firstImage.url === 'string') return firstImage.url;
+    if (typeof firstImage.secure_url === 'string') return firstImage.secure_url;
+  }
+  if (product.mainImage && typeof product.mainImage === 'string') {
+    return product.mainImage;
+  }
+  return DEFAULT_IMAGE;
 }
 
 export default async function handler(req, res) {
-  const { productId } = req.query;
-  let productData = null;
-  let sellerData = null;
-
-  try {
-    const productRef = db.collection('products').doc(productId);
-    const productSnap = await productRef.get();
-
-    if (productSnap.exists) {
-      productData = productSnap.data();
-      if(productData.ownerUid) {
-        const sellerRef = db.collection('users').doc(productData.ownerUid);
-        const sellerSnap = await sellerRef.get();
-        if(sellerSnap.exists) {
-            sellerData = sellerSnap.data();
-        }
-      }
-    }
-  } catch (error) {
-    console.error(`Firestore Error for productId: ${productId}`, error);
+  if (!db) {
+    return res.status(503).json({ error: 'The server is temporarily unavailable.' });
   }
 
-  const imageUrl = productData?.imageUrl || productData?.images?.[0]?.url || (typeof productData?.images?.[0] === "string" ? productData.images[0] : null) || DEFAULT_IMAGE;
+  const { productId } = req.query;
+  const { data: product, error } = await getProduct(productId);
+
+  if (error) {
+    if (error === 'database-unavailable') {
+      return res.status(503).json({ error: 'The server is temporarily unavailable.' });
+    }
+    return res.status(404).send('Not Found');
+  }
+
+  const imageUrl = getProductImage(product);
+  const productPrice = product.price ? `₦${Number(product.price).toLocaleString()}` : '';
+  const description = product.description || `Buy ${product.title} on KOB Marketplace.`;
+  const title = productPrice ? `${product.title} - ${productPrice}` : product.title;
 
   const tags = {
-    title: productData?.title || DEFAULT_TITLE,
-    image: imageUrl,
-    description: productData?.description || DEFAULT_DESCRIPTION
+    'og:title': title,
+    'og:description': description,
+    'og:image': imageUrl,
+    'og:image:alt': product.title,
+    'og:type': 'product',
+    'og:url': `${KOB_DOMAIN}/product/${productId}`,
+    'og:site_name': 'KOB Marketplace',
+    'twitter:card': 'summary_large_image',
+    'twitter:title': title,
+    'twitter:description': description,
+    'twitter:image': imageUrl,
+    'canonical': `${KOB_DOMAIN}/product/${productId}`
   };
-  
-  Object.keys(tags).forEach(key => {
-      tags[key] = String(tags[key]).replace(/"/g, '&quot;');
-  });
 
   try {
-    const htmlPath = path.join(process.cwd(), 'dist', 'index.html');
+    const htmlPath = path.resolve(process.cwd(), 'dist/index.html');
     const baseHtml = await readFile(htmlPath, 'utf-8');
-
     const finalHtml = injectMetaTags(baseHtml, tags);
 
-    res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=604800, stale-while-revalidate=86400');
     res.setHeader('Content-Type', 'text/html');
+    res.setHeader('Cache-Control', 'public, max-age=3600, s-maxage=86400, stale-while-revalidate=259200');
     return res.status(200).send(finalHtml);
-
-  } catch (error) {
-    console.error('CRITICAL: Error reading production index.html file:', error);
-    return res.redirect(307, '/');
+  } catch (e) {
+    console.error('Error reading index.html or injecting meta tags:', e);
+    return res.status(500).send('Internal Server Error');
   }
 }

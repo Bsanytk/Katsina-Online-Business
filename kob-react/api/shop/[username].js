@@ -1,102 +1,87 @@
-import admin from 'firebase-admin';
+import { db } from '../_lib/firebase.js';
+import { injectMetaTags } from '../_lib/html.js';
 import { readFile } from 'fs/promises';
 import path from 'path';
 
-const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
+const KOB_DOMAIN = 'https://kob-market.jcew.org';
+const DEFAULT_IMAGE = 'https://res.cloudinary.com/dn5crslee/image/upload/v1700000000/kob-marketplace/desktop-screenshot.png';
 
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-    databaseURL: `https://${serviceAccount.project_id}.firebaseio.com`
-  });
-}
+async function getVendor(identifier) {
+  if (!db) {
+    return { error: 'database-unavailable' };
+  }
+  if (!identifier || typeof identifier !== 'string') {
+    return { error: 'invalid-id' };
+  }
 
-const db = admin.firestore();
+  // 1. Check if the identifier is a UID
+  const userRefByUid = db.collection('users').doc(identifier);
+  const userSnapByUid = await userRefByUid.get();
+  if (userSnapByUid.exists) {
+    return { data: userSnapByUid.data(), strategy: 'uid' };
+  }
 
-const DEFAULT_TITLE = "KOB Marketplace - Buy and Sell in Katsina";
-const DEFAULT_IMAGE = "https://res.cloudinary.com/dn5crslee/image/upload/v1700000000/kob-marketplace/desktop-screenshot.png";
-const DEFAULT_DESCRIPTION = "A vibrant online marketplace for buyers and sellers in Katsina and beyond.";
+  // 2. Check if the identifier is a username
+  const usersRef = db.collection('users');
+  const userSnapByUsername = await usersRef.where('username', '==', identifier).limit(1).get();
+  if (!userSnapByUsername.empty) {
+    return { data: userSnapByUsername.docs[0].data(), strategy: 'username' };
+  }
 
-function injectMetaTags(html, tags) {
-    // Cire tsofaffin meta tags kafin sanya sababbi domin guje wa rikici a jikin robobin sada zumunta
-    let cleanHtml = html
-      .replace(/<meta property="og:title"[^>]*>/gi, '')
-      .replace(/<meta property="og:description"[^>]*>/gi, '')
-      .replace(/<meta property="og:image"[^>]*>/gi, '')
-      .replace(/<meta name="twitter:title"[^>]*>/gi, '')
-      .replace(/<meta name="twitter:description"[^>]*>/gi, '')
-      .replace(/<meta name="twitter:image"[^>]*>/gi, '');
+  // 3. Check if the identifier is a business name
+  const userSnapByBusinessName = await usersRef.where('businessName', '==', identifier).limit(1).get();
+  if (!userSnapByBusinessName.empty) {
+    return { data: userSnapByBusinessName.docs[0].data(), strategy: 'businessName' };
+  }
 
-    const metaTags = `
-    <meta property="og:title" content="${tags.title}">
-    <meta property="og:description" content="${tags.description}">
-    <meta property="og:image" content="${tags.image}">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
-    <meta property="og:type" content="website">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="${tags.title}">
-    <meta name="twitter:description" content="${tags.description}">
-    <meta name="twitter:image" content="${tags.image}">
-  `;
-    return cleanHtml.replace('</head>', `${metaTags}</head>`);
+  return { error: 'not-found' };
 }
 
 export default async function handler(req, res) {
-  const { username } = req.query;
-  let sellerData = null;
-
-  try {
-    const usersRef = db.collection('users');
-    
-    // 1. MATAKI NA FARCO (Kari na Wayo): Tunda link dinka yana zo da UID, 
-    // za mu fara duba kai tsaye idan akwai Document mai wannan UID din a Firestore.
-    const docRef = usersRef.doc(username);
-    const docSnap = await docRef.get();
-
-    if (docSnap.exists) {
-      sellerData = docSnap.data();
-    } else {
-      // 2. MATAKI NA BIYU (Tsohon Tsarinka): Idan ba UID ba ne (misali sunan shago ne na asali),
-      // sai mu binciki gurbin username ko businessName kamar yadda kake yi a da.
-      let snapshot = await usersRef.where('username', '==', username).limit(1).get();
-      
-      if (snapshot.empty) {
-        snapshot = await usersRef.where('businessName', '==', username).limit(1).get();
-      }
-
-      if (!snapshot.empty) {
-        sellerData = snapshot.docs[0].data();
-      }
-    }
-  } catch (error) {
-    console.error(`Firestore Error for username/UID: ${username}`, error);
+  if (!db) {
+    return res.status(503).json({ error: 'The server is temporarily unavailable.' });
   }
 
+  const { username: identifier } = req.query;
+  const { data: vendor, error, strategy } = await getVendor(identifier);
+
+  if (error) {
+    if (error === 'database-unavailable') {
+      return res.status(503).json({ error: 'The server is temporarily unavailable.' });
+    }
+    return res.status(404).send('Not Found');
+  }
+
+  const canonicalSlug = strategy === 'uid' ? vendor.uid : identifier;
+  const title = vendor.businessName || vendor.displayName || 'KOB Marketplace Vendor';
+  const description = vendor.bio || `Explore products from ${title} on KOB Marketplace.`;
+  const imageUrl = vendor.photoURL || DEFAULT_IMAGE;
+
   const tags = {
-    title: sellerData?.businessName || sellerData?.displayName || DEFAULT_TITLE,
-    image: sellerData?.photoURL || DEFAULT_IMAGE,
-    description: sellerData?.bio || DEFAULT_DESCRIPTION
+    'og:title': title,
+    'og:description': description,
+    'og:image': imageUrl,
+    'og:image:alt': `${title}'s shop photo`,
+    'og:type': 'profile',
+    'og:url': `${KOB_DOMAIN}/shop/${canonicalSlug}`,
+    'og:site_name': 'KOB Marketplace',
+    'twitter:card': 'summary_large_image',
+    'twitter:title': title,
+    'twitter:description': description,
+    'twitter:image': imageUrl,
+    'canonical': `${KOB_DOMAIN}/shop/${canonicalSlug}`
   };
-  
-  Object.keys(tags).forEach(key => {
-      tags[key] = String(tags[key]).replace(/"/g, '&quot;');
-  });
 
   try {
-    // Vercel yana ajiye fayilolin build na Vite ne a cikin 'dist'
-    const htmlPath = path.join(process.cwd(), 'dist', 'index.html');
+    const htmlPath = path.resolve(process.cwd(), 'dist/index.html');
     const baseHtml = await readFile(htmlPath, 'utf-8');
-
     const finalHtml = injectMetaTags(baseHtml, tags);
 
-    res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=604800, stale-while-revalidate=86400');
     res.setHeader('Content-Type', 'text/html');
+    res.setHeader('Cache-Control', 'public, max-age=3600, s-maxage=86400, stale-while-revalidate=259200');
     return res.status(200).send(finalHtml);
-
-  } catch (error) {
-    console.error('CRITICAL: Error reading production index.html file:', error);
-    // Madadin gaba daya idan an samu matsala wajen karanta fayil
-    return res.redirect(307, '/');
+  } catch (e) {
+    console.error('Error reading index.html or injecting meta tags:', e);
+    return res.status(500).send('Internal Server Error');
   }
 }

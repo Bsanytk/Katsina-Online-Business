@@ -13,7 +13,7 @@
  */
 
 import React, { useEffect } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence }        from 'framer-motion'
 import { useAuth, logoutUser }            from '../firebase/auth'
 import { useProfile }                     from '../contexts/ProfileContext'
@@ -252,14 +252,17 @@ function MenuItem({
 // ================================
 export default function MobileSidebar({ isOpen, onClose }) {
   const location  = useLocation()
-  const navigate  = useNavigate()
   const { user }  = useAuth()
   const { profile, isSeller, isAdmin } = useProfile()
 
   const path = location.pathname
 
   // Close on route change
-  useEffect(() => { onClose?.() }, [path])
+  useEffect(() => {
+    if (onClose) {
+      onClose()
+    }
+  }, [path, onClose])
 
   // Lock body scroll when open
   useEffect(() => {
