@@ -3,7 +3,7 @@ import { injectMetaTags } from '../_lib/html.js';
 import { readFile } from 'fs/promises';
 import path from 'path';
 
-const KOB_DOMAIN = 'https://kob-market.jcew.org';
+const KOB_DOMAIN = 'https://katsinaonlinebusiness.com.ng';
 const DEFAULT_IMAGE = 'https://res.cloudinary.com/dn5crslee/image/upload/v1700000000/kob-marketplace/desktop-screenshot.png';
 
 async function getVendor(identifier) {
@@ -53,6 +53,7 @@ export default async function handler(req, res) {
   }
 
   const canonicalSlug = strategy === 'uid' ? vendor.uid : identifier;
+  const canonicalUrl = `${KOB_DOMAIN}/shop/${canonicalSlug}`;
   const title = vendor.businessName || vendor.displayName || 'KOB Marketplace Vendor';
   const description = vendor.bio || `Explore products from ${title} on KOB Marketplace.`;
   const imageUrl = vendor.photoURL || DEFAULT_IMAGE;
@@ -63,19 +64,18 @@ export default async function handler(req, res) {
     'og:image': imageUrl,
     'og:image:alt': `${title}'s shop photo`,
     'og:type': 'profile',
-    'og:url': `${KOB_DOMAIN}/shop/${canonicalSlug}`,
+    'og:url': canonicalUrl,
     'og:site_name': 'KOB Marketplace',
     'twitter:card': 'summary_large_image',
     'twitter:title': title,
     'twitter:description': description,
     'twitter:image': imageUrl,
-    'canonical': `${KOB_DOMAIN}/shop/${canonicalSlug}`
   };
 
   try {
     const htmlPath = path.resolve(process.cwd(), 'dist/index.html');
     const baseHtml = await readFile(htmlPath, 'utf-8');
-    const finalHtml = injectMetaTags(baseHtml, tags);
+    const finalHtml = injectMetaTags(baseHtml, tags, canonicalUrl);
 
     res.setHeader('Content-Type', 'text/html');
     res.setHeader('Cache-Control', 'public, max-age=3600, s-maxage=86400, stale-while-revalidate=259200');

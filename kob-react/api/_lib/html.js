@@ -13,7 +13,7 @@ export function escapeHtml(str) {
   return str.replace(/[&<>"']/g, (c) => ESCAPE_MAP[c] || c);
 }
 
-export function injectMetaTags(html, tags) {
+export function injectMetaTags(html, tags, canonicalUrl) {
   const metaStrings = Object.entries(tags)
     .map(([key, value]) => {
       if (!value) return '';
@@ -25,5 +25,9 @@ export function injectMetaTags(html, tags) {
     })
     .join('\n');
 
-  return html.replace('</head>', `\n${metaStrings}\n</head>`);
+  const canonicalTag = canonicalUrl
+    ? `<link rel="canonical" href="${escapeHtml(canonicalUrl)}" />`
+    : '';
+
+  return html.replace('</head>', `\n${metaStrings}\n${canonicalTag}\n</head>`);
 }
