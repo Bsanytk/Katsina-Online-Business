@@ -8,64 +8,66 @@ const DEFAULT_IMAGE = 'https://res.cloudinary.com/dn5crslee/image/upload/v170000
 
 async function getProduct(productId) {
   if (!db) {
-    return { error: 'database-unavailable' };
+    return { error: 'database-unavailable', status: 503 };
   }
   if (!productId || typeof productId !== 'string') {
-    return { error: 'invalid-id' };
+    return { error: 'invalid-id', status: 400 };
   }
 
   const productRef = db.collection('products').doc(productId);
   const productSnap = await productRef.get();
 
   if (!productSnap.exists) {
-    return { error: 'not-found' };
+    return { error: 'not-found', status: 404 };
   }
 
   const productData = productSnap.data();
 
-  if (productData.isDraft === true || productData.isDeleted === true) {
-    return { error: 'not-found' };
+  if (productData.isDraft === true || productData.isDeleted === true || productData.isSuspended === true || productData.published === false) {
+    return { error: 'not-found', status: 404 };
   }
 
-  return { data: productData };
+  return { data: productData, status: 200 };
 }
 
 function getProductImage(product) {
-  if (product.imageUrl && typeof product.imageUrl === 'string') {
-    return product.imageUrl;
-  }
-  if (Array.isArray(product.images) && product.images.length > 0) {
-    const firstImage = product.images[0];
-    if (typeof firstImage === 'string') return firstImage;
-    if (typeof firstImage.url === 'string') return firstImage.url;
-    if (typeof firstImage.secure_url === 'string') return firstImage.secure_url;
-  }
-  if (product.mainImage && typeof product.mainImage === 'string') {
-    return product.mainImage;
-  }
-  return DEFAULT_IMAGE;
+    if (product.imageUrl && typeof product.imageUrl === 'string') {
+        return product.imageUrl;
+    }
+    if (Array.isArray(product.images) && product.images.length > 0) {
+        const firstImage = product.images[0];
+        if (typeof firstImage === 'string') return firstImage;
+        if (firstImage && typeof firstImage.url === 'string') return firstImage.url;
+        if (firstImage && typeof firstImage.secure_url === 'string') return firstImage.secure_url;
+    }
+    if (product.mainImage && typeof product.mainImage === 'string') {
+        return product.mainImage;
+    }
+    return DEFAULT_IMAGE;
 }
 
 export default async function handler(req, res) {
+    if (req.method !== 'GET') {
+        res.setHeader('Allow', ['GET']);
+        return res.status(405).end(`Method ${req.method} Not Allowed`);
+    }
+
   if (!db) {
     return res.status(503).json({ error: 'The server is temporarily unavailable.' });
   }
 
   const { productId } = req.query;
-  const { data: product, error } = await getProduct(productId);
+  const { data: product, error, status } = await getProduct(productId);
 
   if (error) {
-    if (error === 'database-unavailable') {
-      return res.status(503).json({ error: 'The server is temporarily unavailable.' });
-    }
-    return res.status(404).send('Not Found');
+    return res.status(status).json({ error });
   }
 
   const canonicalUrl = `${KOB_DOMAIN}/product/${productId}`;
   const imageUrl = getProductImage(product);
-  const productPrice = product.price ? `₦${Number(product.price).toLocaleString()}` : '';
+  const productPrice = product.price && !isNaN(product.price) ? `₦${Number(product.price).toLocaleString()}` : '';
   const description = product.description || `Buy ${product.title} on KOB Marketplace.`;
-  const title = productPrice ? `${product.title} - ${productPrice}` : product.title;
+  const title = product.title && productPrice ? `${product.title} - ${productPrice}` : product.title || 'KOB Marketplace';
 
   const tags = {
     'og:title': title,
