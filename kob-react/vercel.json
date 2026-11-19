@@ -12,6 +12,17 @@
       "destination": "/api/shop/:username"
     },
     {
+      "source": "/product/:productId",
+      "has": [
+        {
+          "type": "header",
+          "key": "User-Agent",
+          "value": "(?i)(twitterbot|facebookexternalhit|whatsapp|pinterest|linkedinbot|discordbot)"
+        }
+      ],
+      "destination": "/api/product/:productId"
+    },
+    {
       "source": "/((?!assets/|static/|favicon.ico|.*\\..*$).*)",
       "destination": "/index.html"
     }
