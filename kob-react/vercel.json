@@ -23,7 +23,7 @@
       "destination": "/api/product/:productId"
     },
     {
-      "source": "/((?!api/|assets/|static/|favicon.ico|.*\\..*$).*)"
+      "source": "/((?!api/|assets/|static/|favicon.ico|.*\\..*$).*)",
       "destination": "/index.html"
     }
   ]
