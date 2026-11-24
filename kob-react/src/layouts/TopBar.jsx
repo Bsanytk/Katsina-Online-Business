@@ -13,7 +13,7 @@
  *    add pt-16 to your main layout wrapper
  */
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth, logoutUser } from "../firebase/auth";
 import MobileSidebar from "../components/MobileSidebar";
@@ -54,6 +54,10 @@ export default function TopBar() {
     catch (err) { console.error("Logout error:", err?.message); }
     finally     { setLoggingOut(false); }
   }
+  
+  const handleCloseSidebar = useCallback(() => {
+    setSidebarOpen(false);
+  }, []);
 
   return (
     <>
@@ -365,7 +369,7 @@ export default function TopBar() {
       {/* Mobile Sidebar — preserved exactly */}
       <MobileSidebar
         isOpen={isSidebarOpen}
-        onClose={() => setSidebarOpen(false)}
+        onClose={handleCloseSidebar}
       />
     </>
   );

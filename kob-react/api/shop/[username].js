@@ -3,8 +3,17 @@ import { injectMetaTags } from '../_lib/html.js';
 import { readFile } from 'fs/promises';
 import path from 'path';
 
-const KOB_DOMAIN = 'https://katsinaonlinebusiness.com.ng';
+const PROD_DOMAIN = 'https://katsinaonlinebusiness.com.ng';
 const DEFAULT_IMAGE = 'https://res.cloudinary.com/dn5crslee/image/upload/v1700000000/kob-marketplace/desktop-screenshot.png';
+
+// Use Vercel system variables to determine the base URL.
+const getBaseUrl = () => {
+  if (process.env.VERCEL_ENV === 'production') {
+    return PROD_DOMAIN;
+  }
+  // For preview and development, use the dynamic Vercel URL.
+  return `https://${process.env.VERCEL_URL}`;
+};
 
 async function getVendor(identifier) {
     if (!db) {
@@ -65,8 +74,9 @@ export default async function handler(req, res) {
         return res.status(status).json({ error });
     }
 
+    const baseUrl = getBaseUrl();
     const canonicalSlug = strategy === 'uid' ? vendor.uid : identifier;
-    const canonicalUrl = `${KOB_DOMAIN}/shop/${canonicalSlug}`;
+    const canonicalUrl = `${baseUrl}/shop/${canonicalSlug}`;
     const title = vendor.businessName || vendor.displayName || 'KOB Marketplace Vendor';
     const description = vendor.bio || `Explore products from ${title} on KOB Marketplace.`;
     const imageUrl = vendor.photoURL || DEFAULT_IMAGE;

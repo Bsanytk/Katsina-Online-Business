@@ -3,8 +3,17 @@ import { injectMetaTags } from '../_lib/html.js';
 import { readFile } from 'fs/promises';
 import path from 'path';
 
-const KOB_DOMAIN = 'https://katsinaonlinebusiness.com.ng';
+const PROD_DOMAIN = 'https://katsinaonlinebusiness.com.ng';
 const DEFAULT_IMAGE = 'https://res.cloudinary.com/dn5crslee/image/upload/v1700000000/kob-marketplace/desktop-screenshot.png';
+
+// Use Vercel system variables to determine the base URL.
+const getBaseUrl = () => {
+  if (process.env.VERCEL_ENV === 'production') {
+    return PROD_DOMAIN;
+  }
+  // For preview and development, use the dynamic Vercel URL.
+  return `https://${process.env.VERCEL_URL}`;
+};
 
 async function getProduct(productId) {
   if (!db) {
@@ -23,7 +32,7 @@ async function getProduct(productId) {
 
   const productData = productSnap.data();
 
-  if (productData.isDraft === true || productData.isDeleted === true || productData.isSuspended === true || productData.published === false) {
+  if (productData.isDraft !== false || productData.isDeleted === true || productData.isSuspended === true) {
     return { error: 'not-found', status: 404 };
   }
 
@@ -63,7 +72,8 @@ export default async function handler(req, res) {
     return res.status(status).json({ error });
   }
 
-  const canonicalUrl = `${KOB_DOMAIN}/product/${productId}`;
+  const baseUrl = getBaseUrl();
+  const canonicalUrl = `${baseUrl}/product/${productId}`;
   const imageUrl = getProductImage(product);
   const productPrice = product.price && !isNaN(product.price) ? `₦${Number(product.price).toLocaleString()}` : '';
   const description = product.description || `Buy ${product.title} on KOB Marketplace.`;

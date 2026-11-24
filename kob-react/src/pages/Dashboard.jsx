@@ -378,7 +378,7 @@ function SellerDashboard({ isEditModalOpen, setIsEditModalOpen }) {
       {
         isEditModalOpen && (
           <EditProfileModal
-            isOpen={isEditModalOpen}
+            show={isEditModalOpen}
             onClose={() => setIsEditModalOpen(false)}
           />
         )
