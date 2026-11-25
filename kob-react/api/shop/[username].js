@@ -1,7 +1,7 @@
 import { db } from '../_lib/firebase.js';
 import { injectMetaTags } from '../_lib/html.js';
 import { readFile } from 'fs/promises';
-import path from 'path';
+
 
 const PROD_DOMAIN = 'https://katsinaonlinebusiness.com.ng';
 const DEFAULT_IMAGE = 'https://res.cloudinary.com/dn5crslee/image/upload/v1700000000/kob-marketplace/desktop-screenshot.png';
@@ -96,7 +96,7 @@ export default async function handler(req, res) {
     };
 
     try {
-        const htmlPath = path.resolve(process.cwd(), 'dist/index.html');
+        const htmlPath = new URL('../../dist/index.html', import.meta.url);
         const baseHtml = await readFile(htmlPath, 'utf-8');
         const finalHtml = injectMetaTags(baseHtml, tags, canonicalUrl);
 
