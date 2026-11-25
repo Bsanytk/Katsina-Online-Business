@@ -7,26 +7,12 @@
   },
   "rewrites": [
     {
-      "source": "/shop/:username",
-      "has": [
-        {
-          "type": "header",
-          "key": "User-Agent",
-          "value": "(?i)(twitterbot|facebookexternalhit|whatsapp|pinterest|linkedinbot|discordbot)"
-        }
-      ],
-      "destination": "/api/shop/:username"
+      "source": "/product/:productId",
+      "destination": "/api/product/:productId"
     },
     {
-      "source": "/product/:productId",
-      "has": [
-        {
-          "type": "header",
-          "key": "User-Agent",
-          "value": "(?i)(twitterbot|facebookexternalhit|whatsapp|pinterest|linkedinbot|discordbot)"
-        }
-      ],
-      "destination": "/api/product/:productId"
+      "source": "/shop/:username",
+      "destination": "/api/shop/:username"
     },
     {
       "source": "/((?!api/|assets/|static/|favicon.ico|.*\\..*$).*)",
